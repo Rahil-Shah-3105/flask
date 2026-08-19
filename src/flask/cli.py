@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -42,17 +44,20 @@ def find_best_app(module: ModuleType) -> Flask:
     """Given a module instance this tries to find the best possible
     application in the module or raises an exception.
     """
+    logger.debug(">>> Entering find_best_app(module=%s)", module)
     from . import Flask
 
     # Search for the most common names first.
     for attr_name in ("app", "application"):
         app = getattr(module, attr_name, None)
+        logger.debug("find_best_app(module=%s): app → %s", module, app)
 
         if isinstance(app, Flask):
             return app
 
     # Otherwise find the only object that is a Flask instance.
     matches = [v for v in module.__dict__.values() if isinstance(v, Flask)]
+    logger.debug("find_best_app(module=%s): matches → %s", module, matches)
 
     if len(matches) == 1:
         return matches[0]
@@ -66,16 +71,21 @@ def find_best_app(module: ModuleType) -> Flask:
     # Search for app factory functions.
     for attr_name in ("create_app", "make_app"):
         app_factory = getattr(module, attr_name, None)
+        logger.debug("find_best_app(module=%s): app_factory → %s", module, app_factory)
 
         if inspect.isfunction(app_factory):
             try:
                 app = app_factory()
 
                 if isinstance(app, Flask):
+                    logger.debug("<<< Exiting find_best_app(module=%s)", module)
                     return app
             except TypeError as e:
+                logger.error("Exception in find_best_app(module=%s): %s", module, str(e), exc_info=True)
                 if not _called_with_wrong_args(app_factory):
                     raise
+                    logger.debug(">>> Entering _called_with_wrong_args(f=%s)", f)
+                    logger.debug("<<< Exiting _called_with_wrong_args(f=%s)", f)
 
                 raise NoAppException(
                     f"Detected factory '{attr_name}' in module '{module.__name__}',"
@@ -99,6 +109,7 @@ def _called_with_wrong_args(f: t.Callable[..., Flask]) -> bool:
     :param f: The function that was called.
     :return: ``True`` if the call failed.
     """
+    logger.debug(">>> Entering _called_with_wrong_args(f=%s)", f)
     tb = sys.exc_info()[2]
 
     try:
@@ -121,21 +132,27 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     """Check if the given string is a variable name or a function. Call
     a function to get the app instance, or return the variable directly.
     """
+    logger.debug(">>> Entering find_app_by_string(module=%s,app_name=%s)", module, app_name)
     from . import Flask
 
     # Parse app_name as a single expression to determine if it's a valid
     # attribute name or function call.
     try:
         expr = ast.parse(app_name.strip(), mode="eval").body
+        logger.debug("find_app_by_string(module=%s,app_name=%s): expr → %s", module, app_name, expr)
     except SyntaxError:
+        logger.error("Exception in find_app_by_string(module=%s,app_name=%s): %s", module, app_name, str(e), exc_info=True)
         raise NoAppException(
             f"Failed to parse {app_name!r} as an attribute name or function call."
         ) from None
 
     if isinstance(expr, ast.Name):
         name = expr.id
+        logger.debug("find_app_by_string(module=%s,app_name=%s): name → %s", module, app_name, name)
         args = []
+        logger.debug("find_app_by_string(module=%s,app_name=%s): args → %s", module, app_name, args)
         kwargs = {}
+        logger.debug("find_app_by_string(module=%s,app_name=%s): kwargs → %s", module, app_name, kwargs)
     elif isinstance(expr, ast.Call):
         # Ensure the function name is an attribute name only.
         if not isinstance(expr.func, ast.Name):
@@ -166,6 +183,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
 
     try:
         attr = getattr(module, name)
+        logger.debug("find_app_by_string(module=%s,app_name=%s): attr → %s", module, app_name, attr)
     except AttributeError as e:
         raise NoAppException(
             f"Failed to find attribute {name!r} in {module.__name__!r}."
@@ -176,6 +194,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     if inspect.isfunction(attr):
         try:
             app = attr(*args, **kwargs)
+            logger.debug("find_app_by_string(module=%s,app_name=%s): app → %s", module, app_name, app)
         except TypeError as e:
             if not _called_with_wrong_args(attr):
                 raise
@@ -189,6 +208,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
         app = attr
 
     if isinstance(app, Flask):
+        logger.debug("<<< Exiting find_app_by_string(module=%s,app_name=%s)", module, app_name)
         return app
 
     raise NoAppException(
@@ -201,7 +221,9 @@ def prepare_import(path: str) -> str:
     """Given a filename this will try to calculate the python path, add it
     to the search path and return the actual module name that is expected.
     """
+    logger.debug(">>> Entering prepare_import(path=%s)", path)
     path = os.path.realpath(path)
+    logger.debug("prepare_import(path=%s): path → %s", path, path)
 
     fname, ext = os.path.splitext(path)
     if ext == ".py":
@@ -211,6 +233,7 @@ def prepare_import(path: str) -> str:
         path = os.path.dirname(path)
 
     module_name = []
+    logger.debug("prepare_import(path=%s): module_name → %s", path, module_name)
 
     # move up until outside package structure (no __init__.py)
     while True:
@@ -223,6 +246,7 @@ def prepare_import(path: str) -> str:
     if sys.path[0] != path:
         sys.path.insert(0, path)
 
+    logger.debug("<<< Exiting prepare_import(path=%s)", path)
     return ".".join(module_name[::-1])
 
 
@@ -265,11 +289,16 @@ def locate_app(
 
 
 def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> None:
+    logger.debug(">>> Entering get_version(ctx=%s,param=%s,value=%s)", ctx, param, value)
     if not value or ctx.resilient_parsing:
+        logger.debug("<<< Exiting get_version(ctx=%s,param=%s,value=%s)", ctx, param, value)
         return
 
     flask_version = importlib.metadata.version("flask")
+    logger.debug("get_version(ctx=%s,param=%s,value=%s): flask_version → %s", ctx, param, value, flask_version)
+    logger.debug("get_version(ctx=%s,param=%s,value=%s): color → %s", ctx, param, value, color)
     werkzeug_version = importlib.metadata.version("werkzeug")
+    logger.debug("get_version(ctx=%s,param=%s,value=%s): werkzeug_version → %s", ctx, param, value, werkzeug_version)
 
     click.echo(
         f"Python {platform.python_version()}\n"
@@ -329,23 +358,27 @@ class ScriptInfo:
         """
 
         self._loaded_app: Flask | None = None
+        logger.debug("<<< Exiting __init__()")
 
     def load_app(self) -> Flask:
         """Loads the Flask app (if not yet loaded) and returns it.  Calling
         this multiple times will just result in the already loaded app to
         be returned.
         """
+        logger.debug(">>> Entering load_app()")
         if self._loaded_app is not None:
             return self._loaded_app
         app: Flask | None = None
         if self.create_app is not None:
             app = self.create_app()
+            logger.debug("load_app(self=%s): app → %s", self, app)
         else:
             if self.app_import_path:
                 path, name = (
                     re.split(r":(?![\\/])", self.app_import_path, maxsplit=1) + [None]
                 )[:2]
                 import_name = prepare_import(path)
+                logger.debug("load_app(self=%s): import_name → %s", self, import_name)
                 app = locate_app(import_name, name)
             else:
                 for path in ("wsgi.py", "app.py"):
@@ -369,6 +402,8 @@ class ScriptInfo:
             app.debug = get_debug_flag()
 
         self._loaded_app = app
+        logger.debug("load_app(self=%s): self._loaded_app → %s", self, self._loaded_app)
+        logger.debug("<<< Exiting load_app()")
         return app
 
 
@@ -390,13 +425,20 @@ def with_appcontext(f: F) -> F:
         decorated callback. The app context is always available to
         ``app.cli`` command and parameter callbacks.
     """
+    logger.debug(">>> Entering with_appcontext(f=%s)", f)
 
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        logger.debug(">>> Entering decorator(ctx=%s)", ctx)
         if not current_app:
             app = ctx.ensure_object(ScriptInfo).load_app()
+            logger.debug("decorator(ctx=%s): app → %s", ctx, app)
             ctx.with_resource(app.app_context())
 
+        logger.debug("<<< Exiting decorator(ctx=%s)", ctx)
+        logger.debug(">>> Entering decorator(f=%s)", f)
+        logger.debug("decorator(f=%s): f → %s", f, f)
+        logger.debug("<<< Exiting decorator(f=%s)", f)
         return ctx.invoke(f, *args, **kwargs)
 
     return update_wrapper(decorator, f)  # type: ignore[return-value]
@@ -438,11 +480,15 @@ class AppGroup(click.Group):
 
 
 def _set_app(ctx: click.Context, param: click.Option, value: str | None) -> str | None:
+    logger.debug(">>> Entering _set_app(ctx=%s,param=%s,value=%s)", ctx, param, value)
     if value is None:
         return None
 
     info = ctx.ensure_object(ScriptInfo)
+    logger.debug("_set_app(ctx=%s,param=%s,value=%s): info → %s", ctx, param, value, info)
     info.app_import_path = value
+    logger.debug("_set_app(ctx=%s,param=%s,value=%s): info.app_import_path → %s", ctx, param, value, info.app_import_path)
+    logger.debug("<<< Exiting _set_app(ctx=%s,param=%s,value=%s)", ctx, param, value)
     return value
 
 
@@ -466,9 +512,11 @@ _app_option = click.Option(
 
 
 def _set_debug(ctx: click.Context, param: click.Option, value: bool) -> bool | None:
+    logger.debug(">>> Entering _set_debug(ctx=%s,param=%s,value=%s)", ctx, param, value)
     # If the flag isn't provided, it will default to False. Don't use
     # that, let debug be set by env in that case.
     source = ctx.get_parameter_source(param.name)
+    logger.debug("_set_debug(ctx=%s,param=%s,value=%s): source → %s", ctx, param, value, source)
 
     if source is not None and source in (
         ParameterSource.DEFAULT,
@@ -479,6 +527,7 @@ def _set_debug(ctx: click.Context, param: click.Option, value: bool) -> bool | N
     # Set with env var instead of ScriptInfo.load so that it can be
     # accessed early during a factory function.
     os.environ["FLASK_DEBUG"] = "1" if value else "0"
+    logger.debug("<<< Exiting _set_debug(ctx=%s,param=%s,value=%s)", ctx, param, value)
     return value
 
 
@@ -596,17 +645,22 @@ class FlaskGroup(AppGroup):
             self.add_command(routes_command)
 
         self._loaded_plugin_commands = False
+        logger.debug(">>> Entering __init__()")
 
     def _load_plugin_commands(self) -> None:
+        logger.debug(">>> Entering _load_plugin_commands()")
         if self._loaded_plugin_commands:
+            logger.debug("<<< Exiting _load_plugin_commands()")
             return
 
         for ep in importlib.metadata.entry_points(group="flask.commands"):
             self.add_command(ep.load(), ep.name)
 
         self._loaded_plugin_commands = True
+        logger.debug("_load_plugin_commands(self=%s): self._loaded_plugin_commands → %s", self, self._loaded_plugin_commands)
 
     def get_command(self, ctx: click.Context, name: str) -> click.Command | None:
+        logger.debug(">>> Entering get_command(ctx=%s,name=%s)", ctx, name)
         self._load_plugin_commands()
         # Look up built-in and plugin commands, which should be
         # available even if the app fails to load.
@@ -616,12 +670,15 @@ class FlaskGroup(AppGroup):
             return rv
 
         info = ctx.ensure_object(ScriptInfo)
+        logger.debug("get_command(self=%s,ctx=%s,name=%s): info → %s", self, ctx, name, info)
 
         # Look up commands provided by the app, showing an error and
         # continuing if the app couldn't be loaded.
         try:
             app = info.load_app()
+            logger.debug("get_command(self=%s,ctx=%s,name=%s): app → %s", self, ctx, name, app)
         except NoAppException as e:
+            logger.error("Exception in get_command(ctx=%s,name=%s): %s", ctx, name, str(e), exc_info=True)
             click.secho(f"Error: {e.format_message()}\n", err=True, fg="red")
             return None
 
@@ -631,19 +688,25 @@ class FlaskGroup(AppGroup):
         if not current_app or current_app._get_current_object() is not app:
             ctx.with_resource(app.app_context())
 
+        logger.debug("<<< Exiting get_command(ctx=%s,name=%s)", ctx, name)
         return app.cli.get_command(ctx, name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
+        logger.debug(">>> Entering list_commands(ctx=%s)", ctx)
         self._load_plugin_commands()
         # Start with the built-in and plugin commands.
         rv = set(super().list_commands(ctx))
+        logger.debug("list_commands(ctx=%s): rv → %s", ctx, rv)
         info = ctx.ensure_object(ScriptInfo)
+        logger.debug("list_commands(self=%s,ctx=%s): info → %s", self, ctx, info)
+        logger.debug("list_commands(ctx=%s): info → %s", ctx, info)
 
         # Add commands provided by the app, showing an error and
         # continuing if the app couldn't be loaded.
         try:
             rv.update(info.load_app().cli.list_commands(ctx))
         except NoAppException as e:
+            logger.error("Exception in list_commands(ctx=%s): %s", ctx, str(e), exc_info=True)
             # When an app couldn't be loaded, show the error message
             # without the traceback.
             click.secho(f"Error: {e.format_message()}\n", err=True, fg="red")
@@ -652,6 +715,7 @@ class FlaskGroup(AppGroup):
             # full traceback.
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
+        logger.debug("<<< Exiting list_commands(ctx=%s)", ctx)
         return sorted(rv)
 
     def make_context(
@@ -676,6 +740,7 @@ class FlaskGroup(AppGroup):
         return super().make_context(info_name, args, parent=parent, **extra)
 
     def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        logger.debug(">>> Entering parse_args(ctx=%s,args=%s)", ctx, args)
         if (not args and self.no_args_is_help) or (
             len(args) == 1 and args[0] in self.get_help_option_names(ctx)
         ):
@@ -685,6 +750,7 @@ class FlaskGroup(AppGroup):
             _env_file_option.handle_parse_result(ctx, {}, [])
             _app_option.handle_parse_result(ctx, {}, [])
 
+        logger.debug("<<< Exiting parse_args(ctx=%s,args=%s)", ctx, args)
         return super().parse_args(ctx, args)
 
 
@@ -692,6 +758,8 @@ def _path_is_ancestor(path: str, other: str) -> bool:
     """Take ``other`` and remove the length of ``path`` from it. Then join it
     to ``path``. If it is the original value, ``path`` is an ancestor of
     ``other``."""
+    logger.debug(">>> Entering _path_is_ancestor(path=%s,other=%s)", path, other)
+    logger.debug("<<< Exiting _path_is_ancestor(path=%s,other=%s)", path, other)
     return os.path.join(path, other[len(path) :].lstrip(os.sep)) == other
 
 
@@ -767,7 +835,9 @@ def show_server_banner(debug: bool, app_import_path: str | None) -> None:
     """Show extra startup messages the first time the server is run,
     ignoring the reloader.
     """
+    logger.debug(">>> Entering show_server_banner(debug=%s,app_import_path=%s)", debug, app_import_path)
     if is_running_from_reloader():
+        logger.debug("<<< Exiting show_server_banner(debug=%s,app_import_path=%s)", debug, app_import_path)
         return
 
     if app_import_path is not None:
@@ -787,6 +857,7 @@ class CertParamType(click.ParamType):  # type: ignore[type-arg]
 
     def __init__(self) -> None:
         self.path_type = click.Path(exists=True, dir_okay=False, resolve_path=True)
+        logger.debug("__init__(): self.path_type → %s", self.path_type)
 
     def convert(
         self, value: t.Any, param: click.Parameter | None, ctx: click.Context | None
@@ -829,13 +900,18 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
     """The ``--key`` option must be specified when ``--cert`` is a file.
     Modifies the ``cert`` param to be a ``(cert, key)`` pair if needed.
     """
+    logger.debug(">>> Entering _validate_key(ctx=%s,param=%s,value=%s)", ctx, param, value)
     cert = ctx.params.get("cert")
+    logger.debug("_validate_key(ctx=%s,param=%s,value=%s): cert → %s", ctx, param, value, cert)
     is_adhoc = cert == "adhoc"
+    logger.debug("_validate_key(ctx=%s,param=%s,value=%s): is_adhoc → %s", ctx, param, value, is_adhoc)
 
     try:
         import ssl
     except ImportError:
+        logger.error("Exception in _validate_key(ctx=%s,param=%s,value=%s)", ctx, param, value, exc_info=True)
         is_context = False
+        logger.debug("_validate_key(ctx=%s,param=%s,value=%s): is_context → %s", ctx, param, value, is_context)
     else:
         is_context = isinstance(cert, ssl.SSLContext)
 
@@ -861,6 +937,7 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
         if cert and not (is_adhoc or is_context):
             raise click.BadParameter('Required when using "--cert".', ctx, param)
 
+    logger.debug("<<< Exiting _validate_key(ctx=%s,param=%s,value=%s)", ctx, param, value)
     return value
 
 
@@ -1006,6 +1083,7 @@ def shell_command() -> None:
     This is useful for executing small snippets of management code
     without having to manually configure the application.
     """
+    logger.debug(">>> Entering shell_command()")
     import code
 
     banner = (
@@ -1018,8 +1096,10 @@ def shell_command() -> None:
     # Support the regular Python interpreter startup script if someone
     # is using it.
     startup = os.environ.get("PYTHONSTARTUP")
+    logger.debug("shell_command(): startup → %s", startup)
     if startup and os.path.isfile(startup):
         with open(startup) as f:
+            logger.error("Exception in shell_command()", exc_info=True)
             eval(compile(f.read(), startup, "exec"), ctx)
 
     ctx.update(current_app.make_shell_context())
@@ -1028,6 +1108,7 @@ def shell_command() -> None:
     # entering interactive mode. The default one sets up readline with
     # tab and history completion.
     interactive_hook = getattr(sys, "__interactivehook__", None)
+    logger.debug("shell_command(): interactive_hook → %s", interactive_hook)
 
     if interactive_hook is not None:
         try:
@@ -1039,10 +1120,12 @@ def shell_command() -> None:
             # rlcompleter uses __main__.__dict__ by default, which is
             # flask.__main__. Use the shell context instead.
             readline.set_completer(Completer(ctx).complete)
+            logger.debug("shell_command(): readline → %s", readline)
 
         interactive_hook()
 
     code.interact(banner=banner, local=ctx)
+    logger.debug("<<< Exiting shell_command()")
 
 
 @click.command("routes", short_help="Show the routes for the app.")
@@ -1060,16 +1143,23 @@ def shell_command() -> None:
 @with_appcontext
 def routes_command(sort: str, all_methods: bool) -> None:
     """Show all registered routes with endpoints and methods."""
+    logger.debug(">>> Entering routes_command(sort=%s,all_methods=%s)", sort, all_methods)
     rules = list(current_app.url_map.iter_rules())
+    logger.debug("routes_command(sort=%s,all_methods=%s): rules → %s", sort, all_methods, rules)
 
     if not rules:
         click.echo("No routes were registered.")
+        logger.debug("<<< Exiting routes_command(sort=%s,all_methods=%s)", sort, all_methods)
         return
 
     ignored_methods = set() if all_methods else {"HEAD", "OPTIONS"}
+    logger.debug("routes_command(sort=%s,all_methods=%s): ignored_methods → %s", sort, all_methods, ignored_methods)
     host_matching = current_app.url_map.host_matching
+    logger.debug("routes_command(sort=%s,all_methods=%s): host_matching → %s", sort, all_methods, host_matching)
     has_domain = any(rule.host if host_matching else rule.subdomain for rule in rules)
+    logger.debug("routes_command(sort=%s,all_methods=%s): has_domain → %s", sort, all_methods, has_domain)
     rows = []
+    logger.debug("routes_command(sort=%s,all_methods=%s): rows → %s", sort, all_methods, rows)
 
     for rule in rules:
         row = [
@@ -1084,7 +1174,9 @@ def routes_command(sort: str, all_methods: bool) -> None:
         rows.append(row)
 
     headers = ["Endpoint", "Methods"]
+    logger.debug("routes_command(sort=%s,all_methods=%s): headers → %s", sort, all_methods, headers)
     sorts = ["endpoint", "methods"]
+    logger.debug("routes_command(sort=%s,all_methods=%s): sorts → %s", sort, all_methods, sorts)
 
     if has_domain:
         headers.append("Host" if host_matching else "Subdomain")
@@ -1096,12 +1188,15 @@ def routes_command(sort: str, all_methods: bool) -> None:
     try:
         rows.sort(key=itemgetter(sorts.index(sort)))
     except ValueError:
+        logger.error("Exception in routes_command(sort=%s,all_methods=%s)", sort, all_methods, exc_info=True)
         pass
 
     rows.insert(0, headers)
     widths = [max(len(row[i]) for row in rows) for i in range(len(headers))]
+    logger.debug("routes_command(sort=%s,all_methods=%s): widths → %s", sort, all_methods, widths)
     rows.insert(1, ["-" * w for w in widths])
     template = "  ".join(f"{{{i}:<{w}}}" for i, w in enumerate(widths))
+    logger.debug("routes_command(sort=%s,all_methods=%s): template → %s", sort, all_methods, template)
 
     for row in rows:
         click.echo(template.format(*row))
@@ -1120,7 +1215,9 @@ in the current directory.
 
 
 def main() -> None:
+    logger.debug(">>> Entering main()")
     cli.main()
+    logger.debug("<<< Exiting main()")
 
 
 if __name__ == "__main__":
