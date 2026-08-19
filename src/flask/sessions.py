@@ -19,6 +19,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .app import Flask
     from .wrappers import Request
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class SessionMixin(MutableMapping[str, t.Any]):
@@ -27,8 +29,12 @@ class SessionMixin(MutableMapping[str, t.Any]):
     @property
     def permanent(self) -> bool:
         """This reflects the ``'_permanent'`` key in the dict."""
+        logger.debug(">>> Entering permanent()")
+        logger.debug("<<< Exiting permanent()")
         return self.get("_permanent", False)  # type: ignore[no-any-return]
 
+    logger.debug(">>> Entering permanent(value=%s)", value)
+    logger.debug("<<< Exiting permanent(value=%s)", value)
     @permanent.setter
     def permanent(self, value: bool) -> None:
         self["_permanent"] = bool(value)
@@ -75,9 +81,13 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
         initial: c.Mapping[str, t.Any] | None = None,
     ) -> None:
         def on_update(self: te.Self) -> None:
+            logger.debug(">>> Entering on_update()")
             self.modified = True
+            logger.debug("on_update(self=%s): self.modified → %s", self, self.modified)
+            logger.debug("<<< Exiting on_update()")
 
         super().__init__(initial, on_update)
+
 
 
 class NullSession(SecureCookieSession):
@@ -87,11 +97,13 @@ class NullSession(SecureCookieSession):
     """
 
     def _fail(self, *args: t.Any, **kwargs: t.Any) -> t.NoReturn:
+        logger.debug(">>> Entering _fail()")
         raise RuntimeError(
             "The session is unavailable because no secret "
             "key was set.  Set the secret_key on the "
             "application to something unique and secret."
         )
+        logger.debug("<<< Exiting _fail()")
 
     __setitem__ = __delitem__ = clear = pop = popitem = update = setdefault = _fail
     del _fail
@@ -157,6 +169,8 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
+        logger.debug(">>> Entering make_null_session(app=%s)", app)
+        logger.debug("<<< Exiting make_null_session(app=%s)", app)
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
@@ -166,10 +180,14 @@ class SessionInterface:
         This checks if the object is an instance of :attr:`null_session_class`
         by default.
         """
+        logger.debug(">>> Entering is_null_session(obj=%s)", obj)
+        logger.debug("<<< Exiting is_null_session(obj=%s)", obj)
         return isinstance(obj, self.null_session_class)
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.debug(">>> Entering get_cookie_name(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_name(app=%s)", app)
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +200,8 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.debug(">>> Entering get_cookie_domain(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_domain(app=%s)", app)
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +210,8 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.debug(">>> Entering get_cookie_path(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_path(app=%s)", app)
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +219,16 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.debug(">>> Entering get_cookie_httponly(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_httponly(app=%s)", app)
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.debug(">>> Entering get_cookie_secure(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_secure(app=%s)", app)
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +236,8 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.debug(">>> Entering get_cookie_samesite(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_samesite(app=%s)", app)
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +246,8 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.debug(">>> Entering get_cookie_partitioned(app=%s)", app)
+        logger.debug("<<< Exiting get_cookie_partitioned(app=%s)", app)
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -226,8 +256,10 @@ class SessionInterface:
         default implementation returns now + the permanent session
         lifetime configured on the application.
         """
+        logger.debug(">>> Entering get_expiration_time(app=%s,session=%s)", app, session)
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
+        logger.debug("<<< Exiting get_expiration_time(app=%s,session=%s)", app, session)
         return None
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
@@ -241,7 +273,9 @@ class SessionInterface:
 
         .. versionadded:: 0.11
         """
+        logger.debug(">>> Entering should_set_cookie(app=%s,session=%s)", app, session)
 
+        logger.debug("<<< Exiting should_set_cookie(app=%s,session=%s)", app, session)
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
         )
@@ -258,6 +292,8 @@ class SessionInterface:
         context will fall back to using :meth:`make_null_session`
         in this case.
         """
+        logger.debug(">>> Entering open_session(app=%s,request=%s)", app, request)
+        logger.debug("<<< Exiting open_session(app=%s,request=%s)", app, request)
         raise NotImplementedError()
 
     def save_session(
@@ -278,6 +314,8 @@ def _lazy_sha1(string: bytes = b"") -> t.Any:
     SHA-1, in which case the import and use as a default would fail before the
     developer can configure something else.
     """
+    logger.debug(">>> Entering _lazy_sha1(string=%s)", string)
+    logger.debug("<<< Exiting _lazy_sha1(string=%s)", string)
     return hashlib.sha1(string)
 
 
@@ -301,15 +339,20 @@ class SecureCookieSessionInterface(SessionInterface):
     session_class = SecureCookieSession
 
     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:
+        logger.debug(">>> Entering get_signing_serializer(app=%s)", app)
         if not app.secret_key:
             return None
 
         keys: list[str | bytes] = []
 
         if fallbacks := app.config["SECRET_KEY_FALLBACKS"]:
+            logger.debug("get_signing_serializer(self=%s,app=%s): signer_kwargs → %s", self, app, signer_kwargs)
+            logger.debug("get_signing_serializer(self=%s,app=%s): serializer → %s", self, app, serializer)
+            logger.debug("get_signing_serializer(self=%s,app=%s): salt → %s", self, app, salt)
             keys.extend(fallbacks)
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
+        logger.debug("<<< Exiting get_signing_serializer(app=%s)", app)
         return URLSafeTimedSerializer(
             keys,  # type: ignore[arg-type]
             salt=self.salt,

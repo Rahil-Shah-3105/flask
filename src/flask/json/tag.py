@@ -24,6 +24,8 @@ be processed before ``dict``.
 .. code-block:: python
 
     from flask.json.tag import JSONTag
+    import logging
+logger = logging.getLogger(app.name)
 
     class TagOrderedDict(JSONTag):
         __slots__ = ('serializer',)
@@ -36,6 +38,8 @@ be processed before ``dict``.
             return [[k, self.serializer.tag(v)] for k, v in iteritems(value)]
 
         def to_python(self, value):
+            logger.debug(">>> Entering to_python(value=%s)", value)
+            logger.debug("<<< Exiting to_python(value=%s)", value)
             return OrderedDict(value)
 
     app.session_interface.serializer.register(TagOrderedDict, index=0)
@@ -68,10 +72,17 @@ class JSONTag:
 
     def __init__(self, serializer: TaggedJSONSerializer) -> None:
         """Create a tagger for the given serializer."""
+        logger.debug(">>> Entering __init__(serializer=%s)", serializer)
         self.serializer = serializer
+        logger.debug("__init__(self=%s,serializer=%s): self.serializer → %s", self, serializer, self.serializer)
+        logger.debug("<<< Exiting __init__(serializer=%s)", serializer)
+        logger.debug(">>> Entering __init__()")
+        logger.debug("<<< Exiting __init__()")
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.debug(">>> Entering check(value=%s)", value)
+        logger.debug("<<< Exiting check(value=%s)", value)
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -82,11 +93,14 @@ class JSONTag:
     def to_python(self, value: t.Any) -> t.Any:
         """Convert the JSON representation back to the correct type. The tag
         will already be removed."""
+        logger.debug(">>> Entering to_python(value=%s)", value)
         raise NotImplementedError
 
     def tag(self, value: t.Any) -> dict[str, t.Any]:
         """Convert the value to a valid JSON type and add the tag structure
         around it."""
+        logger.debug(">>> Entering tag(value=%s)", value)
+        logger.debug("<<< Exiting tag(value=%s)", value)
         return {self.key: self.to_json(value)}
 
 
@@ -109,6 +123,8 @@ class TagDict(JSONTag):
 
     def to_json(self, value: t.Any) -> t.Any:
         key = next(iter(value))
+        logger.debug(">>> Entering to_json(value=%s)", value)
+        logger.debug("<<< Exiting to_json(value=%s)", value)
         return {f"{key}__": self.serializer.tag(value[key])}
 
     def to_python(self, value: t.Any) -> t.Any:
@@ -296,32 +312,42 @@ class TaggedJSONSerializer:
 
     def untag(self, value: dict[str, t.Any]) -> t.Any:
         """Convert a tagged representation back to the original type."""
+        logger.debug(">>> Entering untag(value=%s)", value)
         if len(value) != 1:
             return value
 
         key = next(iter(value))
+        logger.warning("untag(self=%s,value=%s): key → %s", self, value, key)
 
         if key not in self.tags:
             return value
 
+        logger.debug("<<< Exiting untag(value=%s)", value)
         return self.tags[key].to_python(value[key])
 
     def _untag_scan(self, value: t.Any) -> t.Any:
+        logger.debug(">>> Entering _untag_scan(value=%s)", value)
         if isinstance(value, dict):
             # untag each item recursively
             value = {k: self._untag_scan(v) for k, v in value.items()}
+            logger.debug("_untag_scan(value=%s): value → %s", value, value)
             # untag the dict itself
             value = self.untag(value)
         elif isinstance(value, list):
             # untag each item recursively
             value = [self._untag_scan(item) for item in value]
 
+        logger.debug("<<< Exiting _untag_scan(value=%s)", value)
         return value
 
     def dumps(self, value: t.Any) -> str:
         """Tag the value and dump it to a compact JSON string."""
+        logger.debug(">>> Entering dumps(value=%s)", value)
+        logger.debug("<<< Exiting dumps(value=%s)", value)
         return dumps(self.tag(value), separators=(",", ":"))
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.debug(">>> Entering loads(value=%s)", value)
+        logger.debug("<<< Exiting loads(value=%s)", value)
         return self._untag_scan(loads(value))

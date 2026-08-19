@@ -8,6 +8,8 @@ from .provider import _default
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def dumps(obj: t.Any, **kwargs: t.Any) -> str:
@@ -37,10 +39,13 @@ def dumps(obj: t.Any, **kwargs: t.Any) -> str:
         ``app`` can be passed directly, rather than requiring an app
         context for configuration.
     """
+    logger.debug(">>> Entering dumps(obj=%s)", obj)
     if current_app:
         return current_app.json.dumps(obj, **kwargs)
 
     kwargs.setdefault("default", _default)
+    logger.debug("dumps(obj=%s): kwargs → %s", obj, kwargs)
+    logger.debug("<<< Exiting dumps(obj=%s)", obj)
     return _json.dumps(obj, **kwargs)
 
 
@@ -67,11 +72,14 @@ def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
         Writing to a binary file, and the ``encoding`` argument, will be
         removed in Flask 2.1.
     """
+    logger.debug(">>> Entering dump(obj=%s,fp=%s)", obj, fp)
     if current_app:
         current_app.json.dump(obj, fp, **kwargs)
     else:
         kwargs.setdefault("default", _default)
+        logger.debug("dump(obj=%s,fp=%s): kwargs → %s", obj, fp, kwargs)
         _json.dump(obj, fp, **kwargs)
+        logger.debug("<<< Exiting dump(obj=%s,fp=%s)", obj, fp)
 
 
 def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
@@ -99,9 +107,11 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
         ``app`` can be passed directly, rather than requiring an app
         context for configuration.
     """
+    logger.debug(">>> Entering loads(s=%s)", s)
     if current_app:
         return current_app.json.loads(s, **kwargs)
 
+    logger.debug("<<< Exiting loads(s=%s)", s)
     return _json.loads(s, **kwargs)
 
 
@@ -129,9 +139,11 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
         ``encoding`` will be removed in Flask 2.1. The file must be text
         mode, or binary mode with UTF-8 bytes.
     """
+    logger.debug(">>> Entering load(fp=%s)", fp)
     if current_app:
         return current_app.json.load(fp, **kwargs)
 
+    logger.debug("<<< Exiting load(fp=%s)", fp)
     return _json.load(fp, **kwargs)
 
 
@@ -167,4 +179,6 @@ def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
 
     .. versionadded:: 0.2
     """
+    logger.debug(">>> Entering jsonify()")
+    logger.debug("<<< Exiting jsonify()")
     return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]

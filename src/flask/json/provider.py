@@ -14,6 +14,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
 
     from ..sansio.app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONProvider:
@@ -36,7 +38,9 @@ class JSONProvider:
     """
 
     def __init__(self, app: App) -> None:
+        logger.debug(">>> Entering __init__(app=%s)", app)
         self._app: App = weakref.proxy(app)
+        logger.debug("<<< Exiting __init__(app=%s)", app)
 
     def dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
         """Serialize data as JSON.
@@ -44,6 +48,9 @@ class JSONProvider:
         :param obj: The data to serialize.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.debug(">>> Entering dumps(obj=%s)", obj)
+        logger.debug("dumps(self=%s,obj=%s): kwargs → %s", self, obj, kwargs)
+        logger.debug("<<< Exiting dumps(obj=%s)", obj)
         raise NotImplementedError
 
     def dump(self, obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
@@ -54,7 +61,9 @@ class JSONProvider:
             encoding to be valid JSON.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.debug(">>> Entering dump(obj=%s,fp=%s)", obj, fp)
         fp.write(self.dumps(obj, **kwargs))
+        logger.debug("<<< Exiting dump(obj=%s,fp=%s)", obj, fp)
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
         """Deserialize data as JSON.
@@ -62,6 +71,8 @@ class JSONProvider:
         :param s: Text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.debug(">>> Entering loads(s=%s)", s)
+        logger.debug("<<< Exiting loads(s=%s)", s)
         raise NotImplementedError
 
     def load(self, fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
@@ -70,6 +81,8 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.debug(">>> Entering load(fp=%s)", fp)
+        logger.debug("<<< Exiting load(fp=%s)", fp)
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(
@@ -102,10 +115,17 @@ class JSONProvider:
         :param kwargs: Treat as a dict to serialize.
         """
         obj = self._prepare_response_obj(args, kwargs)
+        logger.debug(">>> Entering response()")
+        logger.debug("response(): obj → %s", obj)
+        logger.debug("response(self=%s): obj → %s", self, obj)
+        logger.debug("response(): dump_args → %s", dump_args)
+        logger.debug("response(self=%s): dump_args → %s", self, dump_args)
+        logger.debug("<<< Exiting response()")
         return self._app.response_class(self.dumps(obj), mimetype="application/json")
 
 
 def _default(o: t.Any) -> t.Any:
+    logger.debug(">>> Entering _default(o=%s)", o)
     if isinstance(o, date):
         return http_date(o)
 
@@ -116,6 +136,7 @@ def _default(o: t.Any) -> t.Any:
         return dataclasses.asdict(o)  # type: ignore[arg-type]
 
     if hasattr(o, "__html__"):
+        logger.debug("<<< Exiting _default(o=%s)", o)
         return str(o.__html__())
 
     raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")

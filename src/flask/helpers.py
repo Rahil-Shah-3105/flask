@@ -23,6 +23,8 @@ from .signals import message_flashed
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def get_debug_flag() -> bool:
@@ -40,11 +42,14 @@ def get_load_dotenv(default: bool = True) -> bool:
 
     :param default: What to return if the env var isn't set.
     """
+    logger.debug(">>> Entering get_load_dotenv(default=%s)", default)
     val = os.environ.get("FLASK_SKIP_DOTENV")
+    logger.debug("get_load_dotenv(default=%s): val → %s", default, val)
 
     if not val:
         return default
 
+    logger.debug("<<< Exiting get_load_dotenv(default=%s)", default)
     return val.lower() in ("0", "false", "no")
 
 
@@ -118,12 +123,16 @@ def stream_with_context(
     except TypeError:
 
         def decorator(*args: t.Any, **kwargs: t.Any) -> t.Any:
+            logger.debug(">>> Entering decorator()")
             gen = generator_or_function(*args, **kwargs)  # type: ignore[operator]
+            logger.debug("decorator(): gen → %s", gen)
+            logger.debug("<<< Exiting decorator()")
             return stream_with_context(gen)
 
         return update_wrapper(decorator, generator_or_function)  # type: ignore[arg-type]
 
     def generator() -> t.Iterator[t.AnyStr]:
+        logger.debug(">>> Entering generator()")
         if (ctx := _cv_app.get(None)) is None:
             raise RuntimeError(
                 "'stream_with_context' can only be used when a request"
@@ -131,6 +140,7 @@ def stream_with_context(
             )
 
         with ctx:
+            logger.error("Exception in generator()", exc_info=True)
             yield None  # type: ignore[misc]
 
             try:
@@ -139,6 +149,7 @@ def stream_with_context(
                 # Clean up in case the user wrapped a WSGI iterator.
                 if hasattr(gen, "close"):
                     gen.close()
+                    logger.debug("<<< Exiting generator()")
 
     # Execute the generator to the sentinel value. This captures the current
     # context and pushes it to preserve it. Further iteration will yield from
@@ -295,10 +306,12 @@ def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn
         Calls ``current_app.aborter`` if available instead of always
         using Werkzeug's default ``abort``.
     """
+    logger.debug(">>> Entering abort(code=%s)", code)
     if (ctx := _cv_app.get(None)) is not None:
         ctx.app.aborter(code, *args, **kwargs)
 
     _wz_abort(code, *args, **kwargs)
+    logger.debug("<<< Exiting abort(code=%s)", code)
 
 
 def get_template_attribute(template_name: str, attribute: str) -> t.Any:
@@ -338,23 +351,30 @@ def flash(message: str, category: str = "message") -> None:
                      messages and ``'warning'`` for warnings.  However any
                      kind of string can be used as category.
     """
+    logger.debug(">>> Entering flash(message=%s,category=%s)", message, category)
     # Original implementation:
     #
     #     session.setdefault('_flashes', []).append((category, message))
+    logger.debug("flash(message=%s,category=%s): session → %s", message, category, session)
     #
     # This assumed that changes made to mutable structures in the session are
+    logger.info("flash(message,category)=%s,%s: find operation took %s ms", message, category, int((time.time() - __log_start) * 1000))
     # always in sync with the session object, which is not true for session
     # implementations that use external storage for keeping their keys/values.
     flashes = session.get("_flashes", [])
+    logger.debug("flash(message=%s,category=%s): flashes → %s", message, category, flashes)
+    logger.debug("flash(message=%s,category=%s): _async_wrapper → %s", message, category, _async_wrapper)
     flashes.append((category, message))
     session["_flashes"] = flashes
     app = current_app._get_current_object()
+    logger.debug("flash(message=%s,category=%s): app → %s", message, category, app)
     message_flashed.send(
         app,
         _async_wrapper=app.ensure_sync,
         message=message,
         category=category,
     )
+    logger.debug("<<< Exiting flash(message=%s,category=%s)", message, category)
 
 
 def get_flashed_messages(
@@ -400,10 +420,14 @@ def get_flashed_messages(
 
 
 def _prepare_send_file_kwargs(**kwargs: t.Any) -> dict[str, t.Any]:
+    logger.debug(">>> Entering _prepare_send_file_kwargs()")
     ctx = app_ctx._get_current_object()
+    logger.debug("_prepare_send_file_kwargs(): ctx → %s", ctx)
 
     if kwargs.get("max_age") is None:
         kwargs["max_age"] = ctx.app.get_send_file_max_age
+        logger.debug("_prepare_send_file_kwargs(): use_x_sendfile → %s", use_x_sendfile)
+        logger.debug("_prepare_send_file_kwargs(): environ → %s", environ)
 
     kwargs.update(
         environ=ctx.request.environ,
@@ -411,6 +435,9 @@ def _prepare_send_file_kwargs(**kwargs: t.Any) -> dict[str, t.Any]:
         response_class=ctx.app.response_class,
         _root_path=ctx.app.root_path,
     )
+    logger.debug("_prepare_send_file_kwargs(): _root_path → %s", _root_path)
+    logger.debug("_prepare_send_file_kwargs(): response_class → %s", response_class)
+    logger.debug("<<< Exiting _prepare_send_file_kwargs()")
     return kwargs
 
 
@@ -593,8 +620,10 @@ def get_root_path(import_name: str) -> str:
 
     :meta private:
     """
+    logger.debug(">>> Entering get_root_path(import_name=%s)", import_name)
     # Module already imported and has a file attribute. Use that first.
     mod = sys.modules.get(import_name)
+    logger.debug("get_root_path(import_name=%s): mod → %s", import_name, mod)
 
     if mod is not None and hasattr(mod, "__file__") and mod.__file__ is not None:
         return os.path.dirname(os.path.abspath(mod.__file__))
@@ -602,11 +631,14 @@ def get_root_path(import_name: str) -> str:
     # Next attempt: check the loader.
     try:
         spec = importlib.util.find_spec(import_name)
+        logger.debug("get_root_path(import_name=%s): spec → %s", import_name, spec)
 
         if spec is None:
             raise ValueError
     except (ImportError, ValueError):
+        logger.error("Exception in get_root_path(import_name=%s)", import_name, exc_info=True)
         loader = None
+        logger.debug("get_root_path(import_name=%s): loader → %s", import_name, loader)
     else:
         loader = spec.loader
 
@@ -618,6 +650,7 @@ def get_root_path(import_name: str) -> str:
 
     if hasattr(loader, "get_filename"):
         filepath = loader.get_filename(import_name)  # pyright: ignore
+        logger.debug("get_root_path(import_name=%s): filepath → %s", import_name, filepath)
     else:
         # Fall back to imports.
         __import__(import_name)
@@ -638,16 +671,19 @@ def get_root_path(import_name: str) -> str:
             )
 
     # filepath is import_name.py for a module, or __init__.py for a package.
+    logger.debug("<<< Exiting get_root_path(import_name=%s)", import_name)
     return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
 
 
 @cache
 def _split_blueprint_path(name: str) -> list[str]:
+    logger.debug(">>> Entering _split_blueprint_path(name=%s)", name)
     out: list[str] = [name]
 
     if "." in name:
         out.extend(_split_blueprint_path(name.rpartition(".")[0]))
 
+    logger.debug("<<< Exiting _split_blueprint_path(name=%s)", name)
     return out
 
 
@@ -657,10 +693,14 @@ class _CollectErrors:
     """
 
     def __init__(self) -> None:
+        logger.debug(">>> Entering __init__()")
         self.errors: list[BaseException] = []
+        logger.debug("<<< Exiting __init__()")
 
     def __enter__(self) -> None:
+        logger.debug(">>> Entering __enter__()")
         pass
+        logger.debug("<<< Exiting __enter__()")
 
     def __exit__(
         self,
@@ -675,8 +715,10 @@ class _CollectErrors:
 
     def raise_any(self, message: str) -> None:
         """Raise if any errors were collected."""
+        logger.debug(">>> Entering raise_any(message=%s)", message)
         if self.errors:
             if sys.version_info >= (3, 11):
                 raise BaseExceptionGroup(message, self.errors)  # noqa: F821
             else:
+                logger.debug("<<< Exiting raise_any(message=%s)", message)
                 raise self.errors[0]
