@@ -12,6 +12,8 @@ from .sansio.app import App
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class UnexpectedUnicodeError(AssertionError, UnicodeError):
@@ -26,7 +28,9 @@ class DebugFilesKeyError(KeyError, AssertionError):
     """
 
     def __init__(self, request: Request, key: str) -> None:
+        logger.debug(">>> Entering __init__(request=%s,key=%s)", request, key)
         form_matches = request.form.getlist(key)
+        logger.debug("__init__(self=%s,request=%s,key=%s): form_matches → %s", self, request, key, form_matches)
         buf = [
             f"You tried to access the file {key!r} in the request.files"
             " dictionary but it does not exist. The mimetype for the"
@@ -35,15 +39,27 @@ class DebugFilesKeyError(KeyError, AssertionError):
             " were transmitted. To fix this error you should provide"
             ' enctype="multipart/form-data" in your form.'
         ]
+        logger.debug("__init__(request=%s,key=%s): form_matches → %s", request, key, form_matches)
+        logger.debug("__init__(self=%s,request=%s,key=%s): buf → %s", self, request, key, buf)
+        logger.debug("__init__(self=%s,request=%s,key=%s): names → %s", self, request, key, names)
         if form_matches:
             names = ", ".join(repr(x) for x in form_matches)
             buf.append(
                 "\n\nThe browser instead transmitted some file names. "
                 f"This was submitted: {names}"
             )
+            logger.debug("__init__(request=%s,key=%s): names → %s", request, key, names)
         self.msg = "".join(buf)
+        logger.debug("__init__(request=%s,key=%s): self.msg → %s", request, key, self.msg)
+        logger.debug("<<< Exiting __init__(request=%s,key=%s)", request, key)
+        logger.debug(">>> Entering __init__(request=%s)", request)
+        logger.debug("__init__(self=%s,request=%s): exc → %s", self, request, exc)
+        logger.debug("__init__(self=%s,request=%s): buf → %s", self, request, buf)
+        logger.debug("<<< Exiting __init__(request=%s)", request)
 
     def __str__(self) -> str:
+        logger.debug(">>> Entering __str__()")
+        logger.debug("<<< Exiting __str__()")
         return self.msg
 
 
@@ -85,13 +101,20 @@ def attach_enctype_error_multidict(request: Request) -> None:
     :param request: The request to patch.
     :meta private:
     """
+    logger.debug(">>> Entering attach_enctype_error_multidict(request=%s)", request)
     oldcls = request.files.__class__
+    logger.debug("attach_enctype_error_multidict(request=%s): oldcls → %s", request, oldcls)
 
+    logger.error("Exception in attach_enctype_error_multidict(request=%s)", request, exc_info=True)
     class newcls(oldcls):  # type: ignore[valid-type, misc]
+        logger.debug("<<< Exiting attach_enctype_error_multidict(request=%s)", request)
         def __getitem__(self, key: str) -> t.Any:
+            logger.debug(">>> Entering __getitem__(key=%s)", key)
             try:
+                logger.debug("<<< Exiting __getitem__(key=%s)", key)
                 return super().__getitem__(key)
             except KeyError as e:
+                logger.error("Exception in __getitem__(key=%s): %s", key, str(e), exc_info=True)
                 if key not in request.form:
                     raise
 
@@ -105,6 +128,7 @@ def attach_enctype_error_multidict(request: Request) -> None:
 
 
 def _dump_loader_info(loader: BaseLoader) -> t.Iterator[str]:
+    logger.debug(">>> Entering _dump_loader_info(loader=%s)", loader)
     yield f"class: {type(loader).__module__}.{type(loader).__name__}"
     for key, value in sorted(loader.__dict__.items()):
         if key.startswith("_"):
@@ -119,6 +143,7 @@ def _dump_loader_info(loader: BaseLoader) -> t.Iterator[str]:
         elif not isinstance(value, (str, int, float, bool)):
             continue
         yield f"{key}: {value!r}"
+        logger.debug("<<< Exiting _dump_loader_info(loader=%s)", loader)
 
 
 def explain_template_loading_attempts(

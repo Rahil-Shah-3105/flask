@@ -12,6 +12,8 @@ if t.TYPE_CHECKING:
     import typing_extensions as te
 
     from .sansio.app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 
 T = t.TypeVar("T")
@@ -33,6 +35,7 @@ class ConfigAttribute(t.Generic[T]):
     def __get__(self, obj: App, owner: type[App]) -> T: ...
 
     def __get__(self, obj: App | None, owner: type[App] | None = None) -> T | te.Self:
+        logger.debug(">>> Entering __get__(obj=%s,owner=%s)", obj, owner)
         if obj is None:
             return self
 
@@ -41,10 +44,13 @@ class ConfigAttribute(t.Generic[T]):
         if self.get_converter is not None:
             rv = self.get_converter(rv)
 
+        logger.debug("<<< Exiting __get__(obj=%s,owner=%s)", obj, owner)
         return rv  # type: ignore[no-any-return]
 
     def __set__(self, obj: App, value: t.Any) -> None:
+        logger.debug(">>> Entering __set__(obj=%s,value=%s)", obj, value)
         obj.config[self.__name__] = value
+        logger.debug("<<< Exiting __set__(obj=%s,value=%s)", obj, value)
 
 
 class Config(dict):  # type: ignore[type-arg]
@@ -111,7 +117,9 @@ class Config(dict):  # type: ignore[type-arg]
                        files.
         :return: ``True`` if the file was loaded successfully.
         """
+        logger.debug(">>> Entering from_envvar(variable_name=%s,silent=%s)", variable_name, silent)
         rv = os.environ.get(variable_name)
+        logger.debug("from_envvar(variable_name=%s,silent=%s): rv → %s", variable_name, silent, rv)
         if not rv:
             if silent:
                 return False
@@ -121,6 +129,7 @@ class Config(dict):  # type: ignore[type-arg]
                 " this variable and make it point to a configuration"
                 " file"
             )
+        logger.debug("<<< Exiting from_envvar(variable_name=%s,silent=%s)", variable_name, silent)
         return self.from_pyfile(rv, silent=silent)
 
     def from_prefixed_env(
@@ -247,11 +256,15 @@ class Config(dict):  # type: ignore[type-arg]
 
         :param obj: an import name or object
         """
+        logger.debug(">>> Entering from_object(obj=%s)", obj)
+        logger.debug("from_object(obj=%s): obj → %s", obj, obj)
         if isinstance(obj, str):
+            logger.error("Exception in from_object(obj=%s)", obj, exc_info=True)
             obj = import_string(obj)
         for key in dir(obj):
             if key.isupper():
                 self[key] = getattr(obj, key)
+                logger.debug("<<< Exiting from_object(obj=%s)", obj)
 
     def from_file(
         self,
@@ -364,4 +377,6 @@ class Config(dict):  # type: ignore[type-arg]
         return rv
 
     def __repr__(self) -> str:
+        logger.debug(">>> Entering __repr__()")
+        logger.debug("<<< Exiting __repr__()")
         return f"<{type(self).__name__} {dict.__repr__(self)}>"
