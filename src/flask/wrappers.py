@@ -13,6 +13,8 @@ from .helpers import _split_blueprint_path
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.routing import Rule
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Request(RequestBase):
@@ -77,14 +79,19 @@ class Request(RequestBase):
         .. versionchanged:: 0.6
             This is configurable through Flask config.
         """
+        logger.debug(">>> Entering max_content_length()")
         if self._max_content_length is not None:
             return self._max_content_length
 
         if not current_app:
             return super().max_content_length
 
+        logger.debug("<<< Exiting max_content_length()")
         return current_app.config["MAX_CONTENT_LENGTH"]  # type: ignore[no-any-return]
 
+    logger.debug(">>> Entering max_content_length(value=%s)", value)
+    logger.debug("<<< Exiting max_content_length(value=%s)", value)
+    logger.debug("max_content_length(self=%s,value=%s): self._max_content_length → %s", self, value, self._max_content_length)
     @max_content_length.setter
     def max_content_length(self, value: int | None) -> None:
         self._max_content_length = value
@@ -104,14 +111,19 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
+        logger.debug(">>> Entering max_form_memory_size()")
         if self._max_form_memory_size is not None:
             return self._max_form_memory_size
 
         if not current_app:
             return super().max_form_memory_size
 
+        logger.debug("<<< Exiting max_form_memory_size()")
         return current_app.config["MAX_FORM_MEMORY_SIZE"]  # type: ignore[no-any-return]
 
+    logger.debug(">>> Entering max_form_memory_size(value=%s)", value)
+    logger.debug("<<< Exiting max_form_memory_size(value=%s)", value)
+    logger.debug("max_form_memory_size(self=%s,value=%s): self._max_form_memory_size → %s", self, value, self._max_form_memory_size)
     @max_form_memory_size.setter
     def max_form_memory_size(self, value: int | None) -> None:
         self._max_form_memory_size = value
@@ -131,14 +143,19 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
+        logger.debug(">>> Entering max_form_parts()")
         if self._max_form_parts is not None:
             return self._max_form_parts
 
         if not current_app:
             return super().max_form_parts
 
+        logger.debug("<<< Exiting max_form_parts()")
         return current_app.config["MAX_FORM_PARTS"]  # type: ignore[no-any-return]
 
+    logger.debug(">>> Entering max_form_parts(value=%s)", value)
+    logger.debug("<<< Exiting max_form_parts(value=%s)", value)
+    logger.debug("max_form_parts(self=%s,value=%s): self._max_form_parts → %s", self, value, self._max_form_parts)
     @max_form_parts.setter
     def max_form_parts(self, value: int | None) -> None:
         self._max_form_parts = value
@@ -153,9 +170,11 @@ class Request(RequestBase):
         This in combination with :attr:`view_args` can be used to
         reconstruct the same URL or a modified URL.
         """
+        logger.debug(">>> Entering endpoint()")
         if self.url_rule is not None:
             return self.url_rule.endpoint  # type: ignore[no-any-return]
 
+        logger.debug("<<< Exiting endpoint()")
         return None
 
     @property
@@ -170,11 +189,14 @@ class Request(RequestBase):
         created with. It may have been nested, or registered with a
         different name.
         """
+        logger.debug(">>> Entering blueprint()")
         endpoint = self.endpoint
+        logger.info("blueprint(self=%s): endpoint → %s", self, endpoint)
 
         if endpoint is not None and "." in endpoint:
             return endpoint.rpartition(".")[0]
 
+        logger.debug("<<< Exiting blueprint()")
         return None
 
     @property
@@ -187,15 +209,20 @@ class Request(RequestBase):
 
         .. versionadded:: 2.0.1
         """
+        logger.debug(">>> Entering blueprints()")
         name = self.blueprint
+        logger.debug("blueprints(self=%s): name → %s", self, name)
+        logger.debug("blueprints(): name → %s", name)
 
         if name is None:
             return []
 
+        logger.debug("<<< Exiting blueprints()")
         return _split_blueprint_path(name)
 
     def _load_form_data(self) -> None:
         super()._load_form_data()
+        logger.debug(">>> Entering _load_form_data()")
 
         # In debug mode we're replacing the files multidict with an ad-hoc
         # subclass that raises a different error for key errors.
@@ -208,16 +235,20 @@ class Request(RequestBase):
             from .debughelpers import attach_enctype_error_multidict
 
             attach_enctype_error_multidict(self)
+            logger.debug("<<< Exiting _load_form_data()")
 
     def on_json_loading_failed(self, e: ValueError | None) -> t.Any:
+        logger.debug(">>> Entering on_json_loading_failed(e=%s)", e)
         try:
             return super().on_json_loading_failed(e)
         except BadRequest as ebr:
+            logger.error("Exception in on_json_loading_failed(e=%s): %s", e, str(ebr), exc_info=True)
             if current_app and current_app.debug:
                 raise
 
             raise BadRequest() from ebr
 
+            logger.debug("<<< Exiting on_json_loading_failed(e=%s)", e)
 
 class Response(ResponseBase):
     """The response object that is used by default in Flask.  Works like the
@@ -250,8 +281,10 @@ class Response(ResponseBase):
         See :attr:`~werkzeug.wrappers.Response.max_cookie_size` in
         Werkzeug's docs.
         """
+        logger.debug(">>> Entering max_cookie_size()")
         if current_app:
             return current_app.config["MAX_COOKIE_SIZE"]  # type: ignore[no-any-return]
 
         # return Werkzeug's default when not in an app context
+        logger.debug("<<< Exiting max_cookie_size()")
         return super().max_cookie_size

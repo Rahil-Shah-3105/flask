@@ -13,6 +13,8 @@ from .sansio.scaffold import _sentinel
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Blueprint(SansioBlueprint):
@@ -69,7 +71,10 @@ class Blueprint(SansioBlueprint):
 
         .. versionadded:: 0.9
         """
+        logger.debug(">>> Entering get_send_file_max_age(filename=%s)", filename)
         value = current_app.config["SEND_FILE_MAX_AGE_DEFAULT"]
+        logger.debug("get_send_file_max_age(self=%s,filename=%s): value → %s", self, filename, value)
+        logger.debug("get_send_file_max_age(filename=%s): value → %s", filename, value)
 
         if value is None:
             return None
@@ -77,6 +82,7 @@ class Blueprint(SansioBlueprint):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+        logger.debug("<<< Exiting get_send_file_max_age(filename=%s)", filename)
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -91,12 +97,16 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.5
 
         """
+        logger.debug(">>> Entering send_static_file(filename=%s)", filename)
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
+        logger.debug("<<< Exiting send_static_file(filename=%s)", filename)
         max_age = self.get_send_file_max_age(filename)
+        logger.debug("send_static_file(self=%s,filename=%s): max_age → %s", self, filename, max_age)
+        logger.debug("send_static_file(filename=%s): max_age → %s", filename, max_age)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )

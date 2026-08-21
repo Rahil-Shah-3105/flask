@@ -22,6 +22,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.test import TestResponse
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class EnvironBuilder(werkzeug.test.EnvironBuilder):
@@ -84,6 +86,11 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
 
         self.app = app
         super().__init__(path, base_url, *args, **kwargs)
+        logger.debug(">>> Entering __init__()")
+        logger.debug("__init__(self=%s): self.preserve_context → %s", self, self.preserve_context)
+        logger.debug("__init__(self=%s): self.environ_base → %s", self, self.environ_base)
+        logger.debug("__init__(): self._context_stack → %s", self._context_stack)
+        logger.debug("<<< Exiting __init__()")
 
     def json_dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
         """Serialize ``obj`` to a JSON-formatted string.
@@ -91,6 +98,9 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
         The serialization will be configured according to the config associated
         with this EnvironBuilder's ``app``.
         """
+        logger.debug(">>> Entering json_dumps(obj=%s)", obj)
+        logger.error("Exception in json_dumps(obj=%s)", obj, exc_info=True)
+        logger.debug("<<< Exiting json_dumps(obj=%s)", obj)
         return self.app.json.dumps(obj, **kwargs)
 
 
@@ -98,11 +108,14 @@ _werkzeug_version = ""
 
 
 def _get_werkzeug_version() -> str:
+    logger.debug(">>> Entering _get_werkzeug_version()")
     global _werkzeug_version
 
     if not _werkzeug_version:
         _werkzeug_version = importlib.metadata.version("werkzeug")
+        logger.debug("_get_werkzeug_version(): _werkzeug_version → %s", _werkzeug_version)
 
+    logger.debug("<<< Exiting _get_werkzeug_version()")
     return _werkzeug_version
 
 
@@ -132,6 +145,9 @@ class FlaskClient(Client):
             "HTTP_USER_AGENT": f"Werkzeug/{_get_werkzeug_version()}",
         }
 
+    logger.debug(">>> Entering __init__(app=%s)", app)
+    logger.debug("__init__(self=%s,app=%s): self.app → %s", self, app, self.app)
+    logger.debug("<<< Exiting __init__(app=%s)", app)
     @contextmanager
     def session_transaction(
         self, *args: t.Any, **kwargs: t.Any
@@ -183,11 +199,14 @@ class FlaskClient(Client):
         )
 
     def _copy_environ(self, other: WSGIEnvironment) -> WSGIEnvironment:
+        logger.debug(">>> Entering _copy_environ(other=%s)", other)
         out = {**self.environ_base, **other}
+        logger.debug("_copy_environ(self=%s,other=%s): out → %s", self, other, out)
 
         if self.preserve_context:
             out["werkzeug.debug.preserve_context"] = self._new_contexts.append
 
+        logger.debug("<<< Exiting _copy_environ(other=%s)", other)
         return out
 
     def _request_from_builder_args(
@@ -247,9 +266,12 @@ class FlaskClient(Client):
         return response
 
     def __enter__(self) -> FlaskClient:
+        logger.debug(">>> Entering __enter__()")
         if self.preserve_context:
             raise RuntimeError("Cannot nest client invocations")
         self.preserve_context = True
+        logger.debug("__enter__(self=%s): self.preserve_context → %s", self, self.preserve_context)
+        logger.debug("<<< Exiting __enter__()")
         return self
 
     def __exit__(
@@ -269,6 +291,7 @@ class FlaskCliRunner(CliRunner):
     """
 
     def __init__(self, app: Flask, **kwargs: t.Any) -> None:
+        logger.debug(">>> Entering __init__(app=%s)", app)
         self.app = app
         super().__init__(**kwargs)
 

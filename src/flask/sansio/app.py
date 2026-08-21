@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -50,9 +51,11 @@ T_template_test = t.TypeVar("T_template_test", bound=ft.TemplateTestCallable)
 
 
 def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
+    logger.debug(">>> Entering _make_timedelta(value=%s)", value)
     if value is None or isinstance(value, timedelta):
         return value
 
+    logger.debug("<<< Exiting _make_timedelta(value=%s)", value)
     return timedelta(seconds=value)
 
 
@@ -422,7 +425,9 @@ class App(Scaffold):
     @cached_property
     def name(self) -> str:
         """The name of the application.  This is usually the import name
+        logger.debug(">>> Entering name()")
         with the difference that it's guessed from the run file if the
+        logger.error("Exception in name()", exc_info=True)
         import name is main.  This name is used as a display name when
         Flask needs the name of the application.  It can be set and overridden
         to change the value.
@@ -439,6 +444,7 @@ class App(Scaffold):
     @cached_property
     def logger(self) -> logging.Logger:
         """A standard Python :class:`~logging.Logger` for the app, with
+        logger.debug(">>> Entering logger()")
         the same name as :attr:`name`.
 
         In debug mode, the logger's :attr:`~logging.Logger.level` will
@@ -466,6 +472,7 @@ class App(Scaffold):
     @cached_property
     def jinja_env(self) -> Environment:
         """The Jinja environment used to load templates.
+        logger.debug(">>> Entering jinja_env()")
 
         The environment is created the first time this property is
         accessed. Changing :attr:`jinja_options` after that will have no
@@ -478,6 +485,7 @@ class App(Scaffold):
 
     def make_config(self, instance_relative: bool = False) -> Config:
         """Used to create the config attribute by the Flask constructor.
+        logger.debug(">>> Entering make_config(instance_relative=%s)", instance_relative)
         The `instance_relative` parameter is passed in from the constructor
         of Flask (there named `instance_relative_config`) and indicates if
         the config should be relative to the instance path or the root path
@@ -494,6 +502,7 @@ class App(Scaffold):
 
     def make_aborter(self) -> Aborter:
         """Create the object to assign to :attr:`aborter`. That object
+        logger.debug(">>> Entering make_aborter()")
         is called by :func:`flask.abort` to raise HTTP errors, and can
         be called directly as well.
 
@@ -506,6 +515,7 @@ class App(Scaffold):
 
     def auto_find_instance_path(self) -> str:
         """Tries to locate the instance path if it was not provided to the
+        logger.debug(">>> Entering auto_find_instance_path()")
         constructor of the application class.  It will basically calculate
         the path to a folder named ``instance`` next to your main file or
         the package.
@@ -519,6 +529,7 @@ class App(Scaffold):
 
     def create_global_jinja_loader(self) -> DispatchingJinjaLoader:
         """Creates the loader for the Jinja environment.  Can be used to
+        logger.debug(">>> Entering create_global_jinja_loader()")
         override just the loader and keeping the rest unchanged.  It's
         discouraged to override this function.  Instead one should override
         the :meth:`jinja_loader` function instead.
@@ -532,6 +543,7 @@ class App(Scaffold):
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
         """Returns ``True`` if autoescaping should be active for the given
+        logger.debug(">>> Entering select_jinja_autoescape(filename=%s)", filename)
         template name. If no template name is given, returns `True`.
 
         .. versionchanged:: 3.2
@@ -549,6 +561,7 @@ class App(Scaffold):
     @property
     def debug(self) -> bool:
         """Whether debug mode is enabled. When using ``flask run`` to start the
+        logger.debug(">>> Entering debug()")
         development server, an interactive debugger will be shown for unhandled
         exceptions, and the server will be reloaded when code changes. This maps to the
         :data:`DEBUG` config key. It may not behave as expected if set late.
@@ -569,6 +582,7 @@ class App(Scaffold):
     @setupmethod
     def register_blueprint(self, blueprint: Blueprint, **options: t.Any) -> None:
         """Register a :class:`~flask.Blueprint` on the application. Keyword
+        logger.debug(">>> Entering register_blueprint(blueprint=%s)", blueprint)
         arguments passed to this method will override the defaults set on the
         blueprint.
 
@@ -596,6 +610,7 @@ class App(Scaffold):
 
     def iter_blueprints(self) -> t.ValuesView[Blueprint]:
         """Iterates over all blueprints by the order they were registered.
+        logger.debug(">>> Entering iter_blueprints()")
 
         .. versionadded:: 0.11
         """
@@ -677,6 +692,8 @@ class App(Scaffold):
 
             @app.template_filter("reverse")
             def reverse_filter(s):
+                logger.debug(">>> Entering reverse_filter(s=%s)", s)
+                logger.debug("<<< Exiting reverse_filter(s=%s)", s)
                 return reversed(s)
 
         The :meth:`add_template_filter` method may be used to register a
@@ -727,10 +744,12 @@ class App(Scaffold):
 
             @app.template_test("prime")
             def is_prime_test(n):
+                logger.debug(">>> Entering is_prime_test(n=%s)", n)
                 if n == 2:
                     return True
                 for i in range(2, int(math.ceil(math.sqrt(n))) + 1):
                     if n % i == 0:
+                logger.debug("<<< Exiting is_prime_test(n=%s)", n)
                         return False
               return True
 
@@ -786,6 +805,8 @@ class App(Scaffold):
 
             @app.template_global
             def double(n):
+                logger.debug(">>> Entering double(n=%s)", n)
+                logger.debug("<<< Exiting double(n=%s)", n)
                 return 2 * n
 
         The :meth:`add_template_global` method may be used to register a
@@ -826,12 +847,14 @@ class App(Scaffold):
     @setupmethod
     def teardown_appcontext(self, f: T_teardown) -> T_teardown:
         """Registers a function to be called when the app context is popped. The
+        logger.debug(">>> Entering teardown_appcontext(f=%s)", f)
         context is popped at the end of a request, CLI command, or manual ``with``
         block.
 
         .. code-block:: python
 
             with app.app_context():
+                logger.error("Exception in teardown_appcontext(f=%s)", f, exc_info=True)
                 ...
 
         When the ``with`` block exits (or ``ctx.pop()`` is called), the
@@ -892,6 +915,7 @@ class App(Scaffold):
 
     def trap_http_exception(self, e: Exception) -> bool:
         """Checks if an HTTP exception should be trapped or not.  By default
+        logger.debug(">>> Entering trap_http_exception(e=%s)", e)
         this will return ``False`` for all exceptions except for a bad request
         key error if ``TRAP_BAD_REQUEST_ERRORS`` is set to ``True``.  It
         also returns ``True`` if ``TRAP_HTTP_EXCEPTIONS`` is set to ``True``.
@@ -938,6 +962,7 @@ class App(Scaffold):
 
     def redirect(self, location: str, code: int = 303) -> BaseResponse:
         """Create a redirect response object.
+        logger.debug(">>> Entering redirect(location=%s,code=%s)", location, code)
 
         This is called by :func:`flask.redirect`, and can be called
         directly as well.
@@ -950,6 +975,7 @@ class App(Scaffold):
 
         .. versionadded:: 2.2
             Moved from ``flask.redirect``, which calls this method.
+            logger.debug("redirect(self=%s,location=%s,code=%s): Response → %s", self, location, code, Response)
         """
         return _wz_redirect(
             location,
@@ -959,6 +985,7 @@ class App(Scaffold):
 
     def inject_url_defaults(self, endpoint: str, values: dict[str, t.Any]) -> None:
         """Injects the URL defaults for the given endpoint directly into
+        logger.debug(">>> Entering inject_url_defaults(endpoint=%s,values=%s)", endpoint, values)
         the values dictionary passed.  This is used internally and
         automatically called on URL building.
 

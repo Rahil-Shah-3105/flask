@@ -13,6 +13,8 @@ from .scaffold import setupmethod
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 DeferredSetupFunction = t.Callable[["BlueprintSetupState"], None]
 T_after_request = t.TypeVar("T_after_request", bound=ft.AfterRequestCallable[t.Any])
@@ -211,6 +213,7 @@ class Blueprint(Scaffold):
         self._blueprints: list[tuple[Blueprint, dict[str, t.Any]]] = []
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.debug(">>> Entering _check_setup_finished(f_name=%s)", f_name)
         if self._got_registered_once:
             raise AssertionError(
                 f"The setup method '{f_name}' can no longer be called on the blueprint"
@@ -219,6 +222,7 @@ class Blueprint(Scaffold):
                 "Make sure all imports, decorators, functions, etc. needed to set up"
                 " the blueprint are done before registering it."
             )
+            logger.debug("<<< Exiting _check_setup_finished(f_name=%s)", f_name)
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -227,7 +231,9 @@ class Blueprint(Scaffold):
         state as argument as returned by the :meth:`make_setup_state`
         method.
         """
+        logger.debug(">>> Entering record(func=%s)", func)
         self.deferred_functions.append(func)
+        logger.debug("<<< Exiting record(func=%s)", func)
 
     @setupmethod
     def record_once(self, func: DeferredSetupFunction) -> None:
@@ -236,10 +242,14 @@ class Blueprint(Scaffold):
         blueprint is registered a second time on the application, the
         function passed is not called.
         """
+        logger.debug(">>> Entering record_once(func=%s)", func)
 
+        logger.debug("<<< Exiting record_once(func=%s)", func)
         def wrapper(state: BlueprintSetupState) -> None:
+            logger.debug(">>> Entering wrapper(state=%s)", state)
             if state.first_registration:
                 func(state)
+                logger.debug("<<< Exiting wrapper(state=%s)", state)
 
         self.record(update_wrapper(wrapper, func))
 
@@ -266,9 +276,11 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 2.0
         """
+        logger.debug(">>> Entering register_blueprint(blueprint=%s)", blueprint)
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
+        logger.debug("<<< Exiting register_blueprint(blueprint=%s)", blueprint)
 
     def register(self, app: App, options: dict[str, t.Any]) -> None:
         """Called by :meth:`Flask.register_blueprint` to register all
@@ -299,9 +311,19 @@ class Blueprint(Scaffold):
             blueprint to be registered multiple times with unique names
             for ``url_for``.
         """
+        logger.debug(">>> Entering register(app=%s,options=%s)", app, options)
+        logger.debug("register(app=%s,options=%s): bp_desc → %s", app, options, bp_desc)
+        logger.debug("register(self=%s,app=%s,options=%s): bp_desc → %s", self, app, options, bp_desc)
+        logger.debug("register(app=%s,options=%s): existing_at → %s", app, options, existing_at)
         name_prefix = options.get("name_prefix", "")
+        logger.debug("register(self=%s,app=%s,options=%s): name_prefix → %s", self, app, options, name_prefix)
+        logger.debug("register(app=%s,options=%s): name_prefix → %s", app, options, name_prefix)
         self_name = options.get("name", self.name)
+        logger.debug("register(self=%s,app=%s,options=%s): self_name → %s", self, app, options, self_name)
+        logger.debug("register(app=%s,options=%s): self_name → %s", app, options, self_name)
         name = f"{name_prefix}.{self_name}".lstrip(".")
+        logger.debug("register(self=%s,app=%s,options=%s): name → %s", self, app, options, name)
+        logger.debug("register(app=%s,options=%s): name → %s", app, options, name)
 
         if name in app.blueprints:
             bp_desc = "this" if app.blueprints[name] is self else "a different"
@@ -313,7 +335,16 @@ class Blueprint(Scaffold):
                 f" provide a unique name."
             )
 
+            logger.debug("register(self=%s,app=%s,options=%s): first_name_registration → %s", self, app, options, first_name_registration)
+            logger.debug("register(app=%s,options=%s): endpoint → %s", app, options, endpoint)
+            logger.debug("register(app=%s,options=%s): state → %s", app, options, state)
+            logger.debug("register(self=%s,app=%s,options=%s): self._got_registered_once → %s", self, app, options, self._got_registered_once)
+            logger.debug("register(self=%s,app=%s,options=%s): state → %s", self, app, options, state)
+            logger.info("register(self=%s,app=%s,options=%s): endpoint → %s", self, app, options, endpoint)
+            logger.debug("register(self=%s,app=%s,options=%s): view_func → %s", self, app, options, view_func)
         first_bp_registration = not any(bp is self for bp in app.blueprints.values())
+        logger.debug("register(self=%s,app=%s,options=%s): first_bp_registration → %s", self, app, options, first_bp_registration)
+        logger.debug("register(app=%s,options=%s): first_bp_registration → %s", app, options, first_bp_registration)
         first_name_registration = name not in app.blueprints
 
         app.blueprints[name] = self
@@ -335,6 +366,8 @@ class Blueprint(Scaffold):
             deferred(state)
 
         cli_resolved_group = options.get("cli_group", self.cli_group)
+        logger.debug("register(self=%s,app=%s,options=%s): cli_resolved_group → %s", self, app, options, cli_resolved_group)
+        logger.debug("register(app=%s,options=%s): cli_resolved_group → %s", app, options, cli_resolved_group)
 
         if self.cli.commands:
             if cli_resolved_group is None:
@@ -348,8 +381,12 @@ class Blueprint(Scaffold):
 
         for blueprint, bp_options in self._blueprints:
             bp_options = bp_options.copy()
+            logger.debug("register(self=%s,app=%s,options=%s): bp_options → %s", self, app, options, bp_options)
+            logger.debug("register(app=%s,options=%s): bp_options → %s", app, options, bp_options)
             bp_url_prefix = bp_options.get("url_prefix")
+            logger.debug("register(self=%s,app=%s,options=%s): bp_url_prefix → %s", self, app, options, bp_url_prefix)
             bp_subdomain = bp_options.get("subdomain")
+            logger.debug("register(self=%s,app=%s,options=%s): bp_subdomain → %s", self, app, options, bp_subdomain)
 
             if bp_subdomain is None:
                 bp_subdomain = blueprint.subdomain
@@ -375,8 +412,10 @@ class Blueprint(Scaffold):
 
             bp_options["name_prefix"] = name
             blueprint.register(app, bp_options)
+            logger.debug("<<< Exiting register(app=%s,options=%s)", app, options)
 
     def _merge_blueprint_funcs(self, app: App, name: str) -> None:
+        logger.debug(">>> Entering _merge_blueprint_funcs(app=%s,name=%s)", app, name)
         def extend(
             bp_dict: dict[ft.AppOrBlueprintKey, list[t.Any]],
             parent_dict: dict[ft.AppOrBlueprintKey, list[t.Any]],
@@ -467,7 +506,9 @@ class Blueprint(Scaffold):
             return name
 
         def decorator(f: T_template_filter) -> T_template_filter:
+            logger.debug(">>> Entering decorator(f=%s)", f)
             self.add_app_template_filter(f, name=name)
+            logger.debug("<<< Exiting decorator(f=%s)", f)
             return f
 
         return decorator
@@ -490,7 +531,9 @@ class Blueprint(Scaffold):
         """
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.debug(">>> Entering register_template_filter(state=%s)", state)
             state.app.add_template_filter(f, name=name)
+            logger.debug("<<< Exiting register_template_filter(state=%s)", state)
 
         self.record_once(register_template_filter)
 
@@ -548,7 +591,9 @@ class Blueprint(Scaffold):
         """
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.debug(">>> Entering register_template_test(state=%s)", state)
             state.app.add_template_test(f, name=name)
+            logger.debug("<<< Exiting register_template_test(state=%s)", state)
 
         self.record_once(register_template_test)
 
@@ -606,7 +651,9 @@ class Blueprint(Scaffold):
         """
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.debug(">>> Entering register_template_global(state=%s)", state)
             state.app.add_template_global(f, name=name)
+            logger.debug("<<< Exiting register_template_global(state=%s)", state)
 
         self.record_once(register_template_global)
 
@@ -615,9 +662,12 @@ class Blueprint(Scaffold):
         """Like :meth:`before_request`, but before every request, not only those handled
         by the blueprint. Equivalent to :meth:`.Flask.before_request`.
         """
+        logger.debug(">>> Entering before_app_request(f=%s)", f)
+        logger.debug("before_app_request(self=%s,f=%s): before_request_funcs → %s", self, f, before_request_funcs)
         self.record_once(
             lambda s: s.app.before_request_funcs.setdefault(None, []).append(f)
         )
+        logger.debug("<<< Exiting before_app_request(f=%s)", f)
         return f
 
     @setupmethod
@@ -625,9 +675,12 @@ class Blueprint(Scaffold):
         """Like :meth:`after_request`, but after every request, not only those handled
         by the blueprint. Equivalent to :meth:`.Flask.after_request`.
         """
+        logger.debug(">>> Entering after_app_request(f=%s)", f)
+        logger.debug("after_app_request(self=%s,f=%s): after_request_funcs → %s", self, f, after_request_funcs)
         self.record_once(
             lambda s: s.app.after_request_funcs.setdefault(None, []).append(f)
         )
+        logger.debug("<<< Exiting after_app_request(f=%s)", f)
         return f
 
     @setupmethod
@@ -635,9 +688,12 @@ class Blueprint(Scaffold):
         """Like :meth:`teardown_request`, but after every request, not only those
         handled by the blueprint. Equivalent to :meth:`.Flask.teardown_request`.
         """
+        logger.debug(">>> Entering teardown_app_request(f=%s)", f)
+        logger.debug("teardown_app_request(self=%s,f=%s): teardown_request_funcs → %s", self, f, teardown_request_funcs)
         self.record_once(
             lambda s: s.app.teardown_request_funcs.setdefault(None, []).append(f)
         )
+        logger.debug("<<< Exiting teardown_app_request(f=%s)", f)
         return f
 
     @setupmethod
@@ -662,7 +718,9 @@ class Blueprint(Scaffold):
 
         def decorator(f: T_error_handler) -> T_error_handler:
             def from_blueprint(state: BlueprintSetupState) -> None:
+                logger.debug(">>> Entering from_blueprint(state=%s)", state)
                 state.app.errorhandler(code)(f)
+                logger.debug("<<< Exiting from_blueprint(state=%s)", state)
 
             self.record_once(from_blueprint)
             return f
@@ -686,7 +744,10 @@ class Blueprint(Scaffold):
         """Like :meth:`url_defaults`, but for every request, not only those handled by
         the blueprint. Equivalent to :meth:`.Flask.url_defaults`.
         """
+        logger.debug(">>> Entering app_url_defaults(f=%s)", f)
+        logger.debug("app_url_defaults(self=%s,f=%s): url_default_functions → %s", self, f, url_default_functions)
         self.record_once(
             lambda s: s.app.url_default_functions.setdefault(None, []).append(f)
         )
+        logger.debug("<<< Exiting app_url_defaults(f=%s)", f)
         return f

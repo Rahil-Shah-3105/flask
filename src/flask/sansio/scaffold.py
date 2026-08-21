@@ -20,6 +20,8 @@ from ..templating import _default_template_ctx_processor
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
+    import logging
+logger = logging.getLogger(app.name)
 
 # a singleton sentinel value for parameter defaults
 _sentinel = object()
@@ -40,10 +42,15 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 
 
 def setupmethod(f: F) -> F:
+    logger.debug(">>> Entering setupmethod(f=%s)", f)
     f_name = f.__name__
+    logger.debug("setupmethod(f=%s): f_name → %s", f, f_name)
 
+    logger.debug("<<< Exiting setupmethod(f=%s)", f)
     def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        logger.debug(">>> Entering wrapper_func()")
         self._check_setup_finished(f_name)
+        logger.debug("<<< Exiting wrapper_func()")
         return f(self, *args, **kwargs)
 
     return t.cast(F, update_wrapper(wrapper_func, f))
@@ -215,9 +222,13 @@ class Scaffold:
         ] = defaultdict(list)
 
     def __repr__(self) -> str:
+        logger.debug(">>> Entering __repr__()")
+        logger.debug("<<< Exiting __repr__()")
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.debug(">>> Entering _check_setup_finished(f_name=%s)", f_name)
+        logger.debug("<<< Exiting _check_setup_finished(f_name=%s)", f_name)
         raise NotImplementedError
 
     @property
@@ -225,11 +236,17 @@ class Scaffold:
         """The absolute path to the configured static folder. ``None``
         if no static folder is set.
         """
+        logger.debug(">>> Entering static_folder()")
         if self._static_folder is not None:
             return os.path.join(self.root_path, self._static_folder)
         else:
+            logger.debug("<<< Exiting static_folder()")
             return None
 
+    logger.debug(">>> Entering static_folder(value=%s)", value)
+    logger.debug("static_folder(value=%s): value → %s", value, value)
+    logger.debug("<<< Exiting static_folder(value=%s)", value)
+    logger.debug("static_folder(self=%s,value=%s): self._static_folder → %s", self, value, self._static_folder)
     @static_folder.setter
     def static_folder(self, value: str | os.PathLike[str] | None) -> None:
         if value is not None:
@@ -243,6 +260,8 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.debug(">>> Entering has_static_folder()")
+        logger.debug("<<< Exiting has_static_folder()")
         return self.static_folder is not None
 
     @property
@@ -252,15 +271,22 @@ class Scaffold:
         If it was not configured during init, it is derived from
         :attr:`static_folder`.
         """
+        logger.debug(">>> Entering static_url_path()")
         if self._static_url_path is not None:
             return self._static_url_path
 
         if self.static_folder is not None:
             basename = os.path.basename(self.static_folder)
+            logger.debug("static_url_path(self=%s): basename → %s", self, basename)
             return f"/{basename}".rstrip("/")
 
+        logger.debug("<<< Exiting static_url_path()")
         return None
 
+    logger.debug(">>> Entering static_url_path(value=%s)", value)
+    logger.debug("static_url_path(value=%s): value → %s", value, value)
+    logger.debug("<<< Exiting static_url_path(value=%s)", value)
+    logger.debug("static_url_path(self=%s,value=%s): self._static_url_path → %s", self, value, self._static_url_path)
     @static_url_path.setter
     def static_url_path(self, value: str | None) -> None:
         if value is not None:
@@ -276,9 +302,11 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.debug(">>> Entering jinja_loader()")
         if self.template_folder is not None:
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
+            logger.debug("<<< Exiting jinja_loader()")
             return None
 
     def _method_route(
@@ -298,6 +326,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.debug(">>> Entering get(rule=%s)", rule)
+        logger.debug("<<< Exiting get(rule=%s)", rule)
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +336,8 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.debug(">>> Entering query(rule=%s)", rule)
+        logger.debug("<<< Exiting query(rule=%s)", rule)
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -314,6 +346,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.debug(">>> Entering post(rule=%s)", rule)
+        logger.debug("<<< Exiting post(rule=%s)", rule)
         return self._method_route("POST", rule, options)
 
     @setupmethod
@@ -322,6 +356,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.debug(">>> Entering put(rule=%s)", rule)
+        logger.debug("<<< Exiting put(rule=%s)", rule)
         return self._method_route("PUT", rule, options)
 
     @setupmethod
@@ -330,6 +366,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.debug(">>> Entering delete(rule=%s)", rule)
+        logger.debug("<<< Exiting delete(rule=%s)", rule)
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -338,6 +376,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.debug(">>> Entering patch(rule=%s)", rule)
+        logger.debug("<<< Exiting patch(rule=%s)", rule)
         return self._method_route("PATCH", rule, options)
 
     @setupmethod
@@ -366,8 +406,12 @@ class Scaffold:
         """
 
         def decorator(f: T_route) -> T_route:
+            logger.debug(">>> Entering decorator(f=%s)", f)
             endpoint = options.pop("endpoint", None)
+            logger.debug("decorator(f=%s): endpoint → %s", f, endpoint)
+            logger.info("decorator(f=%s): endpoint → %s", f, endpoint)
             self.add_url_rule(rule, endpoint, f, **options)
+            logger.debug("<<< Exiting decorator(f=%s)", f)
             return f
 
         return decorator
@@ -509,7 +553,10 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.after_app_request`.
         """
+        logger.debug(">>> Entering after_request(f=%s)", f)
+        logger.debug("after_request(self=%s,f=%s): after_request_funcs → %s", self, f, after_request_funcs)
         self.after_request_funcs.setdefault(None, []).append(f)
+        logger.debug("<<< Exiting after_request(f=%s)", f)
         return f
 
     @setupmethod
@@ -543,7 +590,11 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.teardown_app_request`.
         """
+        logger.debug(">>> Entering teardown_request(f=%s)", f)
+        logger.debug("teardown_request(self=%s,f=%s): teardown_request_funcs → %s", self, f, teardown_request_funcs)
         self.teardown_request_funcs.setdefault(None, []).append(f)
+        logger.error("Exception in teardown_request(f=%s)", f, exc_info=True)
+        logger.debug("<<< Exiting teardown_request(f=%s)", f)
         return f
 
     @setupmethod
@@ -599,7 +650,9 @@ class Scaffold:
         requests that the blueprint handles. To register with a blueprint and affect
         every request, use :meth:`.Blueprint.app_url_defaults`.
         """
+        logger.debug(">>> Entering url_defaults(f=%s)", f)
         self.url_default_functions[None].append(f)
+        logger.debug("<<< Exiting url_defaults(f=%s)", f)
         return f
 
     @setupmethod
@@ -710,31 +763,38 @@ def _endpoint_from_view_func(view_func: ft.RouteCallable) -> str:
     """Internal helper that returns the default endpoint for a given
     function.  This always is the function name.
     """
+    logger.debug(">>> Entering _endpoint_from_view_func(view_func=%s)", view_func)
     assert view_func is not None, "expected view func if endpoint is not provided."
+    logger.debug("<<< Exiting _endpoint_from_view_func(view_func=%s)", view_func)
     return view_func.__name__
 
 
 def _find_package_path(import_name: str) -> str:
     """Find the path that contains the package or module."""
+    logger.debug(">>> Entering _find_package_path(import_name=%s)", import_name)
     root_mod_name, _, _ = import_name.partition(".")
 
     try:
         root_spec = importlib.util.find_spec(root_mod_name)
+        logger.debug("_find_package_path(import_name=%s): root_spec → %s", import_name, root_spec)
 
         if root_spec is None:
             raise ValueError("not found")
     except (ImportError, ValueError):
+        logger.error("Exception in _find_package_path(import_name=%s)", import_name, exc_info=True)
         # ImportError: the machinery told us it does not exist
         # ValueError:
         #    - the module name was invalid
         #    - the module name is __main__
         #    - we raised `ValueError` due to `root_spec` being `None`
+        logger.debug("_find_package_path(import_name=%s): search_location → %s", import_name, search_location)
         return os.getcwd()
 
     if root_spec.submodule_search_locations:
         if root_spec.origin is None or root_spec.origin == "namespace":
             # namespace package
             package_spec = importlib.util.find_spec(import_name)
+            logger.debug("_find_package_path(import_name=%s): package_spec → %s", import_name, package_spec)
 
             if package_spec is not None and package_spec.submodule_search_locations:
                 # Pick the path in the namespace that contains the submodule.
@@ -756,6 +816,7 @@ def _find_package_path(import_name: str) -> str:
             return os.path.dirname(os.path.dirname(root_spec.origin))
     else:
         # module
+        logger.debug("<<< Exiting _find_package_path(import_name=%s)", import_name)
         return os.path.dirname(root_spec.origin)  # type: ignore[type-var, return-value]
 
 
@@ -772,8 +833,11 @@ def find_package(import_name: str) -> tuple[str | None, str]:
     for import. If the package is not installed, it's assumed that the
     package was imported from the current working directory.
     """
+    logger.debug(">>> Entering find_package(import_name=%s)", import_name)
     package_path = _find_package_path(import_name)
+    logger.debug("find_package(import_name=%s): package_path → %s", import_name, package_path)
     py_prefix = os.path.abspath(sys.prefix)
+    logger.debug("find_package(import_name=%s): py_prefix → %s", import_name, py_prefix)
 
     # installed to the system
     if pathlib.PurePath(package_path).is_relative_to(py_prefix):

@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(app.name)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -28,6 +30,7 @@ class View:
             init_every_request = False
 
             def dispatch_request(self, name):
+                logger.debug("<<< Exiting dispatch_request()")
                 return f"Hello, {name}!"
 
         app.add_url_rule(
@@ -82,6 +85,9 @@ class View:
         """
         raise NotImplementedError()
 
+    logger.debug(">>> Entering dispatch_request()")
+    logger.debug("dispatch_request(self=%s): meth → %s", self, meth)
+    logger.debug("dispatch_request(): meth → %s", meth)
     @classmethod
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
@@ -104,9 +110,12 @@ class View:
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.debug(">>> Entering view()")
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.debug("view(): self → %s", self)
+                logger.debug("<<< Exiting view()")
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
@@ -164,9 +173,12 @@ class MethodView(View):
 
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         super().__init_subclass__(**kwargs)
+        logger.debug(">>> Entering __init_subclass__()")
 
         if "methods" not in cls.__dict__:
             methods = set()
+            logger.debug("__init_subclass__(cls=%s): methods → %s", cls, methods)
+            logger.debug("__init_subclass__(): methods → %s", methods)
 
             for base in cls.__bases__:
                 if getattr(base, "methods", None):
@@ -177,9 +189,12 @@ class MethodView(View):
                     methods.add(key.upper())
 
             if methods:
+                logger.debug("<<< Exiting __init_subclass__()")
                 cls.methods = methods
+                logger.debug("__init_subclass__(cls=%s): cls.methods → %s", cls, cls.methods)
 
     def dispatch_request(self, **kwargs: t.Any) -> ft.ResponseReturnValue:
+        logger.debug(">>> Entering dispatch_request()")
         meth = getattr(self, request.method.lower(), None)
 
         # If the request method is HEAD and we don't have a handler for it
