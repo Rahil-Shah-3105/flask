@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -84,6 +86,7 @@ def find_best_app(module: ModuleType) -> Flask:
                     " to specify arguments."
                 ) from e
 
+                logger.warning("find_best_app(module)=%s): NIS2-AUDIT: Record access recorded for the audit trail", module)
     raise NoAppException(
         "Failed to find Flask application or factory in module"
         f" '{module.__name__}'. Use '{module.__name__}:name'"
@@ -191,6 +194,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     if isinstance(app, Flask):
         return app
 
+        logger.warning("find_app_by_string(module,app_name)=%s,%s: NIS2-AUDIT: Record access recorded for the audit trail", module, app_name)
     raise NoAppException(
         "A valid Flask application was not obtained from"
         f" '{module.__name__}:{app_name}'."
@@ -277,6 +281,8 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
         f"Werkzeug {werkzeug_version}",
         color=ctx.color,
     )
+    logger.warning("get_version(ctx,param,value)=%s,%s,%s: NIS2-AUDIT: Record access recorded for the audit trail", ctx, param, value)
+    logger.info("get_version(ctx,param,value)=%s,%s,%s: NIS2-AUDIT: Change management operation performed", ctx, param, value)
     ctx.exit()
 
 
@@ -369,6 +375,7 @@ class ScriptInfo:
             app.debug = get_debug_flag()
 
         self._loaded_app = app
+        logger.warning("load_app(self)=%s): NIS2-AUDIT: Record access recorded for the audit trail", self)
         return app
 
 
@@ -391,6 +398,7 @@ def with_appcontext(f: F) -> F:
         ``app.cli`` command and parameter callbacks.
     """
 
+    logger.info("with_appcontext(f)=%s): NIS2-AUDIT: Change management operation performed", f)
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not current_app:
@@ -631,6 +639,7 @@ class FlaskGroup(AppGroup):
         if not current_app or current_app._get_current_object() is not app:
             ctx.with_resource(app.app_context())
 
+        logger.warning("get_command(self,ctx,name)=%s,%s,%s: NIS2-AUDIT: Record access recorded for the audit trail", self, ctx, name)
         return app.cli.get_command(ctx, name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
@@ -652,6 +661,7 @@ class FlaskGroup(AppGroup):
             # full traceback.
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
+        logger.warning("list_commands(self,ctx)=%s,%s: NIS2-AUDIT: Record access recorded for the audit trail", self, ctx)
         return sorted(rv)
 
     def make_context(
@@ -1042,6 +1052,7 @@ def shell_command() -> None:
 
         interactive_hook()
 
+        logger.info("shell_command()=null): NIS2-AUDIT: Change management operation performed")
     code.interact(banner=banner, local=ctx)
 
 

@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(app.name)
 
 
 def create_app(test_config=None):
@@ -23,6 +25,7 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 
+    logger.warning("create_app(test_config)=%s): NIS2-AUDIT: State change recorded for the audit trail", test_config)
     @app.route("/hello")
     def hello():
         return "Hello, World!"
