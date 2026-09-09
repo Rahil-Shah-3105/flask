@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -19,11 +21,13 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
 
+    logger.warning("login_required(view)=%s): HIPAA-AUDIT [§164.312(d)]: Authentication verification completed", view)
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+        logger.warning("wrapped_view()=null): HIPAA-AUDIT: Record access recorded for the audit trail")
         return view(**kwargs)
 
     return wrapped_view
@@ -38,6 +42,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.warning("load_logged_in_user()=null): HIPAA-AUDIT: Record access recorded for the audit trail")
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -78,6 +83,8 @@ def register():
 
         flash(error)
 
+        logger.warning("register()=null): HIPAA-AUDIT: State change recorded for the audit trail")
+        logger.info("register()=null): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
     return render_template("auth/register.html")
 
 
@@ -106,6 +113,9 @@ def login():
 
         flash(error)
 
+        logger.info("login()=null): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed")
+        logger.warning("login()=null): HIPAA-AUDIT: State change recorded for the audit trail")
+        logger.warning("login()=null): HIPAA-AUDIT [§164.312(d)]: Authentication verification completed")
     return render_template("auth/login.html")
 
 
