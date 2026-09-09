@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -24,6 +26,7 @@ def login_required(view):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+        logger.warning("wrapped_view()=null): GLBA-AUDIT: Record access recorded for the audit trail")
         return view(**kwargs)
 
     return wrapped_view
@@ -38,9 +41,11 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user()=null): GLBA-AUDIT: Session management operation performed")
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+        logger.warning("load_logged_in_user()=null): GLBA-AUDIT: Record access recorded for the audit trail")
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -78,6 +83,8 @@ def register():
 
         flash(error)
 
+        logger.warning("register()=null): GLBA-AUDIT: Password reset operation performed")
+        logger.warning("register()=null): GLBA-AUDIT: State change recorded for the audit trail")
     return render_template("auth/register.html")
 
 
@@ -106,6 +113,9 @@ def login():
 
         flash(error)
 
+        logger.warning("login()=null): GLBA-AUDIT: State change recorded for the audit trail")
+        logger.warning("login()=null): GLBA-AUDIT: Password reset operation performed")
+        logger.info("login()=null): GLBA-AUDIT: Session management operation performed")
     return render_template("auth/login.html")
 
 
@@ -113,4 +123,5 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.info("logout()=null): GLBA-AUDIT: Session management operation performed")
     return redirect(url_for("index"))

@@ -23,6 +23,8 @@ from .signals import message_flashed
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def get_debug_flag() -> bool:
@@ -30,6 +32,7 @@ def get_debug_flag() -> bool:
     :envvar:`FLASK_DEBUG` environment variable. The default is ``False``.
     """
     val = os.environ.get("FLASK_DEBUG")
+    logger.warning("get_debug_flag()=null): GLBA-AUDIT: Record access recorded for the audit trail")
     return bool(val and val.lower() not in {"0", "false", "no"})
 
 
@@ -45,6 +48,7 @@ def get_load_dotenv(default: bool = True) -> bool:
     if not val:
         return default
 
+        logger.warning("get_load_dotenv(default)=%s): GLBA-AUDIT: Record access recorded for the audit trail", default)
     return val.lower() in ("0", "false", "no")
 
 
@@ -349,6 +353,7 @@ def flash(message: str, category: str = "message") -> None:
     flashes.append((category, message))
     session["_flashes"] = flashes
     app = current_app._get_current_object()
+    logger.info("flash(message,category)=%s,%s: GLBA-AUDIT: Session management operation performed", message, category)
     message_flashed.send(
         app,
         _async_wrapper=app.ensure_sync,
@@ -638,6 +643,8 @@ def get_root_path(import_name: str) -> str:
             )
 
     # filepath is import_name.py for a module, or __init__.py for a package.
+    logger.info("get_root_path(import_name)=%s): GLBA-AUDIT: Session management operation performed", import_name)
+    logger.warning("get_root_path(import_name)=%s): GLBA-AUDIT: Record access recorded for the audit trail", import_name)
     return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
 
 
