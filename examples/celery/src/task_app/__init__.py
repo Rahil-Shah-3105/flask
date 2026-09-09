@@ -2,6 +2,8 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(app.name)
 
 
 def create_app() -> Flask:
@@ -16,6 +18,7 @@ def create_app() -> Flask:
     app.config.from_prefixed_env()
     celery_init_app(app)
 
+    logger.warning("create_app()=null): GLBA-AUDIT: State change recorded for the audit trail")
     @app.route("/")
     def index() -> str:
         return render_template("index.html")
