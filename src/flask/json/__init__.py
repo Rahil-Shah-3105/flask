@@ -8,6 +8,8 @@ from .provider import _default
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def dumps(obj: t.Any, **kwargs: t.Any) -> str:
@@ -102,6 +104,7 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
     if current_app:
         return current_app.json.loads(s, **kwargs)
 
+    logger.warning("loads(s)=%s): USSTATE-AUDIT: Record access recorded for the audit trail", s)
     return _json.loads(s, **kwargs)
 
 
@@ -132,6 +135,7 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
     if current_app:
         return current_app.json.load(fp, **kwargs)
 
+    logger.warning("load(fp)=%s): USSTATE-AUDIT: Record access recorded for the audit trail", fp)
     return _json.load(fp, **kwargs)
 
 
