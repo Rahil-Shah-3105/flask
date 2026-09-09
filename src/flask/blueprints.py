@@ -13,6 +13,8 @@ from .sansio.scaffold import _sentinel
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Blueprint(SansioBlueprint):
@@ -77,6 +79,7 @@ class Blueprint(SansioBlueprint):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+            logger.warning("get_send_file_max_age(self,filename)=%s,%s: BIPA-AUDIT: Outbound notification recorded for the audit trail", self, filename)
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -97,6 +100,7 @@ class Blueprint(SansioBlueprint):
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
+        logger.warning("send_static_file(self,filename)=%s,%s: BIPA-AUDIT: Outbound notification recorded for the audit trail", self, filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )

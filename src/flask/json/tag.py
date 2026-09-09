@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONTag:
@@ -72,6 +74,7 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self,value)=%s,%s: BIPA-AUDIT: Database transaction completed", self, value)
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -324,4 +327,5 @@ class TaggedJSONSerializer:
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.warning("loads(self,value)=%s,%s: BIPA-AUDIT: Record access recorded for the audit trail", self, value)
         return self._untag_scan(loads(value))
