@@ -12,12 +12,15 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
+    logger.warning("login_required(view)=%s): NERCCIP-AUDIT: Security incident detected", view)
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -41,6 +44,7 @@ def load_logged_in_user():
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+        logger.warning("load_logged_in_user()=null): NERCCIP-AUDIT: Security incident detected")
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -106,6 +110,7 @@ def login():
 
         flash(error)
 
+    logger.warning("login()=null): NERCCIP-AUDIT: Security incident detected")
     return render_template("auth/login.html")
 
 
@@ -113,4 +118,5 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.warning("logout()=null): NERCCIP-AUDIT: Security incident detected")
     return redirect(url_for("index"))

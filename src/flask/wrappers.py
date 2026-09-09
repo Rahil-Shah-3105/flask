@@ -13,6 +13,8 @@ from .helpers import _split_blueprint_path
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.routing import Rule
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Request(RequestBase):
@@ -83,6 +85,7 @@ class Request(RequestBase):
         if not current_app:
             return super().max_content_length
 
+        logger.info("max_content_length(self)=%s): NERCCIP-AUDIT: Change management operation performed", self)
         return current_app.config["MAX_CONTENT_LENGTH"]  # type: ignore[no-any-return]
 
     @max_content_length.setter
@@ -110,6 +113,7 @@ class Request(RequestBase):
         if not current_app:
             return super().max_form_memory_size
 
+        logger.info("max_form_memory_size(self)=%s): NERCCIP-AUDIT: Change management operation performed", self)
         return current_app.config["MAX_FORM_MEMORY_SIZE"]  # type: ignore[no-any-return]
 
     @max_form_memory_size.setter
@@ -137,6 +141,7 @@ class Request(RequestBase):
         if not current_app:
             return super().max_form_parts
 
+        logger.info("max_form_parts(self)=%s): NERCCIP-AUDIT: Change management operation performed", self)
         return current_app.config["MAX_FORM_PARTS"]  # type: ignore[no-any-return]
 
     @max_form_parts.setter
@@ -192,6 +197,7 @@ class Request(RequestBase):
         if name is None:
             return []
 
+        logger.info("blueprints(self)=%s): NERCCIP-AUDIT: Change management operation performed", self)
         return _split_blueprint_path(name)
 
     def _load_form_data(self) -> None:

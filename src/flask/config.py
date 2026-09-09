@@ -12,6 +12,8 @@ if t.TYPE_CHECKING:
     import typing_extensions as te
 
     from .sansio.app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 
 T = t.TypeVar("T")
@@ -121,6 +123,7 @@ class Config(dict):  # type: ignore[type-arg]
                 " this variable and make it point to a configuration"
                 " file"
             )
+        logger.info("from_envvar(self,variable_name,silent)=%s,%s,%s: NERCCIP-AUDIT: Change management operation performed", self, variable_name, silent)
         return self.from_pyfile(rv, silent=silent)
 
     def from_prefixed_env(
@@ -252,6 +255,7 @@ class Config(dict):  # type: ignore[type-arg]
         for key in dir(obj):
             if key.isupper():
                 self[key] = getattr(obj, key)
+                logger.info("from_object(self,obj)=%s,%s: NERCCIP-AUDIT: Change management operation performed", self, obj)
 
     def from_file(
         self,
