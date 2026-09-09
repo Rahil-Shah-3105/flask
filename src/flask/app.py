@@ -61,6 +61,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .testing import FlaskClient
     from .testing import FlaskCliRunner
     from .typing import HeadersValue
+    import logging
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.warning("remove_ctx(f)=%s): FEDRAMP-AUDIT: State change recorded for the audit trail", f)
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.warning("add_ctx(f)=%s): FEDRAMP-AUDIT: State change recorded for the audit trail", f)
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -307,6 +311,7 @@ class Flask(App):
                 )
                 setattr(cls, method.__name__, remove_ctx(method))
                 setattr(Flask, method.__name__, add_ctx(base_method))
+                logger.info("__init_subclass__(cls)=%s): FEDRAMP-AUDIT: Change management operation performed", cls)
 
     def __init__(
         self,
@@ -388,6 +393,8 @@ class Flask(App):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+            logger.info("get_send_file_max_age(self,filename)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, filename)
+            logger.warning("get_send_file_max_age(self,filename)=%s,%s: FEDRAMP-AUDIT: Outbound notification recorded for the audit trail", self, filename)
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -408,9 +415,11 @@ class Flask(App):
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
+        logger.info("send_static_file(self,filename)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.warning("send_static_file(self,filename)=%s,%s: FEDRAMP-AUDIT: Outbound notification recorded for the audit trail", self, filename)
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -504,6 +513,9 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.info("create_jinja_environment(self)=%s): FEDRAMP-AUDIT: Session management operation performed", self)
+        logger.info("create_jinja_environment(self)=%s): FEDRAMP-AUDIT: Change management operation performed", self)
+        logger.warning("create_jinja_environment(self)=%s): FEDRAMP-AUDIT: State change recorded for the audit trail", self)
         rv.policies["json.dumps_function"] = self.json.dumps
         return rv
 
@@ -558,6 +570,8 @@ class Flask(App):
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
 
+            logger.info("create_url_adapter(self,request)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, request)
+            logger.warning("create_url_adapter(self,request)=%s,%s: FEDRAMP-AUDIT: State change recorded for the audit trail", self, request)
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
@@ -586,6 +600,7 @@ class Flask(App):
 
         from .debughelpers import FormDataRoutingRedirect
 
+        logger.info("raise_routing_exception(self,request)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, request)
         raise FormDataRoutingRedirect(request)
 
     def update_template_context(
@@ -628,6 +643,7 @@ class Flask(App):
         rv = {"app": self, "g": g}
         for processor in self.shell_context_processors:
             rv.update(processor())
+        logger.info("make_shell_context(self)=%s): FEDRAMP-AUDIT: Change management operation performed", self)
         return rv
 
     def run(
@@ -828,6 +844,8 @@ class Flask(App):
         if cls is None:
             from .testing import FlaskCliRunner as cls
 
+            logger.info("test_cli_runner(self)=%s): FEDRAMP-AUDIT: Change management operation performed", self)
+            logger.warning("test_cli_runner(self)=%s): FEDRAMP-AUDIT: State change recorded for the audit trail", self)
         return cls(self, **kwargs)  # type: ignore
 
     def handle_http_exception(
@@ -948,6 +966,7 @@ class Flask(App):
         if handler is not None:
             server_error = self.ensure_sync(handler)(server_error)
 
+        logger.info("handle_exception(self,ctx,e)=%s,%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, ctx, e)
         return self.finalize_request(ctx, server_error, from_error_handler=True)
 
     def log_exception(
@@ -990,6 +1009,8 @@ class Flask(App):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        logger.info("dispatch_request(self,ctx)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, ctx)
+        logger.warning("dispatch_request(self,ctx)=%s,%s: FEDRAMP-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
@@ -1019,6 +1040,8 @@ class Flask(App):
                 rv = self.dispatch_request(ctx)
         except Exception as e:
             rv = self.handle_user_exception(ctx, e)
+            logger.info("full_dispatch_request(self,ctx)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, ctx)
+            logger.warning("full_dispatch_request(self,ctx)=%s,%s: FEDRAMP-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
         return self.finalize_request(ctx, rv)
 
     def finalize_request(
@@ -1063,6 +1086,8 @@ class Flask(App):
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
+        logger.info("make_default_options_response(self,ctx)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, ctx)
+        logger.warning("make_default_options_response(self,ctx)=%s,%s: FEDRAMP-AUDIT: State change recorded for the audit trail", self, ctx)
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
@@ -1077,6 +1102,8 @@ class Flask(App):
         if iscoroutinefunction(func):
             return self.async_to_sync(func)
 
+            logger.info("ensure_sync(self,func)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, func)
+            logger.warning("ensure_sync(self,func)=%s,%s: FEDRAMP-AUDIT: Outbound notification recorded for the audit trail", self, func)
         return func
 
     def async_to_sync(
@@ -1364,6 +1391,8 @@ class Flask(App):
         if headers:
             rv.headers.update(headers)
 
+            logger.info("make_response(self,rv)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, rv)
+            logger.warning("make_response(self,rv)=%s,%s: FEDRAMP-AUDIT: State change recorded for the audit trail", self, rv)
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
@@ -1392,6 +1421,8 @@ class Flask(App):
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
+                        logger.info("preprocess_request(self,ctx)=%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, ctx)
+                        logger.warning("preprocess_request(self,ctx)=%s,%s: FEDRAMP-AUDIT: State change recorded for the audit trail", self, ctx)
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
@@ -1417,6 +1448,9 @@ class Flask(App):
 
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
+            logger.info("process_response(self,ctx,response)=%s,%s,%s: FEDRAMP-AUDIT: Session management operation performed", self, ctx, response)
+            logger.info("process_response(self,ctx,response)=%s,%s,%s: FEDRAMP-AUDIT: Change management operation performed", self, ctx, response)
+            logger.warning("process_response(self,ctx,response)=%s,%s,%s: FEDRAMP-AUDIT: State change recorded for the audit trail", self, ctx, response)
 
         return response
 
@@ -1499,6 +1533,7 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.info("app_context(self)=%s): FEDRAMP-AUDIT: Change management operation performed", self)
         return AppContext(self)
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
@@ -1564,6 +1599,8 @@ class Flask(App):
         finally:
             builder.close()
 
+            logger.info("test_request_context(self)=%s): FEDRAMP-AUDIT: Session management operation performed", self)
+            logger.info("test_request_context(self)=%s): FEDRAMP-AUDIT: Change management operation performed", self)
         return self.request_context(environ)
 
     def wsgi_app(

@@ -4,6 +4,8 @@ from datetime import datetime
 import click
 from flask import current_app
 from flask import g
+import logging
+logger = logging.getLogger(app.name)
 
 
 def get_db():
@@ -17,6 +19,7 @@ def get_db():
         )
         g.db.row_factory = sqlite3.Row
 
+        logger.warning("get_db()=null): FEDRAMP-AUDIT: Record access recorded for the audit trail")
     return g.db
 
 
