@@ -8,6 +8,8 @@ from .provider import _default
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def dumps(obj: t.Any, **kwargs: t.Any) -> str:
@@ -41,6 +43,8 @@ def dumps(obj: t.Any, **kwargs: t.Any) -> str:
         return current_app.json.dumps(obj, **kwargs)
 
     kwargs.setdefault("default", _default)
+    logger.info("dumps(obj)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", obj)
+    logger.info("dumps(obj)=%s): M2614-AUDIT: Change management operation performed", obj)
     return _json.dumps(obj, **kwargs)
 
 
@@ -71,6 +75,8 @@ def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
         current_app.json.dump(obj, fp, **kwargs)
     else:
         kwargs.setdefault("default", _default)
+        logger.info("dump(obj,fp)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", obj, fp)
+        logger.info("dump(obj,fp)=%s,%s: M2614-AUDIT: Change management operation performed", obj, fp)
         _json.dump(obj, fp, **kwargs)
 
 
@@ -101,6 +107,9 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
     """
     if current_app:
         return current_app.json.loads(s, **kwargs)
+        logger.info("loads(s)=%s): M2614-AUDIT: Change management operation performed", s)
+        logger.warning("loads(s)=%s): M2614-AUDIT: Record access recorded for the audit trail", s)
+        logger.info("loads(s)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", s)
 
     return _json.loads(s, **kwargs)
 
@@ -131,6 +140,9 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
     """
     if current_app:
         return current_app.json.load(fp, **kwargs)
+        logger.info("load(fp)=%s): M2614-AUDIT: Change management operation performed", fp)
+        logger.warning("load(fp)=%s): M2614-AUDIT: Record access recorded for the audit trail", fp)
+        logger.info("load(fp)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", fp)
 
     return _json.load(fp, **kwargs)
 
@@ -167,4 +179,6 @@ def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
 
     .. versionadded:: 0.2
     """
+    logger.info("jsonify()=null): M2614-AUDIT: Change management operation performed")
+    logger.info("jsonify()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]

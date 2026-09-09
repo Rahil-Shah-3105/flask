@@ -20,6 +20,8 @@ from ..templating import _default_template_ctx_processor
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
+    import logging
+logger = logging.getLogger(app.name)
 
 # a singleton sentinel value for parameter defaults
 _sentinel = object()
@@ -41,6 +43,7 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 
 def setupmethod(f: F) -> F:
     f_name = f.__name__
+    logger.warning("setupmethod(f)=%s): M2614-AUDIT: State change recorded for the audit trail", f)
 
     def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
         self._check_setup_finished(f_name)
@@ -218,6 +221,8 @@ class Scaffold:
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.info("_check_setup_finished(self,f_name)=%s,%s: SOC2-AUDIT [CC6.6]: Database transaction completed", self, f_name)
+        logger.info("_check_setup_finished(self,f_name)=%s,%s: M2614-AUDIT: Database transaction completed", self, f_name)
         raise NotImplementedError
 
     @property
@@ -243,6 +248,8 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.info("has_static_folder(self)=%s): M2614-AUDIT: Change management operation performed", self)
+        logger.info("has_static_folder(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return self.static_folder is not None
 
     @property
@@ -277,6 +284,9 @@ class Scaffold:
         .. versionadded:: 0.5
         """
         if self.template_folder is not None:
+            logger.info("jinja_loader(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.warning("jinja_loader(self)=%s): M2614-AUDIT: Record access recorded for the audit trail", self)
+            logger.info("jinja_loader(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
             return None
@@ -298,6 +308,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("get(self,rule)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule)
+        logger.warning("get(self,rule)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, rule)
+        logger.info("get(self,rule)=%s,%s: M2614-AUDIT: Change management operation performed", self, rule)
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +319,9 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.info("query(self,rule)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule)
+        logger.warning("query(self,rule)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, rule)
+        logger.info("query(self,rule)=%s,%s: M2614-AUDIT: Change management operation performed", self, rule)
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -314,6 +330,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("post(self,rule)=%s,%s: M2614-AUDIT: Change management operation performed", self, rule)
+        logger.info("post(self,rule)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule)
         return self._method_route("POST", rule, options)
 
     @setupmethod
@@ -322,6 +340,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("put(self,rule)=%s,%s: M2614-AUDIT: Change management operation performed", self, rule)
+        logger.info("put(self,rule)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule)
         return self._method_route("PUT", rule, options)
 
     @setupmethod
@@ -330,6 +350,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("delete(self,rule)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule)
+        logger.warning("delete(self,rule)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, rule)
+        logger.info("delete(self,rule)=%s,%s: M2614-AUDIT: Change management operation performed", self, rule)
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -338,6 +361,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("patch(self,rule)=%s,%s: M2614-AUDIT: Change management operation performed", self, rule)
+        logger.info("patch(self,rule)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule)
         return self._method_route("PATCH", rule, options)
 
     @setupmethod
@@ -794,6 +819,9 @@ def find_package(import_name: str) -> tuple[str | None, str]:
             return os.path.dirname(parent), package_path
 
         # something else (prefix/site-packages)
+        logger.info("find_package(import_name)=%s): M2614-AUDIT: Change management operation performed", import_name)
+        logger.warning("find_package(import_name)=%s): M2614-AUDIT: Record access recorded for the audit trail", import_name)
+        logger.info("find_package(import_name)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", import_name)
         return site_parent, package_path
 
     # not installed

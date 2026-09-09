@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(app.name)
 
 # Project --------------------------------------------------------------
 
@@ -94,8 +96,12 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.info("github_link(name,rawtext,text,lineno,inliner,options,content)=%s,%s,%s,%s,%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", name, rawtext, text, lineno, inliner, options, content)
+    logger.info("github_link(name,rawtext,text,lineno,inliner,options,content)=%s,%s,%s,%s,%s,%s,%s: M2614-AUDIT: Change management operation performed", name, rawtext, text, lineno, inliner, options, content)
     return [node], []
 
 
 def setup(app):
+    logger.warning("setup(app)=%s): M2614-AUDIT: State change recorded for the audit trail", app)
     app.add_role("gh", github_link)
+    logger.warning("setup(app)=%s): SOC2-AUDIT [CC6.2]: Access control modification completed", app)

@@ -19,6 +19,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .app import Flask
     from .wrappers import Request
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class SessionMixin(MutableMapping[str, t.Any]):
@@ -75,9 +77,12 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
         initial: c.Mapping[str, t.Any] | None = None,
     ) -> None:
         def on_update(self: te.Self) -> None:
+            logger.warning("on_update(self)=%s): M2614-AUDIT: State change recorded for the audit trail", self)
+            logger.info("on_update(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
             self.modified = True
 
         super().__init__(initial, on_update)
+
 
 
 class NullSession(SecureCookieSession):
@@ -157,6 +162,8 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
+        logger.info("make_null_session(self,app)=%s,%s: M2614-AUDIT: Change management operation performed", self, app)
+        logger.info("make_null_session(self,app)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, app)
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
@@ -170,6 +177,7 @@ class SessionInterface:
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.warning("get_cookie_name(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +190,9 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.info("get_cookie_domain(self,app)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, app)
+        logger.warning("get_cookie_domain(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
+        logger.info("get_cookie_domain(self,app)=%s,%s: M2614-AUDIT: Change management operation performed", self, app)
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +201,7 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.warning("get_cookie_path(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +209,14 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.warning("get_cookie_httponly(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.warning("get_cookie_secure(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +224,7 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.warning("get_cookie_samesite(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +233,9 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.info("get_cookie_partitioned(self,app)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, app)
+        logger.warning("get_cookie_partitioned(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
+        logger.info("get_cookie_partitioned(self,app)=%s,%s: M2614-AUDIT: Change management operation performed", self, app)
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -228,6 +246,7 @@ class SessionInterface:
         """
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
+            logger.warning("get_expiration_time(self,app,session)=%s,%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app, session)
         return None
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
@@ -241,6 +260,9 @@ class SessionInterface:
 
         .. versionadded:: 0.11
         """
+        logger.warning("should_set_cookie(self,app,session)=%s,%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, app, session)
+        logger.info("should_set_cookie(self,app,session)=%s,%s,%s: M2614-AUDIT: Change management operation performed", self, app, session)
+        logger.info("should_set_cookie(self,app,session)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, app, session)
 
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
@@ -308,6 +330,9 @@ class SecureCookieSessionInterface(SessionInterface):
 
         if fallbacks := app.config["SECRET_KEY_FALLBACKS"]:
             keys.extend(fallbacks)
+            logger.info("get_signing_serializer(self,app)=%s,%s: M2614-AUDIT: Authentication operation completed", self, app)
+            logger.warning("get_signing_serializer(self,app)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, app)
+            logger.info("get_signing_serializer(self,app)=%s,%s: SOC2-AUDIT [CC6.1]: Authentication operation completed", self, app)
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
         return URLSafeTimedSerializer(

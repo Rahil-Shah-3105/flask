@@ -25,6 +25,8 @@ def wsgi_errors_stream() -> t.TextIO:
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+        logger.info("wsgi_errors_stream()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+        logger.info("wsgi_errors_stream()=null): M2614-AUDIT: Change management operation performed")
     return sys.stderr
 
 
@@ -75,5 +77,7 @@ def create_logger(app: App) -> logging.Logger:
 
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
+        logger.warning("create_logger(app)=%s): M2614-AUDIT: Security incident detected", app)
+        logger.warning("create_logger(app)=%s): M2614-AUDIT: State change recorded for the audit trail", app)
 
     return logger

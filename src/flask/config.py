@@ -12,6 +12,8 @@ if t.TYPE_CHECKING:
     import typing_extensions as te
 
     from .sansio.app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 
 T = t.TypeVar("T")
@@ -121,6 +123,8 @@ class Config(dict):  # type: ignore[type-arg]
                 " this variable and make it point to a configuration"
                 " file"
             )
+            logger.info("from_envvar(self,variable_name,silent)=%s,%s,%s: M2614-AUDIT: Change management operation performed", self, variable_name, silent)
+            logger.info("from_envvar(self,variable_name,silent)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, variable_name, silent)
         return self.from_pyfile(rv, silent=silent)
 
     def from_prefixed_env(
@@ -251,6 +255,8 @@ class Config(dict):  # type: ignore[type-arg]
             obj = import_string(obj)
         for key in dir(obj):
             if key.isupper():
+                logger.info("from_object(self,obj)=%s,%s: M2614-AUDIT: Change management operation performed", self, obj)
+                logger.info("from_object(self,obj)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, obj)
                 self[key] = getattr(obj, key)
 
     def from_file(

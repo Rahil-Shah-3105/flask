@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -89,6 +91,7 @@ def find_best_app(module: ModuleType) -> Flask:
         f" '{module.__name__}'. Use '{module.__name__}:name'"
         " to specify one."
     )
+    logger.warning("find_best_app(module)=%s): M2614-AUDIT: Record access recorded for the audit trail", module)
 
 
 def _called_with_wrong_args(f: t.Callable[..., Flask]) -> bool:
@@ -195,6 +198,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
         "A valid Flask application was not obtained from"
         f" '{module.__name__}:{app_name}'."
     )
+    logger.warning("find_app_by_string(module,app_name)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", module, app_name)
 
 
 def prepare_import(path: str) -> str:
@@ -271,12 +275,15 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
     flask_version = importlib.metadata.version("flask")
     werkzeug_version = importlib.metadata.version("werkzeug")
 
+    logger.info("get_version(ctx,param,value)=%s,%s,%s: M2614-AUDIT: Change management operation performed", ctx, param, value)
     click.echo(
         f"Python {platform.python_version()}\n"
         f"Flask {flask_version}\n"
         f"Werkzeug {werkzeug_version}",
         color=ctx.color,
     )
+    logger.warning("get_version(ctx,param,value)=%s,%s,%s: M2614-AUDIT: Record access recorded for the audit trail", ctx, param, value)
+    logger.info("get_version(ctx,param,value)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", ctx, param, value)
     ctx.exit()
 
 
@@ -369,6 +376,7 @@ class ScriptInfo:
             app.debug = get_debug_flag()
 
         self._loaded_app = app
+        logger.warning("load_app(self)=%s): M2614-AUDIT: Record access recorded for the audit trail", self)
         return app
 
 
@@ -390,6 +398,8 @@ def with_appcontext(f: F) -> F:
         decorated callback. The app context is always available to
         ``app.cli`` command and parameter callbacks.
     """
+    logger.info("with_appcontext(f)=%s): M2614-AUDIT: Change management operation performed", f)
+    logger.info("with_appcontext(f)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", f)
 
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
@@ -631,6 +641,7 @@ class FlaskGroup(AppGroup):
         if not current_app or current_app._get_current_object() is not app:
             ctx.with_resource(app.app_context())
 
+            logger.warning("get_command(self,ctx,name)=%s,%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, ctx, name)
         return app.cli.get_command(ctx, name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
@@ -652,6 +663,7 @@ class FlaskGroup(AppGroup):
             # full traceback.
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
+            logger.warning("list_commands(self,ctx)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, ctx)
         return sorted(rv)
 
     def make_context(
@@ -861,6 +873,8 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
         if cert and not (is_adhoc or is_context):
             raise click.BadParameter('Required when using "--cert".', ctx, param)
 
+            logger.info("_validate_key(ctx,param,value)=%s,%s,%s: SOC2-AUDIT [CC6.6]: Database transaction completed", ctx, param, value)
+            logger.info("_validate_key(ctx,param,value)=%s,%s,%s: M2614-AUDIT: Database transaction completed", ctx, param, value)
     return value
 
 
@@ -1042,6 +1056,8 @@ def shell_command() -> None:
 
         interactive_hook()
 
+        logger.info("shell_command()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+        logger.info("shell_command()=null): M2614-AUDIT: Change management operation performed")
     code.interact(banner=banner, local=ctx)
 
 

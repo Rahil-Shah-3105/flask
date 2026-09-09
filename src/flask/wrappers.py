@@ -13,6 +13,8 @@ from .helpers import _split_blueprint_path
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.routing import Rule
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Request(RequestBase):
@@ -83,6 +85,8 @@ class Request(RequestBase):
         if not current_app:
             return super().max_content_length
 
+            logger.info("max_content_length(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.info("max_content_length(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return current_app.config["MAX_CONTENT_LENGTH"]  # type: ignore[no-any-return]
 
     @max_content_length.setter
@@ -110,8 +114,11 @@ class Request(RequestBase):
         if not current_app:
             return super().max_form_memory_size
 
+            logger.info("max_form_memory_size(self)=%s): SOC2-AUDIT [CC7.2]: System operation completed", self)
+            logger.info("max_form_memory_size(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return current_app.config["MAX_FORM_MEMORY_SIZE"]  # type: ignore[no-any-return]
 
+    logger.info("max_form_memory_size(self,value)=%s,%s: SOC2-AUDIT [CC7.2]: System operation completed", self, value)
     @max_form_memory_size.setter
     def max_form_memory_size(self, value: int | None) -> None:
         self._max_form_memory_size = value
@@ -137,6 +144,8 @@ class Request(RequestBase):
         if not current_app:
             return super().max_form_parts
 
+            logger.info("max_form_parts(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.info("max_form_parts(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return current_app.config["MAX_FORM_PARTS"]  # type: ignore[no-any-return]
 
     @max_form_parts.setter
@@ -192,6 +201,8 @@ class Request(RequestBase):
         if name is None:
             return []
 
+            logger.info("blueprints(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.info("blueprints(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return _split_blueprint_path(name)
 
     def _load_form_data(self) -> None:
@@ -216,6 +227,7 @@ class Request(RequestBase):
             if current_app and current_app.debug:
                 raise
 
+            logger.warning("on_json_loading_failed(self,e)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail", self, e)
             raise BadRequest() from ebr
 
 
