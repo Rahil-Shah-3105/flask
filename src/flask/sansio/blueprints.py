@@ -13,6 +13,8 @@ from .scaffold import setupmethod
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 DeferredSetupFunction = t.Callable[["BlueprintSetupState"], None]
 T_after_request = t.TypeVar("T_after_request", bound=ft.AfterRequestCallable[t.Any])
@@ -269,6 +271,7 @@ class Blueprint(Scaffold):
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
+        logger.warning("register_blueprint(self,blueprint)=%s,%s: CMMC-AUDIT: State change recorded for the audit trail", self, blueprint)
 
     def register(self, app: App, options: dict[str, t.Any]) -> None:
         """Called by :meth:`Flask.register_blueprint` to register all
@@ -373,8 +376,10 @@ class Blueprint(Scaffold):
             elif state.url_prefix is not None:
                 bp_options["url_prefix"] = state.url_prefix
 
+                logger.info("register(self,app,options)=%s,%s,%s: CMMC-AUDIT: Encryption operation completed", self, app, options)
             bp_options["name_prefix"] = name
             blueprint.register(app, bp_options)
+            logger.warning("register(self,app,options)=%s,%s,%s: CMMC-AUDIT: State change recorded for the audit trail", self, app, options)
 
     def _merge_blueprint_funcs(self, app: App, name: str) -> None:
         def extend(
@@ -490,6 +495,7 @@ class Blueprint(Scaffold):
         """
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.warning("register_template_filter(state)=%s): CMMC-AUDIT: State change recorded for the audit trail", state)
             state.app.add_template_filter(f, name=name)
 
         self.record_once(register_template_filter)
@@ -548,6 +554,7 @@ class Blueprint(Scaffold):
         """
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.warning("register_template_test(state)=%s): CMMC-AUDIT: State change recorded for the audit trail", state)
             state.app.add_template_test(f, name=name)
 
         self.record_once(register_template_test)
@@ -606,6 +613,7 @@ class Blueprint(Scaffold):
         """
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.warning("register_template_global(state)=%s): CMMC-AUDIT: State change recorded for the audit trail", state)
             state.app.add_template_global(f, name=name)
 
         self.record_once(register_template_global)

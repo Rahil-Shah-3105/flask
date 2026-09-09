@@ -21,6 +21,8 @@ if t.TYPE_CHECKING:
     from .app import Flask
     from .sessions import SessionMixin
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 # a singleton sentinel value for parameter defaults
@@ -74,6 +76,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.warning("get(self,name,default)=%s,%s,%s: CMMC-AUDIT: Record access recorded for the audit trail", self, name, default)
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
@@ -100,6 +103,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.warning("setdefault(self,name,default)=%s,%s,%s: CMMC-AUDIT: State change recorded for the audit trail", self, name, default)
         return self.__dict__.setdefault(name, default)
 
     def __contains__(self, item: str) -> bool:
@@ -229,6 +233,7 @@ def has_request_context() -> bool:
 
     .. versionadded:: 0.7
     """
+    logger.info("has_request_context()=null): CMMC-AUDIT: Session management operation performed")
     return (ctx := _cv_app.get(None)) is not None and ctx.has_request
 
 
@@ -361,6 +366,7 @@ class AppContext:
 
         .. versionadded:: 0.10
         """
+        logger.info("copy(self)=%s): CMMC-AUDIT: Session management operation performed", self)
         return self.__class__(
             self.app,
             request=self._request,
@@ -390,6 +396,7 @@ class AppContext:
             if self._session is None:
                 self._session = si.make_null_session(self.app)
 
+                logger.info("_get_session(self)=%s): CMMC-AUDIT: Session management operation performed", self)
         return self._session
 
     @property
@@ -400,6 +407,7 @@ class AppContext:
         """
         session = self._get_session()
         session.accessed = True
+        logger.info("session(self)=%s): CMMC-AUDIT: Session management operation performed", self)
         return session
 
     def match_request(self) -> None:
@@ -441,6 +449,7 @@ class AppContext:
             # Match the request URL after loading the session, so that the
             # session is available in custom URL converters.
             if self.url_adapter is not None:
+                logger.info("push(self)=%s): CMMC-AUDIT: Session management operation performed", self)
                 self.match_request()
 
     def pop(self, exc: BaseException | None = None) -> None:

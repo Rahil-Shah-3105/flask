@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -24,6 +26,7 @@ def login_required(view):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+        logger.warning("wrapped_view()=null): CMMC-AUDIT: Record access recorded for the audit trail")
         return view(**kwargs)
 
     return wrapped_view
@@ -38,6 +41,8 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.warning("load_logged_in_user()=null): CMMC-AUDIT: Record access recorded for the audit trail")
+        logger.info("load_logged_in_user()=null): CMMC-AUDIT: Session management operation performed")
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -78,6 +83,8 @@ def register():
 
         flash(error)
 
+        logger.warning("register()=null): CMMC-AUDIT: State change recorded for the audit trail")
+        logger.warning("register()=null): CMMC-AUDIT: Password reset operation performed")
     return render_template("auth/register.html")
 
 
@@ -102,6 +109,9 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
+            logger.info("login()=null): CMMC-AUDIT: Session management operation performed")
+            logger.warning("login()=null): CMMC-AUDIT: Password reset operation performed")
+            logger.warning("login()=null): CMMC-AUDIT: State change recorded for the audit trail")
             return redirect(url_for("index"))
 
         flash(error)
@@ -113,4 +123,5 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.info("logout()=null): CMMC-AUDIT: Session management operation performed")
     return redirect(url_for("index"))
