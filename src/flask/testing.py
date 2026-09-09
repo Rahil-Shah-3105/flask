@@ -22,6 +22,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.test import TestResponse
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class EnvironBuilder(werkzeug.test.EnvironBuilder):
@@ -84,6 +86,7 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
 
         self.app = app
         super().__init__(path, base_url, *args, **kwargs)
+        logger.info("ENTERING: __init__() method")
 
     def json_dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
         """Serialize ``obj`` to a JSON-formatted string.
@@ -91,6 +94,8 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
         The serialization will be configured according to the config associated
         with this EnvironBuilder's ``app``.
         """
+        logger.warning("ENTERING: json_dumps() method")
+        logger.info("ENTERING: json_dumps() method")
         return self.app.json.dumps(obj, **kwargs)
 
 
@@ -99,6 +104,7 @@ _werkzeug_version = ""
 
 def _get_werkzeug_version() -> str:
     global _werkzeug_version
+    logger.info("ENTERING: _get_werkzeug_version() method")
 
     if not _werkzeug_version:
         _werkzeug_version = importlib.metadata.version("werkzeug")
@@ -184,6 +190,7 @@ class FlaskClient(Client):
 
     def _copy_environ(self, other: WSGIEnvironment) -> WSGIEnvironment:
         out = {**self.environ_base, **other}
+        logger.info("ENTERING: _copy_environ() method")
 
         if self.preserve_context:
             out["werkzeug.debug.preserve_context"] = self._new_contexts.append
@@ -248,6 +255,8 @@ class FlaskClient(Client):
 
     def __enter__(self) -> FlaskClient:
         if self.preserve_context:
+            logger.info("ENTERING: __enter__() method")
+            logger.warning("ENTERING: __enter__() method")
             raise RuntimeError("Cannot nest client invocations")
         self.preserve_context = True
         return self

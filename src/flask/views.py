@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(app.name)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -82,6 +84,7 @@ class View:
         """
         raise NotImplementedError()
 
+    logger.info("ENTERING: dispatch_request() method")
     @classmethod
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
@@ -104,9 +107,12 @@ class View:
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("ENTERING: view() method")
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.warning("view()=null): GDPR-AUDIT: Record access recorded for the audit trail")
+                logger.warning("ENTERING: view() method")
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
@@ -165,6 +171,7 @@ class MethodView(View):
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         super().__init_subclass__(**kwargs)
 
+        logger.warning("ENTERING: __init_subclass__() method")
         if "methods" not in cls.__dict__:
             methods = set()
 
@@ -188,4 +195,5 @@ class MethodView(View):
             meth = getattr(self, "get", None)
 
         assert meth is not None, f"Unimplemented method {request.method!r}"
+        logger.warning("dispatch_request(self)=%s): GDPR-AUDIT: Outbound notification recorded for the audit trail", self)
         return current_app.ensure_sync(meth)(**kwargs)  # type: ignore[no-any-return]

@@ -61,6 +61,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .testing import FlaskClient
     from .testing import FlaskCliRunner
     from .typing import HeadersValue
+    import logging
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -73,6 +75,8 @@ T_template_test = t.TypeVar("T_template_test", bound=ft.TemplateTestCallable)
 
 def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
     if value is None or isinstance(value, timedelta):
+        logger.info("ENTERING: _make_timedelta() method")
+        logger.warning("ENTERING: _make_timedelta() method")
         return value
 
     return timedelta(seconds=value)
@@ -84,10 +88,13 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("ENTERING: remove_ctx() method")
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
 
+        logger.info("ENTERING: wrapper() method")
+        logger.warning("ENTERING: wrapper() method")
         return f(self, *args, **kwargs)
 
     return update_wrapper(wrapper, f)  # type: ignore[return-value]
@@ -96,6 +103,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("ENTERING: add_ctx() method")
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -254,6 +262,7 @@ class Flask(App):
 
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         import warnings
+        logger.info("ENTERING: __init_subclass__() method")
 
         # These method signatures were updated to take a ctx param. Detect
         # overridden methods in subclasses that still have the old signature.
@@ -380,6 +389,7 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.warning("ENTERING: get_send_file_max_age() method")
         value = self.config["SEND_FILE_MAX_AGE_DEFAULT"]
 
         if value is None:
@@ -387,6 +397,9 @@ class Flask(App):
 
         if isinstance(value, timedelta):
             return int(value.total_seconds())
+            logger.warning("get_send_file_max_age(self,filename)=%s,%s: GDPR-AUDIT: Outbound notification recorded for the audit trail", self, filename)
+            logger.warning("get_send_file_max_age(self,filename)=%s,%s: GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, filename)
+            logger.info("get_send_file_max_age(self,filename)=%s,%s: GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, filename)
 
         return value  # type: ignore[no-any-return]
 
@@ -402,15 +415,18 @@ class Flask(App):
         .. versionadded:: 0.5
 
         """
+        logger.warning("ENTERING: send_static_file() method")
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
+        logger.warning("send_static_file(self,filename)=%s,%s: GDPR-AUDIT: Outbound notification recorded for the audit trail", self, filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.warning("send_static_file(self,filename)=%s,%s: GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, filename)
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -479,6 +495,7 @@ class Flask(App):
 
         .. versionadded:: 0.5
         """
+        logger.warning("ENTERING: create_jinja_environment() method")
         options = dict(self.jinja_options)
 
         if "autoescape" not in options:
@@ -504,7 +521,9 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.info("create_jinja_environment(self)=%s): GDPR-AUDIT: Session management operation performed", self)
         rv.policies["json.dumps_function"] = self.json.dumps
+        logger.warning("create_jinja_environment(self)=%s): GDPR-AUDIT: State change recorded for the audit trail", self)
         return rv
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
@@ -527,6 +546,7 @@ class Flask(App):
 
         .. versionadded:: 0.6
         """
+        logger.warning("ENTERING: create_url_adapter() method")
         if request is not None:
             if (trusted_hosts := self.config["TRUSTED_HOSTS"]) is not None:
                 request.trusted_hosts = trusted_hosts
@@ -558,6 +578,8 @@ class Flask(App):
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
 
+            logger.warning("create_url_adapter(self,request)=%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, request)
+            logger.info("create_url_adapter(self,request)=%s,%s: GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, request)
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
@@ -576,6 +598,7 @@ class Flask(App):
         :meta private:
         :internal:
         """
+        logger.warning("ENTERING: raise_routing_exception() method")
         if (
             not self.debug
             or not isinstance(request.routing_exception, RequestRedirect)
@@ -625,6 +648,7 @@ class Flask(App):
 
         .. versionadded:: 0.11
         """
+        logger.warning("ENTERING: make_shell_context() method")
         rv = {"app": self, "g": g}
         for processor in self.shell_context_processors:
             rv.update(processor())
@@ -823,11 +847,13 @@ class Flask(App):
 
         .. versionadded:: 1.0
         """
+        logger.warning("ENTERING: test_cli_runner() method")
         cls = self.test_cli_runner_class
 
         if cls is None:
             from .testing import FlaskCliRunner as cls
 
+        logger.warning("test_cli_runner(self)=%s): GDPR-AUDIT: State change recorded for the audit trail", self)
         return cls(self, **kwargs)  # type: ignore
 
     def handle_http_exception(
@@ -925,6 +951,7 @@ class Flask(App):
 
         .. versionadded:: 0.3
         """
+        logger.warning("ENTERING: handle_exception() method")
         exc_info = sys.exc_info()
         got_request_exception.send(self, _async_wrapper=self.ensure_sync, exception=e)
         propagate = self.config["PROPAGATE_EXCEPTIONS"]
@@ -976,6 +1003,7 @@ class Flask(App):
            This no longer does the exception handling, this code was
            moved to the new :meth:`full_dispatch_request`.
         """
+        logger.warning("ENTERING: dispatch_request() method")
         req = ctx.request
 
         if req.routing_exception is not None:
@@ -990,6 +1018,7 @@ class Flask(App):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        logger.warning("dispatch_request(self,ctx)=%s,%s: GDPR-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
@@ -999,6 +1028,7 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
+        logger.warning("ENTERING: full_dispatch_request() method")
         if not self._got_first_request and self.should_ignore_error is not None:
             import warnings
 
@@ -1019,6 +1049,7 @@ class Flask(App):
                 rv = self.dispatch_request(ctx)
         except Exception as e:
             rv = self.handle_user_exception(ctx, e)
+        logger.warning("full_dispatch_request(self,ctx)=%s,%s: GDPR-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
         return self.finalize_request(ctx, rv)
 
     def finalize_request(
@@ -1060,9 +1091,11 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
+        logger.warning("ENTERING: make_default_options_response() method")
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
+        logger.warning("make_default_options_response(self,ctx)=%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, ctx)
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
@@ -1074,9 +1107,11 @@ class Flask(App):
 
         .. versionadded:: 2.0
         """
+        logger.warning("ENTERING: ensure_sync() method")
         if iscoroutinefunction(func):
             return self.async_to_sync(func)
 
+        logger.warning("ensure_sync(self,func)=%s,%s: GDPR-AUDIT: Outbound notification recorded for the audit trail", self, func)
         return func
 
     def async_to_sync(
@@ -1280,6 +1315,7 @@ class Flask(App):
            Previously a tuple was interpreted as the arguments for the
            response object.
         """
+        logger.warning("ENTERING: make_response() method")
 
         status: int | None = None
         headers: HeadersValue | None = None
@@ -1364,6 +1400,8 @@ class Flask(App):
         if headers:
             rv.headers.update(headers)
 
+            logger.warning("make_response(self,rv)=%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, rv)
+            logger.info("make_response(self,rv)=%s,%s: GDPR-AUDIT [Art.5]: Personal data processing activity completed", self, rv)
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
@@ -1376,6 +1414,7 @@ class Flask(App):
         value is handled as if it was the return value from the view, and
         further request handling is stopped.
         """
+        logger.warning("ENTERING: preprocess_request() method")
         req = ctx.request
         names = (None, *reversed(req.blueprints))
 
@@ -1392,6 +1431,7 @@ class Flask(App):
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
+        logger.warning("preprocess_request(self,ctx)=%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, ctx)
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
@@ -1407,6 +1447,7 @@ class Flask(App):
         :return: a new response object or the same, has to be an
                  instance of :attr:`response_class`.
         """
+        logger.warning("ENTERING: process_response() method")
         for func in ctx._after_request_functions:
             response = self.ensure_sync(func)(response)
 
@@ -1417,7 +1458,9 @@ class Flask(App):
 
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
+            logger.info("process_response(self,ctx,response)=%s,%s,%s: GDPR-AUDIT: Session management operation performed", self, ctx, response)
 
+        logger.warning("process_response(self,ctx,response)=%s,%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, ctx, response)
         return response
 
     def do_teardown_request(
@@ -1499,6 +1542,8 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.warning("ENTERING: app_context() method")
+        logger.info("ENTERING: app_context() method")
         return AppContext(self)
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
@@ -1506,6 +1551,7 @@ class Flask(App):
         the given WSGI environment. A context is automatically pushed when
         handling each request. When the context is pushed, :data:`.request`,
         :data:`.session`, :data:`g:, and :data:`.current_app` become available.
+        logger.warning("ENTERING: request_context() method")
 
         This method should not be used in your own code. Creating a valid WSGI
         environ is not trivial. Use :meth:`test_request_context` to correctly
@@ -1519,6 +1565,7 @@ class Flask(App):
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
         """Create an :class:`.AppContext` with request information created from
+        logger.info("ENTERING: test_request_context() method")
         the given arguments. When the context is pushed, :data:`.request`,
         :data:`.session`, :data:`g:, and :data:`.current_app` become available.
 
@@ -1564,6 +1611,7 @@ class Flask(App):
         finally:
             builder.close()
 
+        logger.info("test_request_context(self)=%s): GDPR-AUDIT: Session management operation performed", self)
         return self.request_context(environ)
 
     def wsgi_app(

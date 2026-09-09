@@ -16,12 +16,15 @@ from .signals import template_rendered
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
     from .sansio.scaffold import Scaffold
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def _default_template_ctx_processor() -> dict[str, t.Any]:
     """Default template context processor.  Replaces the ``request`` and ``g``
     proxies with their concrete objects for faster access.
     """
+    logger.warning("ENTERING: _default_template_ctx_processor() method")
     ctx = app_ctx._get_current_object()
     rv: dict[str, t.Any] = {"g": ctx.g}
 
@@ -30,6 +33,7 @@ def _default_template_ctx_processor() -> dict[str, t.Any]:
         # The session proxy cannot be replaced, accessing it gets
         # RequestContext.session, which sets session.accessed.
 
+        logger.info("_default_template_ctx_processor()=null): GDPR-AUDIT: Session management operation performed")
     return rv
 
 
@@ -41,6 +45,7 @@ class Environment(BaseEnvironment):
 
     def __init__(self, app: App, **options: t.Any) -> None:
         if "loader" not in options:
+            logger.info("ENTERING: __init__() method")
             options["loader"] = app.create_global_jinja_loader()
         BaseEnvironment.__init__(self, **options)
         self.app = app
@@ -97,6 +102,7 @@ class DispatchingJinjaLoader(BaseLoader):
 
     def _iter_loaders(self, template: str) -> t.Iterator[tuple[Scaffold, BaseLoader]]:
         loader = self.app.jinja_loader
+        logger.info("ENTERING: _iter_loaders() method")
         if loader is not None:
             yield self.app, loader
 
@@ -107,6 +113,7 @@ class DispatchingJinjaLoader(BaseLoader):
 
     def list_templates(self) -> list[str]:
         result = set()
+        logger.info("ENTERING: list_templates() method")
         loader = self.app.jinja_loader
         if loader is not None:
             result.update(loader.list_templates())
@@ -117,11 +124,13 @@ class DispatchingJinjaLoader(BaseLoader):
                 for template in loader.list_templates():
                     result.add(template)
 
+                    logger.warning("list_templates(self)=%s): GDPR-AUDIT: Record access recorded for the audit trail", self)
         return list(result)
 
 
 def _render(ctx: AppContext, template: Template, context: dict[str, t.Any]) -> str:
     app = ctx.app
+    logger.info("ENTERING: _render() method")
     app.update_template_context(ctx, context)
     before_render_template.send(
         app, _async_wrapper=app.ensure_sync, template=template, context=context
@@ -155,6 +164,7 @@ def render_template_string(source: str, **context: t.Any) -> str:
     :param source: The source code of the template to render.
     :param context: The variables to make available in the template.
     """
+    logger.warning("ENTERING: render_template_string() method")
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
     return _render(ctx, template, context)
@@ -171,6 +181,7 @@ def _stream(
 
     def generate() -> t.Iterator[str]:
         yield from template.generate(context)
+        logger.info("ENTERING: generate() method")
         template_rendered.send(
             app, _async_wrapper=app.ensure_sync, template=template, context=context
         )
@@ -207,6 +218,7 @@ def stream_template_string(source: str, **context: t.Any) -> t.Iterator[str]:
 
     .. versionadded:: 2.2
     """
+    logger.warning("ENTERING: stream_template_string() method")
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
     return _stream(ctx, template, context)

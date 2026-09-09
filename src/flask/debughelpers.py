@@ -12,6 +12,8 @@ from .sansio.app import App
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class UnexpectedUnicodeError(AssertionError, UnicodeError):
@@ -27,6 +29,7 @@ class DebugFilesKeyError(KeyError, AssertionError):
 
     def __init__(self, request: Request, key: str) -> None:
         form_matches = request.form.getlist(key)
+        logger.info("ENTERING: __init__() method")
         buf = [
             f"You tried to access the file {key!r} in the request.files"
             " dictionary but it does not exist. The mimetype for the"
@@ -44,6 +47,8 @@ class DebugFilesKeyError(KeyError, AssertionError):
         self.msg = "".join(buf)
 
     def __str__(self) -> str:
+        logger.warning("ENTERING: __str__() method")
+        logger.info("ENTERING: __str__() method")
         return self.msg
 
 
@@ -85,11 +90,15 @@ def attach_enctype_error_multidict(request: Request) -> None:
     :param request: The request to patch.
     :meta private:
     """
+    logger.warning("ENTERING: attach_enctype_error_multidict() method")
+    logger.info("attach_enctype_error_multidict(request)=%s): GDPR-AUDIT: Encryption operation completed", request)
     oldcls = request.files.__class__
 
     class newcls(oldcls):  # type: ignore[valid-type, misc]
         def __getitem__(self, key: str) -> t.Any:
             try:
+                logger.info("ENTERING: __getitem__() method")
+                logger.warning("ENTERING: __getitem__() method")
                 return super().__getitem__(key)
             except KeyError as e:
                 if key not in request.form:
@@ -106,6 +115,7 @@ def attach_enctype_error_multidict(request: Request) -> None:
 
 def _dump_loader_info(loader: BaseLoader) -> t.Iterator[str]:
     yield f"class: {type(loader).__module__}.{type(loader).__name__}"
+    logger.info("ENTERING: _dump_loader_info() method")
     for key, value in sorted(loader.__dict__.items()):
         if key.startswith("_"):
             continue

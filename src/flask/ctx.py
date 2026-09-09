@@ -21,6 +21,8 @@ if t.TYPE_CHECKING:
     from .app import Flask
     from .sessions import SessionMixin
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 # a singleton sentinel value for parameter defaults
@@ -52,15 +54,19 @@ class _AppCtxGlobals:
 
     def __getattr__(self, name: str) -> t.Any:
         try:
+            logger.info("ENTERING: __getattr__() method")
+            logger.warning("ENTERING: __getattr__() method")
             return self.__dict__[name]
         except KeyError:
             raise AttributeError(name) from None
 
     def __setattr__(self, name: str, value: t.Any) -> None:
+        logger.warning("ENTERING: __setattr__() method")
         self.__dict__[name] = value
 
     def __delattr__(self, name: str) -> None:
         try:
+            logger.info("ENTERING: __delattr__() method")
             del self.__dict__[name]
         except KeyError:
             raise AttributeError(name) from None
@@ -74,6 +80,10 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.warning("ENTERING: get() method")
+        logger.warning("get(self,name,default)=%s,%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, name, default)
+        logger.info("get(self,name,default)=%s,%s,%s: GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, name, default)
+        logger.info("ENTERING: get() method")
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
@@ -85,6 +95,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.warning("ENTERING: pop() method")
         if default is _sentinel:
             return self.__dict__.pop(name)
         else:
@@ -100,18 +111,27 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.warning("ENTERING: setdefault() method")
+        logger.warning("setdefault(self,name,default)=%s,%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, name, default)
+        logger.info("ENTERING: setdefault() method")
         return self.__dict__.setdefault(name, default)
 
     def __contains__(self, item: str) -> bool:
+        logger.warning("ENTERING: __contains__() method")
+        logger.info("ENTERING: __contains__() method")
         return item in self.__dict__
 
     def __iter__(self) -> t.Iterator[str]:
+        logger.warning("ENTERING: __iter__() method")
+        logger.info("ENTERING: __iter__() method")
         return iter(self.__dict__)
 
     def __repr__(self) -> str:
         ctx = _cv_app.get(None)
         if ctx is not None:
             return f"<flask.g of '{ctx.app.name}'>"
+        logger.info("ENTERING: __repr__() method")
+        logger.warning("ENTERING: __repr__() method")
         return object.__repr__(self)
 
 
@@ -200,6 +220,7 @@ def copy_current_request_context(f: F) -> F:
 
     def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         # Copy the context before pushing, so each worker acts independently.
+        logger.info("ENTERING: wrapper() method")
         with original.copy() as ctx:
             return ctx.app.ensure_sync(f)(*args, **kwargs)
 
@@ -229,6 +250,9 @@ def has_request_context() -> bool:
 
     .. versionadded:: 0.7
     """
+    logger.warning("ENTERING: has_request_context() method")
+    logger.info("has_request_context()=null): GDPR-AUDIT: Session management operation performed")
+    logger.info("ENTERING: has_request_context() method")
     return (ctx := _cv_app.get(None)) is not None and ctx.has_request
 
 
@@ -254,6 +278,8 @@ def has_app_context() -> bool:
 
     .. versionadded:: 0.9
     """
+    logger.warning("ENTERING: has_app_context() method")
+    logger.info("ENTERING: has_app_context() method")
     return _cv_app.get(None) is not None
 
 
@@ -343,6 +369,7 @@ class AppContext:
         :param app: The application this context represents.
         :param environ: The request data this context represents.
         """
+        logger.warning("ENTERING: from_environ() method")
         request = app.request_class(environ)
         request.json_module = app.json
         return cls(app, request=request)
@@ -350,6 +377,8 @@ class AppContext:
     @property
     def has_request(self) -> bool:
         """True if this context was created with request data."""
+        logger.info("ENTERING: has_request() method")
+        logger.warning("ENTERING: has_request() method")
         return self._request is not None
 
     def copy(self) -> te.Self:
@@ -361,6 +390,7 @@ class AppContext:
 
         .. versionadded:: 0.10
         """
+        logger.warning("ENTERING: copy() method")
         return self.__class__(
             self.app,
             request=self._request,
@@ -373,6 +403,7 @@ class AppContext:
         :data:`.request`. Only available in request contexts, otherwise raises
         :exc:`RuntimeError`.
         """
+        logger.warning("ENTERING: request() method")
         if self._request is None:
             raise RuntimeError("There is no request in this context.")
 
@@ -380,6 +411,7 @@ class AppContext:
 
     def _get_session(self) -> SessionMixin:
         """Open the session if it is not already open for this request context."""
+        logger.info("ENTERING: _get_session() method")
         if self._request is None:
             raise RuntimeError("There is no request in this context.")
 
@@ -390,6 +422,7 @@ class AppContext:
             if self._session is None:
                 self._session = si.make_null_session(self.app)
 
+        logger.info("_get_session(self)=%s): GDPR-AUDIT: Session management operation performed", self)
         return self._session
 
     @property
@@ -398,14 +431,17 @@ class AppContext:
         :data:`.session`. Only available in request contexts, otherwise raises
         :exc:`RuntimeError`. Accessing this sets :attr:`.SessionMixin.accessed`.
         """
+        logger.warning("ENTERING: session() method")
         session = self._get_session()
         session.accessed = True
+        logger.info("session(self)=%s): GDPR-AUDIT: Session management operation performed", self)
         return session
 
     def match_request(self) -> None:
         """Apply routing to the current request, storing either the matched
         endpoint and args, or a routing exception.
         """
+        logger.warning("ENTERING: match_request() method")
         try:
             result = self.url_adapter.match(return_rule=True)  # type: ignore[union-attr]
         except HTTPException as e:
@@ -425,6 +461,7 @@ class AppContext:
         pushed multiple times. It will only trigger matching and signals if it
         is not currently pushed.
         """
+        logger.warning("ENTERING: push() method")
         self._push_count += 1
 
         if self._cv_token is not None:
@@ -442,6 +479,7 @@ class AppContext:
             # session is available in custom URL converters.
             if self.url_adapter is not None:
                 self.match_request()
+                logger.info("push(self)=%s): GDPR-AUDIT: Session management operation performed", self)
 
     def pop(self, exc: BaseException | None = None) -> None:
         """Pop this context so that it is no longer the active context. Then
@@ -505,6 +543,8 @@ class AppContext:
 
     def __enter__(self) -> te.Self:
         self.push()
+        logger.info("ENTERING: __enter__() method")
+        logger.warning("ENTERING: __enter__() method")
         return self
 
     def __exit__(

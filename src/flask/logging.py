@@ -22,6 +22,7 @@ def wsgi_errors_stream() -> t.TextIO:
     can't import this directly, you can refer to it as
     ``ext://flask.logging.wsgi_errors_stream``.
     """
+    logger.warning("ENTERING: wsgi_errors_stream() method")
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
@@ -32,6 +33,7 @@ def has_level_handler(logger: logging.Logger) -> bool:
     """Check if there is a handler in the logging chain that will handle the
     given logger's :meth:`effective level <~logging.Logger.getEffectiveLevel>`.
     """
+    logger.warning("ENTERING: has_level_handler() method")
     level = logger.getEffectiveLevel()
     current = logger
 
@@ -68,6 +70,7 @@ def create_logger(app: App) -> logging.Logger:
     :class:`~logging.StreamHandler` for
     :func:`~flask.logging.wsgi_errors_stream` with a basic format.
     """
+    logger.warning("ENTERING: create_logger() method")
     logger = logging.getLogger(app.name)
 
     if app.debug and not logger.level:
@@ -76,4 +79,5 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+        logger.info("create_logger(app)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", app)
     return logger
