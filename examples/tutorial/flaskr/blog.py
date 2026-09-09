@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("blog", __name__)
 
@@ -22,6 +24,8 @@ def index():
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.warning("index()=null): CMMC-AUDIT: State change recorded for the audit trail")
+    logger.info("index()=null): CMMC-AUDIT: Encryption operation completed")
     return render_template("blog/index.html", posts=posts)
 
 
@@ -54,6 +58,7 @@ def get_post(id, check_author=True):
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
 
+        logger.warning("get_post(id,check_author)=%s,%s: CMMC-AUDIT: Record access recorded for the audit trail %s", id, check_author, id)
     return post
 
 
@@ -78,6 +83,7 @@ def create():
                 (title, body, g.user["id"]),
             )
             db.commit()
+            logger.warning("create()=null): CMMC-AUDIT: State change recorded for the audit trail")
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -105,6 +111,7 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.warning("update(id)=%s): CMMC-AUDIT: State change recorded for the audit trail %s", id, id)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -122,4 +129,5 @@ def delete(id):
     db = get_db()
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.warning("delete(id)=%s): CMMC-AUDIT: State change recorded for the audit trail %s", id, id)
     return redirect(url_for("blog.index"))
