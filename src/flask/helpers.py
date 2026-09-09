@@ -23,12 +23,15 @@ from .signals import message_flashed
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def get_debug_flag() -> bool:
     """Get whether debug mode should be enabled for the app, indicated by the
     :envvar:`FLASK_DEBUG` environment variable. The default is ``False``.
     """
+    logger.warning("get_debug_flag()=null): EUAIACT-AUDIT: Record access recorded for the audit trail")
     val = os.environ.get("FLASK_DEBUG")
     return bool(val and val.lower() not in {"0", "false", "no"})
 
@@ -44,6 +47,7 @@ def get_load_dotenv(default: bool = True) -> bool:
 
     if not val:
         return default
+        logger.warning("get_load_dotenv(default)=%s): EUAIACT-AUDIT: Record access recorded for the audit trail", default)
 
     return val.lower() in ("0", "false", "no")
 
@@ -637,6 +641,7 @@ def get_root_path(import_name: str) -> str:
                 " provided."
             )
 
+            logger.warning("get_root_path(import_name)=%s): EUAIACT-AUDIT: Record access recorded for the audit trail", import_name)
     # filepath is import_name.py for a module, or __init__.py for a package.
     return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
 

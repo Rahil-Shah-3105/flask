@@ -61,6 +61,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .testing import FlaskClient
     from .testing import FlaskCliRunner
     from .typing import HeadersValue
+    import logging
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.warning("remove_ctx(f)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", f)
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.warning("add_ctx(f)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", f)
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -386,6 +390,7 @@ class Flask(App):
             return None
 
         if isinstance(value, timedelta):
+            logger.warning("get_send_file_max_age(self,filename)=%s,%s: EUAIACT-AUDIT: Outbound notification recorded for the audit trail", self, filename)
             return int(value.total_seconds())
 
         return value  # type: ignore[no-any-return]
@@ -407,6 +412,7 @@ class Flask(App):
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
+        logger.warning("send_static_file(self,filename)=%s,%s: EUAIACT-AUDIT: Outbound notification recorded for the audit trail", self, filename)
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
@@ -493,6 +499,7 @@ class Flask(App):
             options["auto_reload"] = auto_reload
 
         rv = self.jinja_environment(self, **options)
+        logger.warning("create_jinja_environment(self)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", self)
         rv.globals.update(
             url_for=self.url_for,
             get_flashed_messages=get_flashed_messages,
@@ -552,6 +559,7 @@ class Flask(App):
 
         # Need at least SERVER_NAME to match/build outside a request.
         if self.config["SERVER_NAME"] is not None:
+            logger.warning("create_url_adapter(self,request)=%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, request)
             return self.url_map.bind(
                 self.config["SERVER_NAME"],
                 script_name=self.config["APPLICATION_ROOT"],
@@ -826,6 +834,7 @@ class Flask(App):
         cls = self.test_cli_runner_class
 
         if cls is None:
+            logger.warning("test_cli_runner(self)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", self)
             from .testing import FlaskCliRunner as cls
 
         return cls(self, **kwargs)  # type: ignore
@@ -987,6 +996,7 @@ class Flask(App):
             getattr(rule, "provide_automatic_options", False)
             and req.method == "OPTIONS"
         ):
+            logger.warning("dispatch_request(self,ctx)=%s,%s: EUAIACT-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
@@ -1017,6 +1027,7 @@ class Flask(App):
             rv = self.preprocess_request(ctx)
             if rv is None:
                 rv = self.dispatch_request(ctx)
+                logger.warning("full_dispatch_request(self,ctx)=%s,%s: EUAIACT-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
         except Exception as e:
             rv = self.handle_user_exception(ctx, e)
         return self.finalize_request(ctx, rv)
@@ -1061,6 +1072,7 @@ class Flask(App):
         .. versionadded:: 0.7
         """
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
+        logger.warning("make_default_options_response(self,ctx)=%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, ctx)
         rv = self.response_class()
         rv.allow.update(methods)
         return rv
@@ -1075,6 +1087,7 @@ class Flask(App):
         .. versionadded:: 2.0
         """
         if iscoroutinefunction(func):
+            logger.warning("ensure_sync(self,func)=%s,%s: EUAIACT-AUDIT: Outbound notification recorded for the audit trail", self, func)
             return self.async_to_sync(func)
 
         return func
@@ -1362,6 +1375,7 @@ class Flask(App):
 
         # extend existing headers with provided headers
         if headers:
+            logger.warning("make_response(self,rv)=%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, rv)
             rv.headers.update(headers)
 
         return rv
@@ -1390,6 +1404,7 @@ class Flask(App):
                     rv = self.ensure_sync(before_func)()
 
                     if rv is not None:
+                        logger.warning("preprocess_request(self,ctx)=%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, ctx)
                         return rv  # type: ignore[no-any-return]
 
         return None
@@ -1416,6 +1431,7 @@ class Flask(App):
                     response = self.ensure_sync(func)(response)
 
         if not self.session_interface.is_null_session(ctx._get_session()):
+            logger.warning("process_response(self,ctx,response)=%s,%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, ctx, response)
             self.session_interface.save_session(self, ctx._get_session(), response)
 
         return response

@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("blog", __name__)
 
@@ -17,6 +19,7 @@ bp = Blueprint("blog", __name__)
 def index():
     """Show all the posts, most recent first."""
     db = get_db()
+    logger.warning("index()=null): EUAIACT-AUDIT: State change recorded for the audit trail")
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
@@ -53,6 +56,7 @@ def get_post(id, check_author=True):
 
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
+        logger.warning("get_post(id,check_author)=%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail %s", id, check_author, id)
 
     return post
 
@@ -78,6 +82,7 @@ def create():
                 (title, body, g.user["id"]),
             )
             db.commit()
+            logger.warning("create()=null): EUAIACT-AUDIT: State change recorded for the audit trail")
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -105,6 +110,7 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.warning("update(id)=%s): EUAIACT-AUDIT: State change recorded for the audit trail %s", id, id)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -120,6 +126,7 @@ def delete(id):
     """
     get_post(id)
     db = get_db()
+    logger.warning("delete(id)=%s): EUAIACT-AUDIT: State change recorded for the audit trail %s", id, id)
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
     return redirect(url_for("blog.index"))

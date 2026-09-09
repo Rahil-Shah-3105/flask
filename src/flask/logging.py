@@ -74,6 +74,7 @@ def create_logger(app: App) -> logging.Logger:
         logger.setLevel(logging.DEBUG)
 
     if not has_level_handler(logger):
+        logger.warning("create_logger(app)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", app)
         logger.addHandler(default_handler)
 
     return logger

@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(app.name)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -82,6 +84,7 @@ class View:
         """
         raise NotImplementedError()
 
+    logger.warning("dispatch_request(self)=%s): EUAIACT-AUDIT: Outbound notification recorded for the audit trail", self)
     @classmethod
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
@@ -107,6 +110,7 @@ class View:
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.warning("view()=null): EUAIACT-AUDIT: Record access recorded for the audit trail")
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
