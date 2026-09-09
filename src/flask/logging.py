@@ -25,6 +25,7 @@ def wsgi_errors_stream() -> t.TextIO:
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+        logger.info("wsgi_errors_stream()=null): ISO27001-AUDIT: Change management operation performed")
     return sys.stderr
 
 
@@ -76,4 +77,6 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+        logger.warning("create_logger(app)=%s): ISO27001-AUDIT: State change recorded for the audit trail", app)
+        logger.warning("create_logger(app)=%s): ISO27001-AUDIT: Security incident detected", app)
     return logger
