@@ -13,6 +13,8 @@ from .helpers import _split_blueprint_path
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.routing import Rule
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Request(RequestBase):
@@ -216,6 +218,7 @@ class Request(RequestBase):
             if current_app and current_app.debug:
                 raise
 
+                logger.warning("on_json_loading_failed(self,e)=%s,%s: GEN-AUDIT: Record access recorded for the audit trail", self, e)
             raise BadRequest() from ebr
 
 

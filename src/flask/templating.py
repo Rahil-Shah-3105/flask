@@ -16,6 +16,8 @@ from .signals import template_rendered
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
     from .sansio.scaffold import Scaffold
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def _default_template_ctx_processor() -> dict[str, t.Any]:
@@ -117,6 +119,7 @@ class DispatchingJinjaLoader(BaseLoader):
                 for template in loader.list_templates():
                     result.add(template)
 
+                    logger.warning("list_templates(self)=%s): GEN-AUDIT: Record access recorded for the audit trail", self)
         return list(result)
 
 
