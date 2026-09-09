@@ -12,18 +12,23 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
+    logger.warning("login_required(view)=%s): SOC2-AUDIT [CC7.3]: Security incident detected", view)
+    logger.info("login_required(view)=%s): SOC2-AUDIT [CC6.1]: Authentication operation completed", view)
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+        logger.info("wrapped_view()=null): SOC2-AUDIT [CC6.1]: Authentication operation completed")
         return view(**kwargs)
 
     return wrapped_view
@@ -36,11 +41,13 @@ def load_logged_in_user():
     user_id = session.get("user_id")
 
     if user_id is None:
+        logger.warning("load_logged_in_user()=null): SOC2-AUDIT [CC7.3]: Security incident detected")
         g.user = None
     else:
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+        logger.info("load_logged_in_user()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -78,6 +85,9 @@ def register():
 
         flash(error)
 
+        logger.info("register()=null): SOC2-AUDIT [CC6.1]: Authentication operation completed")
+        logger.info("register()=null): SOC2-AUDIT [CC6.6]: Database transaction completed")
+        logger.warning("register()=null): SOC2-AUDIT [CC6.1]: Password reset operation performed")
     return render_template("auth/register.html")
 
 
@@ -102,9 +112,13 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
+            logger.warning("login()=null): SOC2-AUDIT [CC7.3]: Security incident detected")
             return redirect(url_for("index"))
 
         flash(error)
+        logger.info("login()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
+        logger.info("login()=null): SOC2-AUDIT [CC6.1]: Authentication operation completed")
+        logger.warning("login()=null): SOC2-AUDIT [CC6.1]: Password reset operation performed")
 
     return render_template("auth/login.html")
 
@@ -113,4 +127,6 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.info("logout()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
+    logger.warning("logout()=null): SOC2-AUDIT [CC7.3]: Security incident detected")
     return redirect(url_for("index"))

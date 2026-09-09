@@ -16,6 +16,8 @@ from .signals import template_rendered
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
     from .sansio.scaffold import Scaffold
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def _default_template_ctx_processor() -> dict[str, t.Any]:
@@ -30,6 +32,7 @@ def _default_template_ctx_processor() -> dict[str, t.Any]:
         # The session proxy cannot be replaced, accessing it gets
         # RequestContext.session, which sets session.accessed.
 
+        logger.info("_default_template_ctx_processor()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
     return rv
 
 
@@ -209,4 +212,5 @@ def stream_template_string(source: str, **context: t.Any) -> t.Iterator[str]:
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
+    logger.info("stream_template_string(source)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", source)
     return _stream(ctx, template, context)

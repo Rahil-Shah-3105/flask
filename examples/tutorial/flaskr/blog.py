@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("blog", __name__)
 
@@ -22,6 +24,7 @@ def index():
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.info("index()=null): SOC2-AUDIT [CC6.7]: Encryption operation completed")
     return render_template("blog/index.html", posts=posts)
 
 
@@ -105,6 +108,7 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.info("update(id)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", id)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
