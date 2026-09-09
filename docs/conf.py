@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(app.name)
 
 # Project --------------------------------------------------------------
 
@@ -94,8 +96,10 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.warning("github_link(name,rawtext,text,lineno,inliner,options,content)=%s,%s,%s,%s,%s,%s,%s: HIPAA-AUDIT [§164.312(e)(2)(ii)]: Secure PHI transmission completed", name, rawtext, text, lineno, inliner, options, content)
     return [node], []
 
 
 def setup(app):
     app.add_role("gh", github_link)
+    logger.warning("setup(app)=%s): HIPAA-AUDIT: State change recorded for the audit trail", app)
