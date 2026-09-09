@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -89,6 +91,7 @@ def find_best_app(module: ModuleType) -> Flask:
         f" '{module.__name__}'. Use '{module.__name__}:name'"
         " to specify one."
     )
+    logger.warning("find_best_app(module)=%s): ISO27701-AUDIT: Record access recorded for the audit trail", module)
 
 
 def _called_with_wrong_args(f: t.Callable[..., Flask]) -> bool:
@@ -195,6 +198,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
         "A valid Flask application was not obtained from"
         f" '{module.__name__}:{app_name}'."
     )
+    logger.warning("find_app_by_string(module,app_name)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", module, app_name)
 
 
 def prepare_import(path: str) -> str:
@@ -278,6 +282,7 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
         color=ctx.color,
     )
     ctx.exit()
+    logger.warning("get_version(ctx,param,value)=%s,%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", ctx, param, value)
 
 
 version_option = click.Option(
@@ -369,6 +374,7 @@ class ScriptInfo:
             app.debug = get_debug_flag()
 
         self._loaded_app = app
+        logger.warning("load_app(self)=%s): ISO27701-AUDIT: Record access recorded for the audit trail", self)
         return app
 
 
@@ -631,6 +637,7 @@ class FlaskGroup(AppGroup):
         if not current_app or current_app._get_current_object() is not app:
             ctx.with_resource(app.app_context())
 
+            logger.warning("get_command(self,ctx,name)=%s,%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, ctx, name)
         return app.cli.get_command(ctx, name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
@@ -652,6 +659,7 @@ class FlaskGroup(AppGroup):
             # full traceback.
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
+            logger.warning("list_commands(self,ctx)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, ctx)
         return sorted(rv)
 
     def make_context(

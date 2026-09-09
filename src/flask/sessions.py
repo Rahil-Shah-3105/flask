@@ -19,6 +19,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .app import Flask
     from .wrappers import Request
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class SessionMixin(MutableMapping[str, t.Any]):
@@ -76,8 +78,10 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
     ) -> None:
         def on_update(self: te.Self) -> None:
             self.modified = True
+            logger.warning("on_update(self)=%s): ISO27701-AUDIT: State change recorded for the audit trail", self)
 
         super().__init__(initial, on_update)
+
 
 
 class NullSession(SecureCookieSession):
@@ -170,6 +174,7 @@ class SessionInterface:
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.warning("get_cookie_name(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +187,7 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.warning("get_cookie_domain(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +196,7 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.warning("get_cookie_path(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +204,14 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.warning("get_cookie_httponly(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.warning("get_cookie_secure(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +219,7 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.warning("get_cookie_samesite(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +228,7 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.warning("get_cookie_partitioned(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -228,6 +239,7 @@ class SessionInterface:
         """
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
+            logger.warning("get_expiration_time(self,app,session)=%s,%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app, session)
         return None
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
@@ -242,6 +254,7 @@ class SessionInterface:
         .. versionadded:: 0.11
         """
 
+        logger.warning("should_set_cookie(self,app,session)=%s,%s,%s: ISO27701-AUDIT: State change recorded for the audit trail", self, app, session)
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
         )
@@ -310,6 +323,7 @@ class SecureCookieSessionInterface(SessionInterface):
             keys.extend(fallbacks)
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
+        logger.warning("get_signing_serializer(self,app)=%s,%s: ISO27701-AUDIT: Record access recorded for the audit trail", self, app)
         return URLSafeTimedSerializer(
             keys,  # type: ignore[arg-type]
             salt=self.salt,
