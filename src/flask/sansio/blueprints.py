@@ -13,6 +13,8 @@ from .scaffold import setupmethod
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 DeferredSetupFunction = t.Callable[["BlueprintSetupState"], None]
 T_after_request = t.TypeVar("T_after_request", bound=ft.AfterRequestCallable[t.Any])
@@ -212,6 +214,7 @@ class Blueprint(Scaffold):
 
     def _check_setup_finished(self, f_name: str) -> None:
         if self._got_registered_once:
+            logger.info("_check_setup_finished(self,f_name)=%s,%s: M2614-AUDIT: Database transaction completed", self, f_name)
             raise AssertionError(
                 f"The setup method '{f_name}' can no longer be called on the blueprint"
                 f" '{self.name}'. It has already been registered at least once, any"
@@ -219,6 +222,7 @@ class Blueprint(Scaffold):
                 "Make sure all imports, decorators, functions, etc. needed to set up"
                 " the blueprint are done before registering it."
             )
+            logger.info("_check_setup_finished(self,f_name)=%s,%s: SOC2-AUDIT [CC6.6]: Database transaction completed", self, f_name)
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -266,6 +270,9 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 2.0
         """
+        logger.info("register_blueprint(self,blueprint)=%s,%s: M2614-AUDIT: Change management operation performed", self, blueprint)
+        logger.warning("register_blueprint(self,blueprint)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, blueprint)
+        logger.info("register_blueprint(self,blueprint)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, blueprint)
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
@@ -372,6 +379,9 @@ class Blueprint(Scaffold):
                 bp_options["url_prefix"] = bp_url_prefix
             elif state.url_prefix is not None:
                 bp_options["url_prefix"] = state.url_prefix
+                logger.info("register(self,app,options)=%s,%s,%s: M2614-AUDIT: Change management operation performed", self, app, options)
+                logger.warning("register(self,app,options)=%s,%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, app, options)
+                logger.info("register(self,app,options)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, app, options)
 
             bp_options["name_prefix"] = name
             blueprint.register(app, bp_options)
@@ -491,6 +501,7 @@ class Blueprint(Scaffold):
 
         def register_template_filter(state: BlueprintSetupState) -> None:
             state.app.add_template_filter(f, name=name)
+            logger.warning("register_template_filter(state)=%s): M2614-AUDIT: State change recorded for the audit trail", state)
 
         self.record_once(register_template_filter)
 
@@ -549,6 +560,7 @@ class Blueprint(Scaffold):
 
         def register_template_test(state: BlueprintSetupState) -> None:
             state.app.add_template_test(f, name=name)
+            logger.warning("register_template_test(state)=%s): M2614-AUDIT: State change recorded for the audit trail", state)
 
         self.record_once(register_template_test)
 
@@ -607,6 +619,7 @@ class Blueprint(Scaffold):
 
         def register_template_global(state: BlueprintSetupState) -> None:
             state.app.add_template_global(f, name=name)
+            logger.warning("register_template_global(state)=%s): M2614-AUDIT: State change recorded for the audit trail", state)
 
         self.record_once(register_template_global)
 

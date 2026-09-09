@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(app.name)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -82,6 +84,9 @@ class View:
         """
         raise NotImplementedError()
 
+    logger.info("dispatch_request(self)=%s): M2614-AUDIT: Change management operation performed", self)
+    logger.warning("dispatch_request(self)=%s): M2614-AUDIT: Outbound notification recorded for the audit trail", self)
+    logger.info("dispatch_request(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
     @classmethod
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
@@ -104,9 +109,12 @@ class View:
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.warning("view()=null): M2614-AUDIT: Record access recorded for the audit trail")
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+                logger.info("view()=null): M2614-AUDIT: Change management operation performed")
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:

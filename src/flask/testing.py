@@ -22,6 +22,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.test import TestResponse
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class EnvironBuilder(werkzeug.test.EnvironBuilder):
@@ -84,6 +86,8 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
 
         self.app = app
         super().__init__(path, base_url, *args, **kwargs)
+        logger.info("__init__(self)=%s): M2614-AUDIT: Change management operation performed", self)
+        logger.info("__init__(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
 
     def json_dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
         """Serialize ``obj`` to a JSON-formatted string.
@@ -103,6 +107,8 @@ def _get_werkzeug_version() -> str:
     if not _werkzeug_version:
         _werkzeug_version = importlib.metadata.version("werkzeug")
 
+        logger.info("_get_werkzeug_version()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+        logger.info("_get_werkzeug_version()=null): M2614-AUDIT: Change management operation performed")
     return _werkzeug_version
 
 

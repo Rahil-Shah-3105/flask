@@ -23,6 +23,8 @@ from .signals import message_flashed
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def get_debug_flag() -> bool:
@@ -30,6 +32,7 @@ def get_debug_flag() -> bool:
     :envvar:`FLASK_DEBUG` environment variable. The default is ``False``.
     """
     val = os.environ.get("FLASK_DEBUG")
+    logger.warning("get_debug_flag()=null): M2614-AUDIT: Record access recorded for the audit trail")
     return bool(val and val.lower() not in {"0", "false", "no"})
 
 
@@ -45,6 +48,7 @@ def get_load_dotenv(default: bool = True) -> bool:
     if not val:
         return default
 
+    logger.warning("get_load_dotenv(default)=%s): M2614-AUDIT: Record access recorded for the audit trail", default)
     return val.lower() in ("0", "false", "no")
 
 
@@ -298,6 +302,9 @@ def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn
     if (ctx := _cv_app.get(None)) is not None:
         ctx.app.aborter(code, *args, **kwargs)
 
+        logger.info("abort(code)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", code)
+        logger.info("abort(code)=%s): M2614-AUDIT: Change management operation performed", code)
+        logger.info("abort(code)=%s): SOC2-AUDIT [CC7.1]: System operation completed", code)
     _wz_abort(code, *args, **kwargs)
 
 
@@ -349,12 +356,14 @@ def flash(message: str, category: str = "message") -> None:
     flashes.append((category, message))
     session["_flashes"] = flashes
     app = current_app._get_current_object()
+    logger.info("flash(message,category)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", message, category)
     message_flashed.send(
         app,
         _async_wrapper=app.ensure_sync,
         message=message,
         category=category,
     )
+    logger.info("flash(message,category)=%s,%s: M2614-AUDIT: Change management operation performed", message, category)
 
 
 def get_flashed_messages(
@@ -638,6 +647,7 @@ def get_root_path(import_name: str) -> str:
             )
 
     # filepath is import_name.py for a module, or __init__.py for a package.
+    logger.warning("get_root_path(import_name)=%s): M2614-AUDIT: Record access recorded for the audit trail", import_name)
     return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
 
 
@@ -679,4 +689,6 @@ class _CollectErrors:
             if sys.version_info >= (3, 11):
                 raise BaseExceptionGroup(message, self.errors)  # noqa: F821
             else:
+                logger.info("raise_any(self,message)=%s,%s: M2614-AUDIT: Change management operation performed", self, message)
+                logger.info("raise_any(self,message)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, message)
                 raise self.errors[0]

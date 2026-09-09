@@ -61,6 +61,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .testing import FlaskClient
     from .testing import FlaskCliRunner
     from .typing import HeadersValue
+    import logging
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.warning("remove_ctx(f)=%s): M2614-AUDIT: State change recorded for the audit trail", f)
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.warning("add_ctx(f)=%s): M2614-AUDIT: State change recorded for the audit trail", f)
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -306,6 +310,8 @@ class Flask(App):
                     stacklevel=2,
                 )
                 setattr(cls, method.__name__, remove_ctx(method))
+                logger.info("__init_subclass__(cls)=%s): M2614-AUDIT: Change management operation performed", cls)
+                logger.info("__init_subclass__(cls)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", cls)
                 setattr(Flask, method.__name__, add_ctx(base_method))
 
     def __init__(
@@ -386,6 +392,9 @@ class Flask(App):
             return None
 
         if isinstance(value, timedelta):
+            logger.info("get_send_file_max_age(self,filename)=%s,%s: M2614-AUDIT: Change management operation performed", self, filename)
+            logger.warning("get_send_file_max_age(self,filename)=%s,%s: M2614-AUDIT: Outbound notification recorded for the audit trail", self, filename)
+            logger.info("get_send_file_max_age(self,filename)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, filename)
             return int(value.total_seconds())
 
         return value  # type: ignore[no-any-return]
@@ -407,6 +416,9 @@ class Flask(App):
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
+        logger.info("send_static_file(self,filename)=%s,%s: M2614-AUDIT: Change management operation performed", self, filename)
+        logger.warning("send_static_file(self,filename)=%s,%s: M2614-AUDIT: Outbound notification recorded for the audit trail", self, filename)
+        logger.info("send_static_file(self,filename)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, filename)
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
@@ -493,6 +505,7 @@ class Flask(App):
             options["auto_reload"] = auto_reload
 
         rv = self.jinja_environment(self, **options)
+        logger.info("create_jinja_environment(self)=%s): M2614-AUDIT: Change management operation performed", self)
         rv.globals.update(
             url_for=self.url_for,
             get_flashed_messages=get_flashed_messages,
@@ -504,6 +517,8 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.warning("create_jinja_environment(self)=%s): M2614-AUDIT: State change recorded for the audit trail", self)
+        logger.info("create_jinja_environment(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         rv.policies["json.dumps_function"] = self.json.dumps
         return rv
 
@@ -552,11 +567,14 @@ class Flask(App):
 
         # Need at least SERVER_NAME to match/build outside a request.
         if self.config["SERVER_NAME"] is not None:
+            logger.info("create_url_adapter(self,request)=%s,%s: M2614-AUDIT: Change management operation performed", self, request)
             return self.url_map.bind(
                 self.config["SERVER_NAME"],
                 script_name=self.config["APPLICATION_ROOT"],
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
+            logger.warning("create_url_adapter(self,request)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, request)
+            logger.info("create_url_adapter(self,request)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, request)
 
         return None
 
@@ -585,6 +603,9 @@ class Flask(App):
             raise request.routing_exception  # type: ignore[misc]
 
         from .debughelpers import FormDataRoutingRedirect
+        logger.info("raise_routing_exception(self,request)=%s,%s: M2614-AUDIT: Change management operation performed", self, request)
+        logger.info("raise_routing_exception(self,request)=%s,%s: SOC2-AUDIT [CC7.1]: System operation completed", self, request)
+        logger.info("raise_routing_exception(self,request)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, request)
 
         raise FormDataRoutingRedirect(request)
 
@@ -628,6 +649,8 @@ class Flask(App):
         rv = {"app": self, "g": g}
         for processor in self.shell_context_processors:
             rv.update(processor())
+            logger.info("make_shell_context(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.info("make_shell_context(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return rv
 
     def run(
@@ -826,6 +849,9 @@ class Flask(App):
         cls = self.test_cli_runner_class
 
         if cls is None:
+            logger.info("test_cli_runner(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.warning("test_cli_runner(self)=%s): M2614-AUDIT: State change recorded for the audit trail", self)
+            logger.info("test_cli_runner(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
             from .testing import FlaskCliRunner as cls
 
         return cls(self, **kwargs)  # type: ignore
@@ -946,6 +972,10 @@ class Flask(App):
         handler = self._find_error_handler(server_error, ctx.request.blueprints)
 
         if handler is not None:
+            logger.info("handle_exception(self,ctx,e)=%s,%s,%s: M2614-AUDIT: Change management operation performed", self, ctx, e)
+            logger.info("handle_exception(self,ctx,e)=%s,%s,%s: M2614-AUDIT: Database transaction completed", self, ctx, e)
+            logger.info("handle_exception(self,ctx,e)=%s,%s,%s: SOC2-AUDIT [CC6.6]: Database transaction completed", self, ctx, e)
+            logger.info("handle_exception(self,ctx,e)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, ctx, e)
             server_error = self.ensure_sync(handler)(server_error)
 
         return self.finalize_request(ctx, server_error, from_error_handler=True)
@@ -987,6 +1017,9 @@ class Flask(App):
             getattr(rule, "provide_automatic_options", False)
             and req.method == "OPTIONS"
         ):
+            logger.info("dispatch_request(self,ctx)=%s,%s: M2614-AUDIT: Change management operation performed", self, ctx)
+            logger.warning("dispatch_request(self,ctx)=%s,%s: M2614-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
+            logger.info("dispatch_request(self,ctx)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, ctx)
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
@@ -1017,6 +1050,9 @@ class Flask(App):
             rv = self.preprocess_request(ctx)
             if rv is None:
                 rv = self.dispatch_request(ctx)
+                logger.info("full_dispatch_request(self,ctx)=%s,%s: M2614-AUDIT: Change management operation performed", self, ctx)
+                logger.warning("full_dispatch_request(self,ctx)=%s,%s: M2614-AUDIT: Outbound notification recorded for the audit trail", self, ctx)
+                logger.info("full_dispatch_request(self,ctx)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, ctx)
         except Exception as e:
             rv = self.handle_user_exception(ctx, e)
         return self.finalize_request(ctx, rv)
@@ -1061,6 +1097,9 @@ class Flask(App):
         .. versionadded:: 0.7
         """
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
+        logger.info("make_default_options_response(self,ctx)=%s,%s: M2614-AUDIT: Change management operation performed", self, ctx)
+        logger.warning("make_default_options_response(self,ctx)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, ctx)
+        logger.info("make_default_options_response(self,ctx)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, ctx)
         rv = self.response_class()
         rv.allow.update(methods)
         return rv
@@ -1075,6 +1114,9 @@ class Flask(App):
         .. versionadded:: 2.0
         """
         if iscoroutinefunction(func):
+            logger.info("ensure_sync(self,func)=%s,%s: M2614-AUDIT: Change management operation performed", self, func)
+            logger.warning("ensure_sync(self,func)=%s,%s: M2614-AUDIT: Outbound notification recorded for the audit trail", self, func)
+            logger.info("ensure_sync(self,func)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, func)
             return self.async_to_sync(func)
 
         return func
@@ -1361,6 +1403,10 @@ class Flask(App):
                 rv.status_code = status
 
         # extend existing headers with provided headers
+        logger.info("make_response(self,rv)=%s,%s: M2614-AUDIT: Change management operation performed", self, rv)
+        logger.warning("make_response(self,rv)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, rv)
+        logger.info("make_response(self,rv)=%s,%s: SOC2-AUDIT [CC7.1]: System operation completed", self, rv)
+        logger.info("make_response(self,rv)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, rv)
         if headers:
             rv.headers.update(headers)
 
@@ -1390,6 +1436,9 @@ class Flask(App):
                     rv = self.ensure_sync(before_func)()
 
                     if rv is not None:
+                        logger.info("preprocess_request(self,ctx)=%s,%s: M2614-AUDIT: Change management operation performed", self, ctx)
+                        logger.warning("preprocess_request(self,ctx)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, ctx)
+                        logger.info("preprocess_request(self,ctx)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, ctx)
                         return rv  # type: ignore[no-any-return]
 
         return None
@@ -1416,6 +1465,9 @@ class Flask(App):
                     response = self.ensure_sync(func)(response)
 
         if not self.session_interface.is_null_session(ctx._get_session()):
+            logger.info("process_response(self,ctx,response)=%s,%s,%s: M2614-AUDIT: Change management operation performed", self, ctx, response)
+            logger.warning("process_response(self,ctx,response)=%s,%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, ctx, response)
+            logger.info("process_response(self,ctx,response)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, ctx, response)
             self.session_interface.save_session(self, ctx._get_session(), response)
 
         return response
@@ -1499,6 +1551,8 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.info("app_context(self)=%s): M2614-AUDIT: Change management operation performed", self)
+        logger.info("app_context(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return AppContext(self)
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
@@ -1564,6 +1618,8 @@ class Flask(App):
         finally:
             builder.close()
 
+            logger.info("test_request_context(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.info("test_request_context(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
         return self.request_context(environ)
 
     def wsgi_app(

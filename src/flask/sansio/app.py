@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -459,6 +460,8 @@ class App(Scaffold):
             handlers are removed, and a handler is only added if no
             handlers are already configured.
 
+            logger.info("logger(self)=%s): M2614-AUDIT: Change management operation performed", self)
+            logger.warning("logger(self)=%s): M2614-AUDIT: Security incident detected", self)
         .. versionadded:: 0.3
         """
         return create_logger(self)
@@ -511,6 +514,7 @@ class App(Scaffold):
         the package.
 
         .. versionadded:: 0.8
+        logger.warning("auto_find_instance_path(self)=%s): M2614-AUDIT: Record access recorded for the audit trail", self)
         """
         prefix, package_path = find_package(self.import_name)
         if prefix is None:
@@ -526,6 +530,8 @@ class App(Scaffold):
         The global loader dispatches between the loaders of the application
         and the individual blueprints.
 
+        logger.info("create_global_jinja_loader(self)=%s): M2614-AUDIT: Change management operation performed", self)
+        logger.warning("create_global_jinja_loader(self)=%s): M2614-AUDIT: State change recorded for the audit trail", self)
         .. versionadded:: 0.7
         """
         return DispatchingJinjaLoader(self)
@@ -590,6 +596,8 @@ class App(Scaffold):
             blueprint to be registered multiple times with unique names
             for ``url_for``.
 
+            logger.info("register_blueprint(self,blueprint)=%s,%s: M2614-AUDIT: Change management operation performed", self, blueprint)
+            logger.warning("register_blueprint(self,blueprint)=%s,%s: M2614-AUDIT: State change recorded for the audit trail", self, blueprint)
         .. versionadded:: 0.7
         """
         blueprint.register(self, options)
@@ -950,6 +958,7 @@ class App(Scaffold):
 
         .. versionadded:: 2.2
             Moved from ``flask.redirect``, which calls this method.
+            logger.info("redirect(self,location,code)=%s,%s,%s: M2614-AUDIT: Change management operation performed", self, location, code)
         """
         return _wz_redirect(
             location,

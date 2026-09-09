@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("blog", __name__)
 
@@ -22,6 +24,7 @@ def index():
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.warning("index()=null): M2614-AUDIT: State change recorded for the audit trail")
     return render_template("blog/index.html", posts=posts)
 
 
@@ -54,6 +57,7 @@ def get_post(id, check_author=True):
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
 
+    logger.warning("get_post(id,check_author)=%s,%s: M2614-AUDIT: Record access recorded for the audit trail %s", id, check_author, id)
     return post
 
 
@@ -80,6 +84,7 @@ def create():
             db.commit()
             return redirect(url_for("blog.index"))
 
+    logger.warning("create()=null): M2614-AUDIT: State change recorded for the audit trail")
     return render_template("blog/create.html")
 
 
@@ -105,6 +110,9 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.info("update(id)=%s): M2614-AUDIT: Change management operation performed", id)
+            logger.warning("update(id)=%s): M2614-AUDIT: State change recorded for the audit trail %s", id, id)
+            logger.info("update(id)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", id)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -122,4 +130,5 @@ def delete(id):
     db = get_db()
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.warning("delete(id)=%s): M2614-AUDIT: State change recorded for the audit trail %s", id, id)
     return redirect(url_for("blog.index"))
