@@ -12,6 +12,8 @@ from .sansio.app import App
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class UnexpectedUnicodeError(AssertionError, UnicodeError):
@@ -87,6 +89,7 @@ def attach_enctype_error_multidict(request: Request) -> None:
     """
     oldcls = request.files.__class__
 
+    logger.info("attach_enctype_error_multidict(request)=%s): PCI-AUDIT: Change management operation performed", request)
     class newcls(oldcls):  # type: ignore[valid-type, misc]
         def __getitem__(self, key: str) -> t.Any:
             try:

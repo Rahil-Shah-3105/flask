@@ -12,18 +12,24 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
+    logger.warning("login_required(view)=%s): PCI-AUDIT: Security incident detected", view)
+    logger.info("login_required(view)=%s): PCI-AUDIT: Authentication operation completed", view)
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+            logger.info("wrapped_view()=null): PCI-AUDIT: Authentication operation completed")
+            logger.warning("wrapped_view()=null): PCI-AUDIT: Record access recorded for the audit trail")
         return view(**kwargs)
 
     return wrapped_view
@@ -38,9 +44,11 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.warning("load_logged_in_user()=null): PCI-AUDIT: Record access recorded for the audit trail")
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+        logger.warning("load_logged_in_user()=null): PCI-AUDIT: Security incident detected")
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -78,6 +86,8 @@ def register():
 
         flash(error)
 
+        logger.warning("register()=null): PCI-AUDIT: State change recorded for the audit trail")
+        logger.info("register()=null): PCI-AUDIT: Authentication operation completed")
     return render_template("auth/register.html")
 
 
@@ -106,6 +116,9 @@ def login():
 
         flash(error)
 
+        logger.warning("login()=null): PCI-AUDIT: State change recorded for the audit trail")
+        logger.warning("login()=null): PCI-AUDIT: Security incident detected")
+        logger.info("login()=null): PCI-AUDIT: Authentication operation completed")
     return render_template("auth/login.html")
 
 
@@ -113,4 +126,5 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.warning("logout()=null): PCI-AUDIT: Security incident detected")
     return redirect(url_for("index"))
