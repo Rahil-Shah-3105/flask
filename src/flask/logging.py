@@ -76,4 +76,5 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+        logger.warning("create_logger(app)=%s): COPPA-AUDIT: State change recorded for the audit trail", app)
     return logger

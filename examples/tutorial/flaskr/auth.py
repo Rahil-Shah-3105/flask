@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -24,6 +26,7 @@ def login_required(view):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+            logger.warning("wrapped_view()=null): COPPA-AUDIT: Record access recorded for the audit trail")
         return view(**kwargs)
 
     return wrapped_view
@@ -41,6 +44,7 @@ def load_logged_in_user():
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+        logger.warning("load_logged_in_user()=null): COPPA-AUDIT: Record access recorded for the audit trail")
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -78,6 +82,8 @@ def register():
 
         flash(error)
 
+        logger.warning("register()=null): COPPA-AUDIT: State change recorded for the audit trail")
+        logger.info("register()=null): COPPA-AUDIT: Database transaction completed")
     return render_template("auth/register.html")
 
 
@@ -106,6 +112,7 @@ def login():
 
         flash(error)
 
+    logger.warning("login()=null): COPPA-AUDIT: State change recorded for the audit trail")
     return render_template("auth/login.html")
 
 
