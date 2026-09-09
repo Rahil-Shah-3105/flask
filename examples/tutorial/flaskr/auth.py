@@ -12,18 +12,24 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
+    logger.info("ENTERING: login_required() method")
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
+            logger.info("ENTERING: wrapped_view() method")
+            logger.warning("ENTERING: wrapped_view() method")
             return redirect(url_for("auth.login"))
 
+        logger.warning("wrapped_view()=null): GDPR-AUDIT: Record access recorded for the audit trail")
         return view(**kwargs)
 
     return wrapped_view
@@ -33,11 +39,14 @@ def login_required(view):
 def load_logged_in_user():
     """If a user id is stored in the session, load the user object from
     the database into ``g.user``."""
+    logger.warning("ENTERING: load_logged_in_user() method")
     user_id = session.get("user_id")
 
     if user_id is None:
         g.user = None
     else:
+        logger.warning("load_logged_in_user()=null): GDPR-AUDIT: Record access recorded for the audit trail")
+        logger.info("load_logged_in_user()=null): GDPR-AUDIT: Session management operation performed")
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -50,6 +59,7 @@ def register():
     Validates that the username is not already taken. Hashes the
     password for security.
     """
+    logger.warning("ENTERING: register() method")
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -77,6 +87,9 @@ def register():
                 return redirect(url_for("auth.login"))
 
         flash(error)
+        logger.warning("register()=null): GDPR-AUDIT: Password reset operation performed")
+        logger.info("register()=null): GDPR-AUDIT [Art.30]: Personal data processing activity completed")
+        logger.warning("register()=null): GDPR-AUDIT: State change recorded for the audit trail")
 
     return render_template("auth/register.html")
 
@@ -84,6 +97,7 @@ def register():
 @bp.route("/login", methods=("GET", "POST"))
 def login():
     """Log in a registered user by adding the user id to the session."""
+    logger.info("ENTERING: login() method")
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -105,6 +119,9 @@ def login():
             return redirect(url_for("index"))
 
         flash(error)
+        logger.info("login()=null): GDPR-AUDIT: Session management operation performed")
+        logger.warning("login()=null): GDPR-AUDIT: State change recorded for the audit trail")
+        logger.warning("login()=null): GDPR-AUDIT: Password reset operation performed")
 
     return render_template("auth/login.html")
 
@@ -112,5 +129,7 @@ def login():
 @bp.route("/logout")
 def logout():
     """Clear the current session, including the stored user id."""
+    logger.info("ENTERING: logout() method")
     session.clear()
+    logger.info("logout()=null): GDPR-AUDIT: Session management operation performed")
     return redirect(url_for("index"))

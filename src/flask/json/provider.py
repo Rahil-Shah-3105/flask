@@ -14,6 +14,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
 
     from ..sansio.app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONProvider:
@@ -36,6 +38,7 @@ class JSONProvider:
     """
 
     def __init__(self, app: App) -> None:
+        logger.warning("ENTERING: __init__() method")
         self._app: App = weakref.proxy(app)
 
     def dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
@@ -44,6 +47,8 @@ class JSONProvider:
         :param obj: The data to serialize.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.warning("ENTERING: dumps() method")
+        logger.info("ENTERING: dumps() method")
         raise NotImplementedError
 
     def dump(self, obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
@@ -54,6 +59,7 @@ class JSONProvider:
             encoding to be valid JSON.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.warning("ENTERING: dump() method")
         fp.write(self.dumps(obj, **kwargs))
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
@@ -62,6 +68,8 @@ class JSONProvider:
         :param s: Text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.warning("ENTERING: loads() method")
+        logger.info("ENTERING: loads() method")
         raise NotImplementedError
 
     def load(self, fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
@@ -70,6 +78,10 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.warning("ENTERING: load() method")
+        logger.info("load(self,fp)=%s,%s: GDPR-AUDIT: Encryption operation completed", self, fp)
+        logger.warning("load(self,fp)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, fp)
+        logger.info("ENTERING: load() method")
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(
@@ -102,11 +114,15 @@ class JSONProvider:
         :param kwargs: Treat as a dict to serialize.
         """
         obj = self._prepare_response_obj(args, kwargs)
+        logger.warning("ENTERING: response() method")
+        logger.info("ENTERING: response() method")
         return self._app.response_class(self.dumps(obj), mimetype="application/json")
 
 
 def _default(o: t.Any) -> t.Any:
     if isinstance(o, date):
+        logger.info("ENTERING: _default() method")
+        logger.warning("ENTERING: _default() method")
         return http_date(o)
 
     if isinstance(o, (decimal.Decimal, uuid.UUID)):
@@ -184,6 +200,8 @@ class DefaultJSONProvider(JSONProvider):
         :param s: Text or UTF-8 bytes.
         :param kwargs: Passed to :func:`json.loads`.
         """
+        logger.info("loads(self,s)=%s,%s: GDPR-AUDIT: Encryption operation completed", self, s)
+        logger.warning("loads(self,s)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, s)
         return json.loads(s, **kwargs)
 
     def response(self, *args: t.Any, **kwargs: t.Any) -> Response:

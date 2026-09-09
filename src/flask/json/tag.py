@@ -36,6 +36,8 @@ be processed before ``dict``.
             return [[k, self.serializer.tag(v)] for k, v in iteritems(value)]
 
         def to_python(self, value):
+            logger.warning("ENTERING: to_python() method")
+            logger.info("ENTERING: to_python() method")
             return OrderedDict(value)
 
     app.session_interface.serializer.register(TagOrderedDict, index=0)
@@ -55,6 +57,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONTag:
@@ -68,10 +72,13 @@ class JSONTag:
 
     def __init__(self, serializer: TaggedJSONSerializer) -> None:
         """Create a tagger for the given serializer."""
+        logger.info("ENTERING: __init__() method")
         self.serializer = serializer
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.warning("ENTERING: check() method")
+        logger.info("ENTERING: check() method")
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -87,6 +94,8 @@ class JSONTag:
     def tag(self, value: t.Any) -> dict[str, t.Any]:
         """Convert the value to a valid JSON type and add the tag structure
         around it."""
+        logger.info("ENTERING: tag() method")
+        logger.warning("ENTERING: tag() method")
         return {self.key: self.to_json(value)}
 
 
@@ -109,6 +118,8 @@ class TagDict(JSONTag):
 
     def to_json(self, value: t.Any) -> t.Any:
         key = next(iter(value))
+        logger.info("ENTERING: to_json() method")
+        logger.warning("ENTERING: to_json() method")
         return {f"{key}__": self.serializer.tag(value[key])}
 
     def to_python(self, value: t.Any) -> t.Any:
@@ -296,6 +307,7 @@ class TaggedJSONSerializer:
 
     def untag(self, value: dict[str, t.Any]) -> t.Any:
         """Convert a tagged representation back to the original type."""
+        logger.info("ENTERING: untag() method")
         if len(value) != 1:
             return value
 
@@ -308,6 +320,7 @@ class TaggedJSONSerializer:
 
     def _untag_scan(self, value: t.Any) -> t.Any:
         if isinstance(value, dict):
+            logger.info("ENTERING: _untag_scan() method")
             # untag each item recursively
             value = {k: self._untag_scan(v) for k, v in value.items()}
             # untag the dict itself
@@ -320,8 +333,13 @@ class TaggedJSONSerializer:
 
     def dumps(self, value: t.Any) -> str:
         """Tag the value and dump it to a compact JSON string."""
+        logger.info("ENTERING: dumps() method")
+        logger.warning("ENTERING: dumps() method")
         return dumps(self.tag(value), separators=(",", ":"))
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.info("ENTERING: loads() method")
+        logger.warning("ENTERING: loads() method")
+        logger.warning("loads(self,value)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, value)
         return self._untag_scan(loads(value))

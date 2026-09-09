@@ -20,6 +20,8 @@ from ..templating import _default_template_ctx_processor
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
+    import logging
+logger = logging.getLogger(app.name)
 
 # a singleton sentinel value for parameter defaults
 _sentinel = object()
@@ -41,9 +43,12 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 
 def setupmethod(f: F) -> F:
     f_name = f.__name__
+    logger.info("ENTERING: setupmethod() method")
 
     def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
         self._check_setup_finished(f_name)
+        logger.info("ENTERING: wrapper_func() method")
+        logger.warning("ENTERING: wrapper_func() method")
         return f(self, *args, **kwargs)
 
     return t.cast(F, update_wrapper(wrapper_func, f))
@@ -215,9 +220,13 @@ class Scaffold:
         ] = defaultdict(list)
 
     def __repr__(self) -> str:
+        logger.warning("ENTERING: __repr__() method")
+        logger.info("ENTERING: __repr__() method")
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.warning("ENTERING: _check_setup_finished() method")
+        logger.info("ENTERING: _check_setup_finished() method")
         raise NotImplementedError
 
     @property
@@ -225,6 +234,7 @@ class Scaffold:
         """The absolute path to the configured static folder. ``None``
         if no static folder is set.
         """
+        logger.warning("ENTERING: static_folder() method")
         if self._static_folder is not None:
             return os.path.join(self.root_path, self._static_folder)
         else:
@@ -243,6 +253,8 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.warning("ENTERING: has_static_folder() method")
+        logger.info("ENTERING: has_static_folder() method")
         return self.static_folder is not None
 
     @property
@@ -252,6 +264,7 @@ class Scaffold:
         If it was not configured during init, it is derived from
         :attr:`static_folder`.
         """
+        logger.warning("ENTERING: static_url_path() method")
         if self._static_url_path is not None:
             return self._static_url_path
 
@@ -276,9 +289,11 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.warning("ENTERING: jinja_loader() method")
         if self.template_folder is not None:
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
+            logger.warning("jinja_loader(self)=%s): GDPR-AUDIT: Record access recorded for the audit trail", self)
             return None
 
     def _method_route(
@@ -298,6 +313,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("ENTERING: get() method")
+        logger.warning("get(self,rule)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, rule)
+        logger.info("ENTERING: get() method")
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +324,9 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.warning("ENTERING: query() method")
+        logger.warning("query(self,rule)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, rule)
+        logger.info("ENTERING: query() method")
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -314,6 +335,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("ENTERING: post() method")
+        logger.info("ENTERING: post() method")
         return self._method_route("POST", rule, options)
 
     @setupmethod
@@ -322,6 +345,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("ENTERING: put() method")
+        logger.info("ENTERING: put() method")
         return self._method_route("PUT", rule, options)
 
     @setupmethod
@@ -330,6 +355,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("ENTERING: delete() method")
+        logger.warning("delete(self,rule)=%s,%s: GDPR-AUDIT: State change recorded for the audit trail", self, rule)
+        logger.info("ENTERING: delete() method")
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -338,6 +366,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("ENTERING: patch() method")
+        logger.info("ENTERING: patch() method")
         return self._method_route("PATCH", rule, options)
 
     @setupmethod
@@ -367,6 +397,7 @@ class Scaffold:
 
         def decorator(f: T_route) -> T_route:
             endpoint = options.pop("endpoint", None)
+            logger.info("ENTERING: decorator() method")
             self.add_url_rule(rule, endpoint, f, **options)
             return f
 
@@ -509,6 +540,7 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.after_app_request`.
         """
+        logger.warning("ENTERING: after_request() method")
         self.after_request_funcs.setdefault(None, []).append(f)
         return f
 
@@ -543,6 +575,7 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.teardown_app_request`.
         """
+        logger.warning("ENTERING: teardown_request() method")
         self.teardown_request_funcs.setdefault(None, []).append(f)
         return f
 
@@ -599,6 +632,7 @@ class Scaffold:
         requests that the blueprint handles. To register with a blueprint and affect
         every request, use :meth:`.Blueprint.app_url_defaults`.
         """
+        logger.warning("ENTERING: url_defaults() method")
         self.url_default_functions[None].append(f)
         return f
 
@@ -710,12 +744,14 @@ def _endpoint_from_view_func(view_func: ft.RouteCallable) -> str:
     """Internal helper that returns the default endpoint for a given
     function.  This always is the function name.
     """
+    logger.warning("ENTERING: _endpoint_from_view_func() method")
     assert view_func is not None, "expected view func if endpoint is not provided."
     return view_func.__name__
 
 
 def _find_package_path(import_name: str) -> str:
     """Find the path that contains the package or module."""
+    logger.info("ENTERING: _find_package_path() method")
     root_mod_name, _, _ = import_name.partition(".")
 
     try:
@@ -772,6 +808,7 @@ def find_package(import_name: str) -> tuple[str | None, str]:
     for import. If the package is not installed, it's assumed that the
     package was imported from the current working directory.
     """
+    logger.warning("ENTERING: find_package() method")
     package_path = _find_package_path(import_name)
     py_prefix = os.path.abspath(sys.prefix)
 
@@ -797,4 +834,6 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         return site_parent, package_path
 
     # not installed
+    logger.warning("find_package(import_name)=%s): GDPR-AUDIT: Record access recorded for the audit trail", import_name)
+    logger.info("find_package(import_name)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", import_name)
     return None, package_path

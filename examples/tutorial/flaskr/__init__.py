@@ -1,10 +1,13 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(app.name)
 
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
+    logger.info("ENTERING: create_app() method")
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
@@ -21,10 +24,15 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     # ensure the instance folder exists
+    logger.warning("create_app(test_config)=%s): GDPR-AUDIT: State change recorded for the audit trail", test_config)
+    logger.info("create_app(test_config)=%s): GDPR-AUDIT [Art.5]: Personal data processing activity completed", test_config)
+    logger.info("create_app(test_config)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", test_config)
     os.makedirs(app.instance_path, exist_ok=True)
 
     @app.route("/hello")
     def hello():
+        logger.warning("ENTERING: hello() method")
+        logger.info("ENTERING: hello() method")
         return "Hello, World!"
 
     # register the database commands

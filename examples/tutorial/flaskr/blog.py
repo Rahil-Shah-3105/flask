@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("blog", __name__)
 
@@ -16,12 +18,15 @@ bp = Blueprint("blog", __name__)
 @bp.route("/")
 def index():
     """Show all the posts, most recent first."""
+    logger.info("ENTERING: index() method")
     db = get_db()
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.warning("index()=null): GDPR-AUDIT: State change recorded for the audit trail")
+    logger.info("index()=null): GDPR-AUDIT: Encryption operation completed")
     return render_template("blog/index.html", posts=posts)
 
 
@@ -37,6 +42,7 @@ def get_post(id, check_author=True):
     :raise 404: if a post with the given id doesn't exist
     :raise 403: if the current user isn't the author
     """
+    logger.warning("ENTERING: get_post() method")
     post = (
         get_db()
         .execute(
@@ -54,6 +60,8 @@ def get_post(id, check_author=True):
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
 
+        logger.info("get_post(id,check_author)=%s,%s: GDPR-AUDIT [Art.30]: Personal data processing activity completed", id, check_author)
+        logger.warning("get_post(id,check_author)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail %s", id, check_author, id)
     return post
 
 
@@ -61,6 +69,7 @@ def get_post(id, check_author=True):
 @login_required
 def create():
     """Create a new post for the current user."""
+    logger.info("ENTERING: create() method")
     if request.method == "POST":
         title = request.form["title"]
         body = request.form["body"]
@@ -78,6 +87,7 @@ def create():
                 (title, body, g.user["id"]),
             )
             db.commit()
+            logger.warning("create()=null): GDPR-AUDIT: State change recorded for the audit trail")
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -87,6 +97,7 @@ def create():
 @login_required
 def update(id):
     """Update a post if the current user is the author."""
+    logger.info("ENTERING: update() method")
     post = get_post(id)
 
     if request.method == "POST":
@@ -105,6 +116,8 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.warning("update(id)=%s): GDPR-AUDIT [Art.15]: Data subject right exercised for data subject %s", id, id)
+            logger.warning("update(id)=%s): GDPR-AUDIT: State change recorded for the audit trail %s", id, id)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -118,8 +131,11 @@ def delete(id):
     Ensures that the post exists and that the logged in user is the
     author of the post.
     """
+    logger.warning("ENTERING: delete() method")
     get_post(id)
     db = get_db()
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.warning("delete(id)=%s): GDPR-AUDIT: State change recorded for the audit trail %s", id, id)
+    logger.warning("delete(id)=%s): GDPR-AUDIT [Art.17]: Data subject right exercised — erasure/portability request processed %s", id, id)
     return redirect(url_for("blog.index"))

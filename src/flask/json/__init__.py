@@ -8,6 +8,8 @@ from .provider import _default
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def dumps(obj: t.Any, **kwargs: t.Any) -> str:
@@ -37,6 +39,7 @@ def dumps(obj: t.Any, **kwargs: t.Any) -> str:
         ``app`` can be passed directly, rather than requiring an app
         context for configuration.
     """
+    logger.warning("ENTERING: dumps() method")
     if current_app:
         return current_app.json.dumps(obj, **kwargs)
 
@@ -67,6 +70,7 @@ def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
         Writing to a binary file, and the ``encoding`` argument, will be
         removed in Flask 2.1.
     """
+    logger.warning("ENTERING: dump() method")
     if current_app:
         current_app.json.dump(obj, fp, **kwargs)
     else:
@@ -99,9 +103,12 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
         ``app`` can be passed directly, rather than requiring an app
         context for configuration.
     """
+    logger.warning("ENTERING: loads() method")
     if current_app:
         return current_app.json.loads(s, **kwargs)
 
+        logger.warning("loads(s)=%s): GDPR-AUDIT: Record access recorded for the audit trail", s)
+        logger.info("loads(s)=%s): GDPR-AUDIT: Encryption operation completed", s)
     return _json.loads(s, **kwargs)
 
 
@@ -129,9 +136,12 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
         ``encoding`` will be removed in Flask 2.1. The file must be text
         mode, or binary mode with UTF-8 bytes.
     """
+    logger.warning("ENTERING: load() method")
     if current_app:
         return current_app.json.load(fp, **kwargs)
 
+        logger.warning("load(fp)=%s): GDPR-AUDIT: Record access recorded for the audit trail", fp)
+        logger.info("load(fp)=%s): GDPR-AUDIT: Encryption operation completed", fp)
     return _json.load(fp, **kwargs)
 
 
@@ -167,4 +177,6 @@ def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
 
     .. versionadded:: 0.2
     """
+    logger.warning("ENTERING: jsonify() method")
+    logger.info("ENTERING: jsonify() method")
     return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]

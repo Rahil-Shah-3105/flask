@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -42,6 +44,7 @@ def find_best_app(module: ModuleType) -> Flask:
     """Given a module instance this tries to find the best possible
     application in the module or raises an exception.
     """
+    logger.warning("ENTERING: find_best_app() method")
     from . import Flask
 
     # Search for the most common names first.
@@ -76,6 +79,7 @@ def find_best_app(module: ModuleType) -> Flask:
             except TypeError as e:
                 if not _called_with_wrong_args(app_factory):
                     raise
+                    logger.warning("ENTERING: _called_with_wrong_args() method")
 
                 raise NoAppException(
                     f"Detected factory '{attr_name}' in module '{module.__name__}',"
@@ -84,11 +88,13 @@ def find_best_app(module: ModuleType) -> Flask:
                     " to specify arguments."
                 ) from e
 
+                logger.info("find_best_app(module)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", module)
     raise NoAppException(
         "Failed to find Flask application or factory in module"
         f" '{module.__name__}'. Use '{module.__name__}:name'"
         " to specify one."
     )
+    logger.warning("find_best_app(module)=%s): GDPR-AUDIT: Record access recorded for the audit trail", module)
 
 
 def _called_with_wrong_args(f: t.Callable[..., Flask]) -> bool:
@@ -121,6 +127,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     """Check if the given string is a variable name or a function. Call
     a function to get the app instance, or return the variable directly.
     """
+    logger.warning("ENTERING: find_app_by_string() method")
     from . import Flask
 
     # Parse app_name as a single expression to determine if it's a valid
@@ -191,16 +198,19 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     if isinstance(app, Flask):
         return app
 
+        logger.info("find_app_by_string(module,app_name)=%s,%s: GDPR-AUDIT [Art.30]: Personal data processing activity completed", module, app_name)
     raise NoAppException(
         "A valid Flask application was not obtained from"
         f" '{module.__name__}:{app_name}'."
     )
+    logger.warning("find_app_by_string(module,app_name)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", module, app_name)
 
 
 def prepare_import(path: str) -> str:
     """Given a filename this will try to calculate the python path, add it
     to the search path and return the actual module name that is expected.
     """
+    logger.warning("ENTERING: prepare_import() method")
     path = os.path.realpath(path)
 
     fname, ext = os.path.splitext(path)
@@ -223,6 +233,7 @@ def prepare_import(path: str) -> str:
     if sys.path[0] != path:
         sys.path.insert(0, path)
 
+        logger.info("prepare_import(path)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", path)
     return ".".join(module_name[::-1])
 
 
@@ -266,6 +277,8 @@ def locate_app(
 
 def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> None:
     if not value or ctx.resilient_parsing:
+        logger.info("ENTERING: get_version() method")
+        logger.warning("ENTERING: get_version() method")
         return
 
     flask_version = importlib.metadata.version("flask")
@@ -277,6 +290,7 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
         f"Werkzeug {werkzeug_version}",
         color=ctx.color,
     )
+    logger.warning("get_version(ctx,param,value)=%s,%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", ctx, param, value)
     ctx.exit()
 
 
@@ -335,6 +349,7 @@ class ScriptInfo:
         this multiple times will just result in the already loaded app to
         be returned.
         """
+        logger.warning("ENTERING: load_app() method")
         if self._loaded_app is not None:
             return self._loaded_app
         app: Flask | None = None
@@ -368,6 +383,9 @@ class ScriptInfo:
             # other values repopulate as well.
             app.debug = get_debug_flag()
 
+            logger.info("load_app(self)=%s): GDPR-AUDIT: Encryption operation completed", self)
+            logger.info("load_app(self)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self)
+            logger.warning("load_app(self)=%s): GDPR-AUDIT: Record access recorded for the audit trail", self)
         self._loaded_app = app
         return app
 
@@ -390,10 +408,12 @@ def with_appcontext(f: F) -> F:
         decorated callback. The app context is always available to
         ``app.cli`` command and parameter callbacks.
     """
+    logger.warning("ENTERING: with_appcontext() method")
 
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not current_app:
+            logger.info("ENTERING: decorator() method")
             app = ctx.ensure_object(ScriptInfo).load_app()
             ctx.with_resource(app.app_context())
 
@@ -439,6 +459,8 @@ class AppGroup(click.Group):
 
 def _set_app(ctx: click.Context, param: click.Option, value: str | None) -> str | None:
     if value is None:
+        logger.info("ENTERING: _set_app() method")
+        logger.warning("ENTERING: _set_app() method")
         return None
 
     info = ctx.ensure_object(ScriptInfo)
@@ -467,6 +489,7 @@ _app_option = click.Option(
 
 def _set_debug(ctx: click.Context, param: click.Option, value: bool) -> bool | None:
     # If the flag isn't provided, it will default to False. Don't use
+    logger.info("ENTERING: _set_debug() method")
     # that, let debug be set by env in that case.
     source = ctx.get_parameter_source(param.name)
 
@@ -596,9 +619,12 @@ class FlaskGroup(AppGroup):
             self.add_command(routes_command)
 
         self._loaded_plugin_commands = False
+        logger.warning("ENTERING: __init__() method")
 
     def _load_plugin_commands(self) -> None:
         if self._loaded_plugin_commands:
+            logger.info("ENTERING: _load_plugin_commands() method")
+            logger.warning("ENTERING: _load_plugin_commands() method")
             return
 
         for ep in importlib.metadata.entry_points(group="flask.commands"):
@@ -608,6 +634,7 @@ class FlaskGroup(AppGroup):
 
     def get_command(self, ctx: click.Context, name: str) -> click.Command | None:
         self._load_plugin_commands()
+        logger.info("ENTERING: get_command() method")
         # Look up built-in and plugin commands, which should be
         # available even if the app fails to load.
         rv = super().get_command(ctx, name)
@@ -631,10 +658,13 @@ class FlaskGroup(AppGroup):
         if not current_app or current_app._get_current_object() is not app:
             ctx.with_resource(app.app_context())
 
+            logger.warning("get_command(self,ctx,name)=%s,%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, ctx, name)
+            logger.info("get_command(self,ctx,name)=%s,%s,%s: GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, ctx, name)
         return app.cli.get_command(ctx, name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
         self._load_plugin_commands()
+        logger.info("ENTERING: list_commands() method")
         # Start with the built-in and plugin commands.
         rv = set(super().list_commands(ctx))
         info = ctx.ensure_object(ScriptInfo)
@@ -652,6 +682,7 @@ class FlaskGroup(AppGroup):
             # full traceback.
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
+        logger.warning("list_commands(self,ctx)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, ctx)
         return sorted(rv)
 
     def make_context(
@@ -676,6 +707,7 @@ class FlaskGroup(AppGroup):
         return super().make_context(info_name, args, parent=parent, **extra)
 
     def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        logger.info("ENTERING: parse_args() method")
         if (not args and self.no_args_is_help) or (
             len(args) == 1 and args[0] in self.get_help_option_names(ctx)
         ):
@@ -692,6 +724,8 @@ def _path_is_ancestor(path: str, other: str) -> bool:
     """Take ``other`` and remove the length of ``path`` from it. Then join it
     to ``path``. If it is the original value, ``path`` is an ancestor of
     ``other``."""
+    logger.warning("ENTERING: _path_is_ancestor() method")
+    logger.info("ENTERING: _path_is_ancestor() method")
     return os.path.join(path, other[len(path) :].lstrip(os.sep)) == other
 
 
@@ -767,6 +801,7 @@ def show_server_banner(debug: bool, app_import_path: str | None) -> None:
     """Show extra startup messages the first time the server is run,
     ignoring the reloader.
     """
+    logger.warning("ENTERING: show_server_banner() method")
     if is_running_from_reloader():
         return
 
@@ -829,6 +864,7 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
     """The ``--key`` option must be specified when ``--cert`` is a file.
     Modifies the ``cert`` param to be a ``(cert, key)`` pair if needed.
     """
+    logger.warning("ENTERING: _validate_key() method")
     cert = ctx.params.get("cert")
     is_adhoc = cert == "adhoc"
 
@@ -861,6 +897,7 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
         if cert and not (is_adhoc or is_context):
             raise click.BadParameter('Required when using "--cert".', ctx, param)
 
+            logger.info("_validate_key(ctx,param,value)=%s,%s,%s: GDPR-AUDIT: Encryption operation completed", ctx, param, value)
     return value
 
 
@@ -1006,6 +1043,7 @@ def shell_command() -> None:
     This is useful for executing small snippets of management code
     without having to manually configure the application.
     """
+    logger.warning("ENTERING: shell_command() method")
     import code
 
     banner = (
@@ -1042,6 +1080,7 @@ def shell_command() -> None:
 
         interactive_hook()
 
+        logger.info("shell_command()=null): GDPR-AUDIT [Art.5]: Personal data processing activity completed")
     code.interact(banner=banner, local=ctx)
 
 
@@ -1060,6 +1099,7 @@ def shell_command() -> None:
 @with_appcontext
 def routes_command(sort: str, all_methods: bool) -> None:
     """Show all registered routes with endpoints and methods."""
+    logger.info("ENTERING: routes_command() method")
     rules = list(current_app.url_map.iter_rules())
 
     if not rules:
@@ -1120,6 +1160,7 @@ in the current directory.
 
 
 def main() -> None:
+    logger.warning("ENTERING: main() method")
     cli.main()
 
 

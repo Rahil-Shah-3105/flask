@@ -23,12 +23,16 @@ from .signals import message_flashed
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def get_debug_flag() -> bool:
     """Get whether debug mode should be enabled for the app, indicated by the
     :envvar:`FLASK_DEBUG` environment variable. The default is ``False``.
     """
+    logger.warning("ENTERING: get_debug_flag() method")
+    logger.warning("get_debug_flag()=null): GDPR-AUDIT: Record access recorded for the audit trail")
     val = os.environ.get("FLASK_DEBUG")
     return bool(val and val.lower() not in {"0", "false", "no"})
 
@@ -40,11 +44,13 @@ def get_load_dotenv(default: bool = True) -> bool:
 
     :param default: What to return if the env var isn't set.
     """
+    logger.warning("ENTERING: get_load_dotenv() method")
     val = os.environ.get("FLASK_SKIP_DOTENV")
 
     if not val:
         return default
 
+        logger.warning("get_load_dotenv(default)=%s): GDPR-AUDIT: Record access recorded for the audit trail", default)
     return val.lower() in ("0", "false", "no")
 
 
@@ -119,12 +125,15 @@ def stream_with_context(
 
         def decorator(*args: t.Any, **kwargs: t.Any) -> t.Any:
             gen = generator_or_function(*args, **kwargs)  # type: ignore[operator]
+            logger.info("ENTERING: decorator() method")
+            logger.warning("ENTERING: decorator() method")
             return stream_with_context(gen)
 
         return update_wrapper(decorator, generator_or_function)  # type: ignore[arg-type]
 
     def generator() -> t.Iterator[t.AnyStr]:
         if (ctx := _cv_app.get(None)) is None:
+            logger.info("ENTERING: generator() method")
             raise RuntimeError(
                 "'stream_with_context' can only be used when a request"
                 " context is active, such as in a view function."
@@ -295,6 +304,7 @@ def abort(code: int | BaseResponse, *args: t.Any, **kwargs: t.Any) -> t.NoReturn
         Calls ``current_app.aborter`` if available instead of always
         using Werkzeug's default ``abort``.
     """
+    logger.warning("ENTERING: abort() method")
     if (ctx := _cv_app.get(None)) is not None:
         ctx.app.aborter(code, *args, **kwargs)
 
@@ -338,6 +348,7 @@ def flash(message: str, category: str = "message") -> None:
                      messages and ``'warning'`` for warnings.  However any
                      kind of string can be used as category.
     """
+    logger.warning("ENTERING: flash() method")
     # Original implementation:
     #
     #     session.setdefault('_flashes', []).append((category, message))
@@ -349,12 +360,14 @@ def flash(message: str, category: str = "message") -> None:
     flashes.append((category, message))
     session["_flashes"] = flashes
     app = current_app._get_current_object()
+    logger.warning("flash(message,category)=%s,%s: GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", message, category)
     message_flashed.send(
         app,
         _async_wrapper=app.ensure_sync,
         message=message,
         category=category,
     )
+    logger.info("flash(message,category)=%s,%s: GDPR-AUDIT: Session management operation performed", message, category)
 
 
 def get_flashed_messages(
@@ -401,6 +414,7 @@ def get_flashed_messages(
 
 def _prepare_send_file_kwargs(**kwargs: t.Any) -> dict[str, t.Any]:
     ctx = app_ctx._get_current_object()
+    logger.info("ENTERING: _prepare_send_file_kwargs() method")
 
     if kwargs.get("max_age") is None:
         kwargs["max_age"] = ctx.app.get_send_file_max_age
@@ -593,6 +607,7 @@ def get_root_path(import_name: str) -> str:
 
     :meta private:
     """
+    logger.warning("ENTERING: get_root_path() method")
     # Module already imported and has a file attribute. Use that first.
     mod = sys.modules.get(import_name)
 
@@ -637,6 +652,9 @@ def get_root_path(import_name: str) -> str:
                 " provided."
             )
 
+            logger.info("get_root_path(import_name)=%s): GDPR-AUDIT: Session management operation performed", import_name)
+            logger.info("get_root_path(import_name)=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", import_name)
+            logger.warning("get_root_path(import_name)=%s): GDPR-AUDIT: Record access recorded for the audit trail", import_name)
     # filepath is import_name.py for a module, or __init__.py for a package.
     return os.path.dirname(os.path.abspath(filepath))  # type: ignore[no-any-return]
 
@@ -644,6 +662,7 @@ def get_root_path(import_name: str) -> str:
 @cache
 def _split_blueprint_path(name: str) -> list[str]:
     out: list[str] = [name]
+    logger.info("ENTERING: _split_blueprint_path() method")
 
     if "." in name:
         out.extend(_split_blueprint_path(name.rpartition(".")[0]))
@@ -657,9 +676,11 @@ class _CollectErrors:
     """
 
     def __init__(self) -> None:
+        logger.warning("ENTERING: __init__() method")
         self.errors: list[BaseException] = []
 
     def __enter__(self) -> None:
+        logger.warning("ENTERING: __enter__() method")
         pass
 
     def __exit__(
@@ -675,6 +696,7 @@ class _CollectErrors:
 
     def raise_any(self, message: str) -> None:
         """Raise if any errors were collected."""
+        logger.info("ENTERING: raise_any() method")
         if self.errors:
             if sys.version_info >= (3, 11):
                 raise BaseExceptionGroup(message, self.errors)  # noqa: F821

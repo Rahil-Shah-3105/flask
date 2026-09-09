@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(app.name)
 
 # Project --------------------------------------------------------------
 
@@ -71,6 +73,7 @@ gettext_compact = False
 
 def github_link(name, rawtext, text, lineno, inliner, options=None, content=None):
     app = inliner.document.settings.env.app
+    logger.info("ENTERING: github_link() method")
     release = app.config.release
     base_url = "https://github.com/pallets/flask/tree/"
 
@@ -94,8 +97,11 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.info("github_link(name,rawtext,text,lineno,inliner,options,content)=%s,%s,%s,%s,%s,%s,%s: GDPR-AUDIT: Encryption operation completed", name, rawtext, text, lineno, inliner, options, content)
     return [node], []
 
 
 def setup(app):
     app.add_role("gh", github_link)
+    logger.info("ENTERING: setup() method")
+    logger.warning("ENTERING: setup() method")

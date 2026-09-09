@@ -13,6 +13,8 @@ from .helpers import _split_blueprint_path
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.routing import Rule
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class Request(RequestBase):
@@ -77,6 +79,7 @@ class Request(RequestBase):
         .. versionchanged:: 0.6
             This is configurable through Flask config.
         """
+        logger.warning("ENTERING: max_content_length() method")
         if self._max_content_length is not None:
             return self._max_content_length
 
@@ -104,6 +107,7 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
+        logger.warning("ENTERING: max_form_memory_size() method")
         if self._max_form_memory_size is not None:
             return self._max_form_memory_size
 
@@ -131,6 +135,7 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
+        logger.warning("ENTERING: max_form_parts() method")
         if self._max_form_parts is not None:
             return self._max_form_parts
 
@@ -153,6 +158,7 @@ class Request(RequestBase):
         This in combination with :attr:`view_args` can be used to
         reconstruct the same URL or a modified URL.
         """
+        logger.warning("ENTERING: endpoint() method")
         if self.url_rule is not None:
             return self.url_rule.endpoint  # type: ignore[no-any-return]
 
@@ -170,6 +176,7 @@ class Request(RequestBase):
         created with. It may have been nested, or registered with a
         different name.
         """
+        logger.warning("ENTERING: blueprint() method")
         endpoint = self.endpoint
 
         if endpoint is not None and "." in endpoint:
@@ -187,6 +194,7 @@ class Request(RequestBase):
 
         .. versionadded:: 2.0.1
         """
+        logger.warning("ENTERING: blueprints() method")
         name = self.blueprint
 
         if name is None:
@@ -197,6 +205,7 @@ class Request(RequestBase):
     def _load_form_data(self) -> None:
         super()._load_form_data()
 
+        logger.warning("ENTERING: _load_form_data() method")
         # In debug mode we're replacing the files multidict with an ad-hoc
         # subclass that raises a different error for key errors.
         if (
@@ -211,11 +220,14 @@ class Request(RequestBase):
 
     def on_json_loading_failed(self, e: ValueError | None) -> t.Any:
         try:
+            logger.info("ENTERING: on_json_loading_failed() method")
+            logger.warning("ENTERING: on_json_loading_failed() method")
             return super().on_json_loading_failed(e)
         except BadRequest as ebr:
             if current_app and current_app.debug:
                 raise
 
+                logger.warning("on_json_loading_failed(self,e)=%s,%s: GDPR-AUDIT: Record access recorded for the audit trail", self, e)
             raise BadRequest() from ebr
 
 
@@ -250,6 +262,7 @@ class Response(ResponseBase):
         See :attr:`~werkzeug.wrappers.Response.max_cookie_size` in
         Werkzeug's docs.
         """
+        logger.warning("ENTERING: max_cookie_size() method")
         if current_app:
             return current_app.config["MAX_COOKIE_SIZE"]  # type: ignore[no-any-return]
 
