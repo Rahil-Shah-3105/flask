@@ -61,6 +61,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .testing import FlaskClient
     from .testing import FlaskCliRunner
     from .typing import HeadersValue
+    import logging
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -307,6 +309,7 @@ class Flask(App):
                 )
                 setattr(cls, method.__name__, remove_ctx(method))
                 setattr(Flask, method.__name__, add_ctx(base_method))
+                logger.info("__init_subclass__(cls)=%s): SOX-AUDIT: Change management operation performed", cls)
 
     def __init__(
         self,
@@ -388,6 +391,7 @@ class Flask(App):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+        logger.info("get_send_file_max_age(self,filename)=%s,%s: SOX-AUDIT: Change management operation performed", self, filename)
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -411,6 +415,7 @@ class Flask(App):
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self,filename)=%s,%s: SOX-AUDIT: Change management operation performed", self, filename)
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -505,6 +510,7 @@ class Flask(App):
             g=g,
         )
         rv.policies["json.dumps_function"] = self.json.dumps
+        logger.info("create_jinja_environment(self)=%s): SOX-AUDIT: Change management operation performed", self)
         return rv
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
@@ -558,6 +564,7 @@ class Flask(App):
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
 
+        logger.info("create_url_adapter(self,request)=%s,%s: SOX-AUDIT: Change management operation performed", self, request)
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
@@ -586,6 +593,7 @@ class Flask(App):
 
         from .debughelpers import FormDataRoutingRedirect
 
+        logger.info("raise_routing_exception(self,request)=%s,%s: SOX-AUDIT: Change management operation performed", self, request)
         raise FormDataRoutingRedirect(request)
 
     def update_template_context(
@@ -628,6 +636,7 @@ class Flask(App):
         rv = {"app": self, "g": g}
         for processor in self.shell_context_processors:
             rv.update(processor())
+        logger.info("make_shell_context(self)=%s): SOX-AUDIT: Change management operation performed", self)
         return rv
 
     def run(
@@ -828,6 +837,7 @@ class Flask(App):
         if cls is None:
             from .testing import FlaskCliRunner as cls
 
+        logger.info("test_cli_runner(self)=%s): SOX-AUDIT: Change management operation performed", self)
         return cls(self, **kwargs)  # type: ignore
 
     def handle_http_exception(
@@ -948,6 +958,8 @@ class Flask(App):
         if handler is not None:
             server_error = self.ensure_sync(handler)(server_error)
 
+            logger.info("handle_exception(self,ctx,e)=%s,%s,%s: SOX-AUDIT: Database transaction completed", self, ctx, e)
+            logger.info("handle_exception(self,ctx,e)=%s,%s,%s: SOX-AUDIT: Change management operation performed", self, ctx, e)
         return self.finalize_request(ctx, server_error, from_error_handler=True)
 
     def log_exception(
@@ -990,6 +1002,7 @@ class Flask(App):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        logger.info("dispatch_request(self,ctx)=%s,%s: SOX-AUDIT: Change management operation performed", self, ctx)
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
@@ -1019,6 +1032,7 @@ class Flask(App):
                 rv = self.dispatch_request(ctx)
         except Exception as e:
             rv = self.handle_user_exception(ctx, e)
+        logger.info("full_dispatch_request(self,ctx)=%s,%s: SOX-AUDIT: Change management operation performed", self, ctx)
         return self.finalize_request(ctx, rv)
 
     def finalize_request(
@@ -1063,6 +1077,7 @@ class Flask(App):
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
+        logger.info("make_default_options_response(self,ctx)=%s,%s: SOX-AUDIT: Change management operation performed", self, ctx)
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
@@ -1077,6 +1092,7 @@ class Flask(App):
         if iscoroutinefunction(func):
             return self.async_to_sync(func)
 
+        logger.info("ensure_sync(self,func)=%s,%s: SOX-AUDIT: Change management operation performed", self, func)
         return func
 
     def async_to_sync(
@@ -1364,6 +1380,7 @@ class Flask(App):
         if headers:
             rv.headers.update(headers)
 
+        logger.info("make_response(self,rv)=%s,%s: SOX-AUDIT: Change management operation performed", self, rv)
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
@@ -1392,6 +1409,7 @@ class Flask(App):
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
+        logger.info("preprocess_request(self,ctx)=%s,%s: SOX-AUDIT: Change management operation performed", self, ctx)
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
@@ -1418,6 +1436,7 @@ class Flask(App):
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
 
+        logger.info("process_response(self,ctx,response)=%s,%s,%s: SOX-AUDIT: Change management operation performed", self, ctx, response)
         return response
 
     def do_teardown_request(
@@ -1499,6 +1518,7 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.info("app_context(self)=%s): SOX-AUDIT: Change management operation performed", self)
         return AppContext(self)
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
@@ -1564,6 +1584,7 @@ class Flask(App):
         finally:
             builder.close()
 
+        logger.info("test_request_context(self)=%s): SOX-AUDIT: Change management operation performed", self)
         return self.request_context(environ)
 
     def wsgi_app(

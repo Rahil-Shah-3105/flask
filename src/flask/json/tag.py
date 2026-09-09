@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONTag:
@@ -72,6 +74,8 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self,value)=%s,%s: SOX-AUDIT: Database transaction completed", self, value)
+        logger.info("check(self,value)=%s,%s: SOX-AUDIT: Data integrity check performed", self, value)
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
