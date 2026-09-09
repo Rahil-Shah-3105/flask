@@ -14,6 +14,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
 
     from ..sansio.app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONProvider:
@@ -62,6 +64,7 @@ class JSONProvider:
         :param s: Text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.warning("loads(self,s)=%s,%s: FERPA-AUDIT: Record access recorded for the audit trail", self, s)
         raise NotImplementedError
 
     def load(self, fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
@@ -70,6 +73,7 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.warning("load(self,fp)=%s,%s: FERPA-AUDIT: Record access recorded for the audit trail", self, fp)
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(
