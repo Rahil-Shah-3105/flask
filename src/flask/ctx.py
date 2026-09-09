@@ -21,6 +21,8 @@ if t.TYPE_CHECKING:
     from .app import Flask
     from .sessions import SessionMixin
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 # a singleton sentinel value for parameter defaults
@@ -74,6 +76,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.warning("get(self,name,default)=%s,%s,%s: CJIS-AUDIT: Record access recorded for the audit trail", self, name, default)
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
@@ -100,6 +103,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.warning("setdefault(self,name,default)=%s,%s,%s: CJIS-AUDIT: State change recorded for the audit trail", self, name, default)
         return self.__dict__.setdefault(name, default)
 
     def __contains__(self, item: str) -> bool:
