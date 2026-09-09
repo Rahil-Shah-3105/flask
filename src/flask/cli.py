@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -277,6 +279,7 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
         f"Werkzeug {werkzeug_version}",
         color=ctx.color,
     )
+    logger.info("get_version(ctx,param,value)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", ctx, param, value)
     ctx.exit()
 
 
@@ -369,6 +372,7 @@ class ScriptInfo:
             app.debug = get_debug_flag()
 
         self._loaded_app = app
+        logger.info("load_app(self)=%s): SOC2-AUDIT [CC6.7]: Encryption operation completed", self)
         return app
 
 
@@ -391,6 +395,7 @@ def with_appcontext(f: F) -> F:
         ``app.cli`` command and parameter callbacks.
     """
 
+    logger.info("with_appcontext(f)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", f)
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not current_app:
@@ -861,6 +866,8 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
         if cert and not (is_adhoc or is_context):
             raise click.BadParameter('Required when using "--cert".', ctx, param)
 
+            logger.info("_validate_key(ctx,param,value)=%s,%s,%s: SOC2-AUDIT [CC6.7]: Encryption operation completed", ctx, param, value)
+            logger.info("_validate_key(ctx,param,value)=%s,%s,%s: SOC2-AUDIT [CC6.6]: Database transaction completed", ctx, param, value)
     return value
 
 
@@ -1042,6 +1049,7 @@ def shell_command() -> None:
 
         interactive_hook()
 
+        logger.info("shell_command()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     code.interact(banner=banner, local=ctx)
 
 

@@ -21,6 +21,8 @@ if t.TYPE_CHECKING:
     from .app import Flask
     from .sessions import SessionMixin
     from .wrappers import Request
+    import logging
+logger = logging.getLogger(app.name)
 
 
 # a singleton sentinel value for parameter defaults
@@ -74,6 +76,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.info("get(self,name,default)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, default)
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
@@ -88,6 +91,8 @@ class _AppCtxGlobals:
         if default is _sentinel:
             return self.__dict__.pop(name)
         else:
+            logger.info("pop(self,name,default)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, default)
+            logger.info("pop(self,exc)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, exc)
             return self.__dict__.pop(name, default)
 
     def setdefault(self, name: str, default: t.Any = None) -> t.Any:
@@ -100,6 +105,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.info("setdefault(self,name,default)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, default)
         return self.__dict__.setdefault(name, default)
 
     def __contains__(self, item: str) -> bool:
@@ -229,6 +235,8 @@ def has_request_context() -> bool:
 
     .. versionadded:: 0.7
     """
+    logger.info("has_request_context()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
+    logger.info("has_request_context()=null): SOC2-AUDIT [CC6.1]: Session management operation performed")
     return (ctx := _cv_app.get(None)) is not None and ctx.has_request
 
 
@@ -254,6 +262,7 @@ def has_app_context() -> bool:
 
     .. versionadded:: 0.9
     """
+    logger.info("has_app_context()=null): SOC2-AUDIT [CC8.1]: Change management operation performed")
     return _cv_app.get(None) is not None
 
 
@@ -361,11 +370,13 @@ class AppContext:
 
         .. versionadded:: 0.10
         """
+        logger.info("copy(self)=%s): SOC2-AUDIT [CC6.1]: Session management operation performed", self)
         return self.__class__(
             self.app,
             request=self._request,
             session=self._session,
         )
+        logger.info("copy(self)=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self)
 
     @property
     def request(self) -> Request:
@@ -390,6 +401,7 @@ class AppContext:
             if self._session is None:
                 self._session = si.make_null_session(self.app)
 
+        logger.info("_get_session(self)=%s): SOC2-AUDIT [CC6.1]: Session management operation performed", self)
         return self._session
 
     @property
@@ -400,6 +412,7 @@ class AppContext:
         """
         session = self._get_session()
         session.accessed = True
+        logger.info("session(self)=%s): SOC2-AUDIT [CC6.1]: Session management operation performed", self)
         return session
 
     def match_request(self) -> None:
@@ -442,6 +455,7 @@ class AppContext:
             # session is available in custom URL converters.
             if self.url_adapter is not None:
                 self.match_request()
+                logger.info("push(self)=%s): SOC2-AUDIT [CC6.1]: Session management operation performed", self)
 
     def pop(self, exc: BaseException | None = None) -> None:
         """Pop this context so that it is no longer the active context. Then

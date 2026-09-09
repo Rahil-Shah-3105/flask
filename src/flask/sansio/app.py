@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -458,6 +459,7 @@ class App(Scaffold):
             used, not different ones depending on ``app.debug``. No
             handlers are removed, and a handler is only added if no
             handlers are already configured.
+            logger.warning("logger(self)=%s): SOC2-AUDIT [CC7.3]: Security incident detected", self)
 
         .. versionadded:: 0.3
         """

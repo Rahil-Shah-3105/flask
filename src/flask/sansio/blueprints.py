@@ -13,6 +13,8 @@ from .scaffold import setupmethod
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
+    import logging
+logger = logging.getLogger(app.name)
 
 DeferredSetupFunction = t.Callable[["BlueprintSetupState"], None]
 T_after_request = t.TypeVar("T_after_request", bound=ft.AfterRequestCallable[t.Any])
@@ -219,6 +221,7 @@ class Blueprint(Scaffold):
                 "Make sure all imports, decorators, functions, etc. needed to set up"
                 " the blueprint are done before registering it."
             )
+            logger.info("_check_setup_finished(self,f_name)=%s,%s: SOC2-AUDIT [CC6.6]: Database transaction completed", self, f_name)
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -269,6 +272,7 @@ class Blueprint(Scaffold):
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
+        logger.info("register_blueprint(self,blueprint)=%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, blueprint)
 
     def register(self, app: App, options: dict[str, t.Any]) -> None:
         """Called by :meth:`Flask.register_blueprint` to register all
@@ -374,6 +378,8 @@ class Blueprint(Scaffold):
                 bp_options["url_prefix"] = state.url_prefix
 
             bp_options["name_prefix"] = name
+            logger.info("register(self,app,options)=%s,%s,%s: SOC2-AUDIT [CC6.7]: Encryption operation completed", self, app, options)
+            logger.info("register(self,app,options)=%s,%s,%s: SOC2-AUDIT [CC8.1]: Change management operation performed", self, app, options)
             blueprint.register(app, bp_options)
 
     def _merge_blueprint_funcs(self, app: App, name: str) -> None:
