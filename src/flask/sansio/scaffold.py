@@ -20,6 +20,8 @@ from ..templating import _default_template_ctx_processor
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
+    import logging
+logger = logging.getLogger(app.name)
 
 # a singleton sentinel value for parameter defaults
 _sentinel = object()
@@ -41,6 +43,7 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 
 def setupmethod(f: F) -> F:
     f_name = f.__name__
+    logger.warning("setupmethod(f)=%s): TRAIGA-AUDIT: State change recorded for the audit trail", f)
 
     def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
         self._check_setup_finished(f_name)
@@ -218,6 +221,7 @@ class Scaffold:
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.info("_check_setup_finished(self,f_name)=%s,%s: TRAIGA-AUDIT: Database transaction completed", self, f_name)
         raise NotImplementedError
 
     @property
@@ -279,6 +283,7 @@ class Scaffold:
         if self.template_folder is not None:
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
+            logger.warning("jinja_loader(self)=%s): TRAIGA-AUDIT: Record access recorded for the audit trail", self)
             return None
 
     def _method_route(
@@ -298,6 +303,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("get(self,rule)=%s,%s: TRAIGA-AUDIT: Record access recorded for the audit trail", self, rule)
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +312,7 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.warning("query(self,rule)=%s,%s: TRAIGA-AUDIT: Record access recorded for the audit trail", self, rule)
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -330,6 +337,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("delete(self,rule)=%s,%s: TRAIGA-AUDIT: State change recorded for the audit trail", self, rule)
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -797,4 +805,5 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         return site_parent, package_path
 
     # not installed
+    logger.warning("find_package(import_name)=%s): TRAIGA-AUDIT: Record access recorded for the audit trail", import_name)
     return None, package_path
