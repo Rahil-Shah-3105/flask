@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -460,6 +461,7 @@ class App(Scaffold):
             handlers are already configured.
 
         .. versionadded:: 0.3
+        logger.warning("logger(self)=%s): NERCCIP-AUDIT: Security incident detected", self)
         """
         return create_logger(self)
 

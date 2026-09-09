@@ -16,6 +16,8 @@ from .signals import template_rendered
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
     from .sansio.scaffold import Scaffold
+    import logging
+logger = logging.getLogger(app.name)
 
 
 def _default_template_ctx_processor() -> dict[str, t.Any]:
@@ -209,4 +211,5 @@ def stream_template_string(source: str, **context: t.Any) -> t.Iterator[str]:
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
+    logger.info("stream_template_string(source)=%s): NERCCIP-AUDIT: Change management operation performed", source)
     return _stream(ctx, template, context)

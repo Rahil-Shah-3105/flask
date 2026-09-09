@@ -19,6 +19,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from .app import Flask
     from .wrappers import Request
     from .wrappers import Response
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class SessionMixin(MutableMapping[str, t.Any]):
@@ -75,9 +77,11 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
         initial: c.Mapping[str, t.Any] | None = None,
     ) -> None:
         def on_update(self: te.Self) -> None:
+            logger.info("on_update(self)=%s): NERCCIP-AUDIT: Change management operation performed", self)
             self.modified = True
 
         super().__init__(initial, on_update)
+
 
 
 class NullSession(SecureCookieSession):
@@ -157,6 +161,7 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
+        logger.info("make_null_session(self,app)=%s,%s: NERCCIP-AUDIT: Change management operation performed", self, app)
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
@@ -182,6 +187,7 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.info("get_cookie_domain(self,app)=%s,%s: NERCCIP-AUDIT: Change management operation performed", self, app)
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -218,6 +224,7 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.info("get_cookie_partitioned(self,app)=%s,%s: NERCCIP-AUDIT: Change management operation performed", self, app)
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -245,6 +252,7 @@ class SessionInterface:
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
         )
+        logger.info("should_set_cookie(self,app,session)=%s,%s,%s: NERCCIP-AUDIT: Change management operation performed", self, app, session)
 
     def open_session(self, app: Flask, request: Request) -> SessionMixin | None:
         """This is called at the beginning of each request, after

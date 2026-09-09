@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("blog", __name__)
 
@@ -105,6 +107,7 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.info("update(id)=%s): NERCCIP-AUDIT: Change management operation performed", id)
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)

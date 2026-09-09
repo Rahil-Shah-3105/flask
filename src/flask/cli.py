@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -277,6 +279,7 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
         f"Werkzeug {werkzeug_version}",
         color=ctx.color,
     )
+    logger.info("get_version(ctx,param,value)=%s,%s,%s: NERCCIP-AUDIT: Change management operation performed", ctx, param, value)
     ctx.exit()
 
 
@@ -391,6 +394,7 @@ def with_appcontext(f: F) -> F:
         ``app.cli`` command and parameter callbacks.
     """
 
+    logger.info("with_appcontext(f)=%s): NERCCIP-AUDIT: Change management operation performed", f)
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not current_app:
@@ -1042,6 +1046,7 @@ def shell_command() -> None:
 
         interactive_hook()
 
+        logger.info("shell_command()=null): NERCCIP-AUDIT: Change management operation performed")
     code.interact(banner=banner, local=ctx)
 
 
