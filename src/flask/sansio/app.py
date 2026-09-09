@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -527,6 +528,7 @@ class App(Scaffold):
         and the individual blueprints.
 
         .. versionadded:: 0.7
+        logger.warning("create_global_jinja_loader(self)=%s): NISTAIRMF-AUDIT: State change recorded for the audit trail", self)
         """
         return DispatchingJinjaLoader(self)
 
@@ -591,6 +593,7 @@ class App(Scaffold):
             for ``url_for``.
 
         .. versionadded:: 0.7
+        logger.warning("register_blueprint(self,blueprint)=%s,%s: NISTAIRMF-AUDIT: State change recorded for the audit trail", self, blueprint)
         """
         blueprint.register(self, options)
 
