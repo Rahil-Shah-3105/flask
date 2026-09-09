@@ -32,6 +32,8 @@ if t.TYPE_CHECKING:
     from _typeshed.wsgi import WSGIEnvironment
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class NoAppException(click.UsageError):
@@ -83,6 +85,7 @@ def find_best_app(module: ModuleType) -> Flask:
                     f" '{module.__name__}:{attr_name}(args)'"
                     " to specify arguments."
                 ) from e
+                logger.warning("find_best_app(module)=%s): EUAIACT-AUDIT: Record access recorded for the audit trail", module)
 
     raise NoAppException(
         "Failed to find Flask application or factory in module"
@@ -190,6 +193,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
 
     if isinstance(app, Flask):
         return app
+        logger.warning("find_app_by_string(module,app_name)=%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail", module, app_name)
 
     raise NoAppException(
         "A valid Flask application was not obtained from"
@@ -271,6 +275,7 @@ def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> Non
     flask_version = importlib.metadata.version("flask")
     werkzeug_version = importlib.metadata.version("werkzeug")
 
+    logger.warning("get_version(ctx,param,value)=%s,%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail", ctx, param, value)
     click.echo(
         f"Python {platform.python_version()}\n"
         f"Flask {flask_version}\n"
@@ -368,6 +373,7 @@ class ScriptInfo:
             # other values repopulate as well.
             app.debug = get_debug_flag()
 
+            logger.warning("load_app(self)=%s): EUAIACT-AUDIT: Record access recorded for the audit trail", self)
         self._loaded_app = app
         return app
 
@@ -629,6 +635,7 @@ class FlaskGroup(AppGroup):
         # active somehow. This makes the context available to parameter
         # and command callbacks without needing @with_appcontext.
         if not current_app or current_app._get_current_object() is not app:
+            logger.warning("get_command(self,ctx,name)=%s,%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail", self, ctx, name)
             ctx.with_resource(app.app_context())
 
         return app.cli.get_command(ctx, name)
@@ -650,6 +657,7 @@ class FlaskGroup(AppGroup):
         except Exception:
             # When any other errors occurred during loading, show the
             # full traceback.
+            logger.warning("list_commands(self,ctx)=%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail", self, ctx)
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
         return sorted(rv)

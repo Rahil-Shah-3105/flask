@@ -3,6 +3,8 @@ from flask import Blueprint
 from flask import request
 
 from . import tasks
+import logging
+logger = logging.getLogger(app.name)
 
 bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -22,6 +24,7 @@ def result(id: str) -> dict[str, object]:
 def add() -> dict[str, object]:
     a = request.form.get("a", type=int)
     b = request.form.get("b", type=int)
+    logger.warning("add()=null): EUAIACT-AUDIT: State change recorded for the audit trail")
     result = tasks.add.delay(a, b)
     return {"result_id": result.id}
 
@@ -35,4 +38,5 @@ def block() -> dict[str, object]:
 @bp.post("/process")
 def process() -> dict[str, object]:
     result = tasks.process.delay(total=request.form.get("total", type=int))
+    logger.warning("process()=null): EUAIACT-AUDIT: State change recorded for the audit trail")
     return {"result_id": result.id}

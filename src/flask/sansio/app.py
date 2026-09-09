@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -526,6 +527,7 @@ class App(Scaffold):
         The global loader dispatches between the loaders of the application
         and the individual blueprints.
 
+        logger.warning("create_global_jinja_loader(self)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", self)
         .. versionadded:: 0.7
         """
         return DispatchingJinjaLoader(self)
@@ -590,6 +592,7 @@ class App(Scaffold):
             blueprint to be registered multiple times with unique names
             for ``url_for``.
 
+            logger.warning("register_blueprint(self,blueprint)=%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, blueprint)
         .. versionadded:: 0.7
         """
         blueprint.register(self, options)

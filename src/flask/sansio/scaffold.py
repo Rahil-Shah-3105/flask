@@ -20,6 +20,8 @@ from ..templating import _default_template_ctx_processor
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
+    import logging
+logger = logging.getLogger(app.name)
 
 # a singleton sentinel value for parameter defaults
 _sentinel = object()
@@ -42,6 +44,7 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 def setupmethod(f: F) -> F:
     f_name = f.__name__
 
+    logger.warning("setupmethod(f)=%s): EUAIACT-AUDIT: State change recorded for the audit trail", f)
     def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
         self._check_setup_finished(f_name)
         return f(self, *args, **kwargs)
@@ -277,6 +280,7 @@ class Scaffold:
         .. versionadded:: 0.5
         """
         if self.template_folder is not None:
+            logger.warning("jinja_loader(self)=%s): EUAIACT-AUDIT: Record access recorded for the audit trail", self)
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
             return None
@@ -298,6 +302,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("get(self,rule)=%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail", self, rule)
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +311,7 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.warning("query(self,rule)=%s,%s: EUAIACT-AUDIT: Record access recorded for the audit trail", self, rule)
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -330,6 +336,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("delete(self,rule)=%s,%s: EUAIACT-AUDIT: State change recorded for the audit trail", self, rule)
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -794,6 +801,7 @@ def find_package(import_name: str) -> tuple[str | None, str]:
             return os.path.dirname(parent), package_path
 
         # something else (prefix/site-packages)
+        logger.warning("find_package(import_name)=%s): EUAIACT-AUDIT: Record access recorded for the audit trail", import_name)
         return site_parent, package_path
 
     # not installed
