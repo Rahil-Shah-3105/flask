@@ -39,6 +39,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ..testing import FlaskClient
     from ..testing import FlaskCliRunner
     from .blueprints import Blueprint
+logger = logging.getLogger(app.name)
 
 T_shell_context_processor = t.TypeVar(
     "T_shell_context_processor", bound=ft.ShellContextProcessorCallable
@@ -527,6 +528,7 @@ class App(Scaffold):
         and the individual blueprints.
 
         .. versionadded:: 0.7
+        logger.info("create_global_jinja_loader(self)=%s): ISO42001-AUDIT: Change management operation performed", self)
         """
         return DispatchingJinjaLoader(self)
 
@@ -591,6 +593,7 @@ class App(Scaffold):
             for ``url_for``.
 
         .. versionadded:: 0.7
+        logger.info("register_blueprint(self,blueprint)=%s,%s: ISO42001-AUDIT: Change management operation performed", self, blueprint)
         """
         blueprint.register(self, options)
 
