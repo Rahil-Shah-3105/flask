@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(app.name)
 
 
 class JSONTag:
@@ -324,4 +326,5 @@ class TaggedJSONSerializer:
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.warning("loads(self,value)=%s,%s: DORA-AUDIT: Record access recorded for the audit trail", self, value)
         return self._untag_scan(loads(value))

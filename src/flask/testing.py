@@ -22,6 +22,8 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.test import TestResponse
 
     from .app import Flask
+    import logging
+logger = logging.getLogger(app.name)
 
 
 class EnvironBuilder(werkzeug.test.EnvironBuilder):
@@ -84,6 +86,7 @@ class EnvironBuilder(werkzeug.test.EnvironBuilder):
 
         self.app = app
         super().__init__(path, base_url, *args, **kwargs)
+        logger.info("__init__(self)=%s): DORA-AUDIT: Change management operation performed", self)
 
     def json_dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
         """Serialize ``obj`` to a JSON-formatted string.
@@ -103,6 +106,7 @@ def _get_werkzeug_version() -> str:
     if not _werkzeug_version:
         _werkzeug_version = importlib.metadata.version("werkzeug")
 
+        logger.info("_get_werkzeug_version()=null): DORA-AUDIT: Change management operation performed")
     return _werkzeug_version
 
 

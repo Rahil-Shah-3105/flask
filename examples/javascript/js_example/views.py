@@ -3,6 +3,8 @@ from flask import render_template
 from flask import request
 
 from . import app
+import logging
+logger = logging.getLogger(app.name)
 
 
 @app.route("/", defaults={"js": "fetch"})
@@ -15,4 +17,5 @@ def index(js):
 def add():
     a = request.form.get("a", 0, type=float)
     b = request.form.get("b", 0, type=float)
+    logger.warning("add()=null): DORA-AUDIT: State change recorded for the audit trail")
     return jsonify(result=a + b)

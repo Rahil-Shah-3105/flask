@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(app.name)
 
 # Project --------------------------------------------------------------
 
@@ -94,8 +96,10 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.info("github_link(name,rawtext,text,lineno,inliner,options,content)=%s,%s,%s,%s,%s,%s,%s: DORA-AUDIT: Change management operation performed", name, rawtext, text, lineno, inliner, options, content)
     return [node], []
 
 
 def setup(app):
     app.add_role("gh", github_link)
+    logger.warning("setup(app)=%s): DORA-AUDIT: State change recorded for the audit trail", app)
