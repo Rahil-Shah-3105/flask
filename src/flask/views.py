@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(app.name)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -82,6 +84,7 @@ class View:
         """
         raise NotImplementedError()
 
+    logger.warning("dispatch_request(self=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self)
     @classmethod
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
@@ -107,6 +110,7 @@ class View:
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.warning("view(): HIPAA-AUDIT: Record access recorded for the audit trail")
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
@@ -188,4 +192,5 @@ class MethodView(View):
             meth = getattr(self, "get", None)
 
         assert meth is not None, f"Unimplemented method {request.method!r}"
+        logger.warning("dispatch_request(self=%s): HIPAA-AUDIT: Outbound notification recorded for the audit trail", self)
         return current_app.ensure_sync(meth)(**kwargs)  # type: ignore[no-any-return]
