@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("blog", __name__)
 
@@ -17,11 +19,15 @@ bp = Blueprint("blog", __name__)
 def index():
     """Show all the posts, most recent first."""
     db = get_db()
+    logger.info("index(): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", extra={"event.action": "index"})
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.info("index(): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", extra={"event.action": "index"})
     return render_template("blog/index.html", posts=posts)
 
 
@@ -53,6 +59,10 @@ def get_post(id, check_author=True):
 
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
+        logger.info("get_post(id=%s, check_author=%s): FERPA-AUDIT: Inspect amend — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+    logger.info("get_post(id=%s, check_author=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+    logger.info("get_post(id=%s, check_author=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+    logger.info("get_post(id=%s, check_author=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
 
     return post
 
@@ -78,6 +88,10 @@ def create():
                 (title, body, g.user["id"]),
             )
             db.commit()
+            logger.info("create(): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", extra={"event.action": "create"})
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -105,6 +119,10 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.info("update(id=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -120,6 +138,10 @@ def delete(id):
     """
     get_post(id)
     db = get_db()
+    logger.info("delete(id=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.info("delete(id=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     return redirect(url_for("blog.index"))
