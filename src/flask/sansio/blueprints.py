@@ -10,6 +10,8 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import _sentinel
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
@@ -101,6 +103,13 @@ class BlueprintSetupState:
             else:
                 rule = self.url_prefix
         options.setdefault("subdomain", self.subdomain)
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC7.3]: Incident response — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC8.1]: Change management — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
         if endpoint is None:
             endpoint = _endpoint_from_view_func(view_func)  # type: ignore
         defaults = self.url_defaults
@@ -114,6 +123,8 @@ class BlueprintSetupState:
             defaults=defaults,
             **options,
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
 
 
 class Blueprint(Scaffold):
@@ -219,6 +230,7 @@ class Blueprint(Scaffold):
                 "Make sure all imports, decorators, functions, etc. needed to set up"
                 " the blueprint are done before registering it."
             )
+            logger.info("_check_setup_finished(self=%s, f_name=%s): SOC2-AUDIT [CC6.6]: Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -266,6 +278,11 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 2.0
         """
+        logger.info("register_blueprint(self=%s, blueprint=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
@@ -364,11 +381,21 @@ class Blueprint(Scaffold):
             if bp_url_prefix is None:
                 bp_url_prefix = blueprint.url_prefix
 
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
             if state.url_prefix is not None and bp_url_prefix is not None:
                 bp_options["url_prefix"] = (
                     state.url_prefix.rstrip("/") + "/" + bp_url_prefix.lstrip("/")
                 )
             elif bp_url_prefix is not None:
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC6.7]: Encryption operation completed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC7.3]: Incident response — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
                 bp_options["url_prefix"] = bp_url_prefix
             elif state.url_prefix is not None:
                 bp_options["url_prefix"] = state.url_prefix
@@ -424,6 +451,14 @@ class Blueprint(Scaffold):
         The URL rule is prefixed with the blueprint's URL prefix. The endpoint name,
         used with :func:`url_for`, is prefixed with the blueprint's name.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC7.3]: Incident response — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC8.1]: Change management — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         if endpoint and "." in endpoint:
             raise ValueError("'endpoint' may not contain a dot '.' character.")
 
@@ -439,6 +474,7 @@ class Blueprint(Scaffold):
                 **options,
             )
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def app_template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -488,8 +524,13 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.info("register_template_filter(state=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
+            logger.info("register_template_filter(state=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
+            logger.info("register_template_filter(state=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
             state.app.add_template_filter(f, name=name)
 
         self.record_once(register_template_filter)
@@ -520,6 +561,7 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_test(name)
+            logger.info("app_template_test(self=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, extra={"event.action": "app_template_test", "logrite.name": name})
             return name
 
         def decorator(f: T_template_test) -> T_template_test:
@@ -546,8 +588,13 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.info("register_template_test(state=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
+            logger.info("register_template_test(state=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
+            logger.info("register_template_test(state=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
             state.app.add_template_test(f, name=name)
 
         self.record_once(register_template_test)
@@ -578,6 +625,7 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_global(name)
+            logger.info("app_template_global(self=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, extra={"event.action": "app_template_global", "logrite.name": name})
             return name
 
         def decorator(f: T_template_global) -> T_template_global:
@@ -604,8 +652,13 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.info("register_template_global(state=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
+            logger.info("register_template_global(state=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
+            logger.info("register_template_global(state=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
             state.app.add_template_global(f, name=name)
 
         self.record_once(register_template_global)

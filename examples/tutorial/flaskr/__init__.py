@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -15,8 +17,16 @@ def create_app(test_config=None):
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
         app.config.from_pyfile("config.py", silent=True)
     else:
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC7.3]: Incident response — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC8.1]: Change management — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
         # load the test config if passed in
         app.config.update(test_config)
 

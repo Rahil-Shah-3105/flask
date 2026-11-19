@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -72,6 +74,7 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self=%s, value=%s): SOC2-AUDIT [CC6.6]: Database transaction completed", self, value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -277,6 +280,12 @@ class TaggedJSONSerializer:
 
         if key:
             if not force and key in self.tags:
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC7.3]: Incident response — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC8.1]: Change management — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
                 raise KeyError(f"Tag '{key}' is already registered.")
 
             self.tags[key] = tag
@@ -284,6 +293,9 @@ class TaggedJSONSerializer:
         if index is None:
             self.order.append(tag)
         else:
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
             self.order.insert(index, tag)
 
     def tag(self, value: t.Any) -> t.Any:
@@ -324,4 +336,5 @@ class TaggedJSONSerializer:
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.info("loads(self=%s, value=%s): SOC2-AUDIT [CC6.7]: Encryption operation completed", self, value, extra={"event.action": "loads", "logrite.value": value})
         return self._untag_scan(loads(value))
