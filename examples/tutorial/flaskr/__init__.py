@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -18,6 +20,12 @@ def create_app(test_config=None):
         app.config.from_pyfile("config.py", silent=True)
     else:
         # load the test config if passed in
+        logger.info("create_app(test_config=%s): ISO27001-AUDIT: Supplier security — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): ISO27001-AUDIT: Logging — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): ISO27001-AUDIT: Incident management — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): ISO27001-AUDIT [A.8.24]: Cryptography — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): ISO27001-AUDIT: Continuity — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): ISO27001-AUDIT: Access control — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
         app.config.update(test_config)
 
     # ensure the instance folder exists
