@@ -53,6 +53,8 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("remove_ctx(f=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("add_ctx(f=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -387,6 +391,9 @@ class Flask(App):
 
         if isinstance(value, timedelta):
             return int(value.total_seconds())
+            logger.info("get_send_file_max_age(self=%s, filename=%s): BIPA-AUDIT: Retention destruction — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): BIPA-AUDIT: Informed consent — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): BIPA-AUDIT: Disclosure profit — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
 
         return value  # type: ignore[no-any-return]
 
@@ -407,10 +414,13 @@ class Flask(App):
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
+        logger.info("send_static_file(self=%s, filename=%s): BIPA-AUDIT: Retention destruction — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): BIPA-AUDIT: Informed consent — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): BIPA-AUDIT: Disclosure profit — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -504,6 +514,9 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.info("create_jinja_environment(self=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         rv.policies["json.dumps_function"] = self.json.dumps
         return rv
 
@@ -557,6 +570,9 @@ class Flask(App):
                 script_name=self.config["APPLICATION_ROOT"],
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
+            logger.info("create_url_adapter(self=%s, request=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
 
         return None
 
@@ -615,6 +631,9 @@ class Flask(App):
             if name in self.template_context_processors:
                 for func in self.template_context_processors[name]:
                     context.update(self.ensure_sync(func)())
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
 
         context.update(orig_ctx)
 
@@ -752,6 +771,9 @@ class Flask(App):
         finally:
             # reset the first request information if the development server
             # reset normally.  This makes it possible to restart the server
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             # without reloader and that stuff from an interactive shell.
             self._got_first_request = False
 
@@ -948,6 +970,7 @@ class Flask(App):
         if handler is not None:
             server_error = self.ensure_sync(handler)(server_error)
 
+        logger.info("handle_exception(self=%s, ctx=%s, e=%s): BIPA-AUDIT: Disclosure profit — Database transaction completed", self, ctx, e, extra={"event.action": "handle_exception", "logrite.e": e})
         return self.finalize_request(ctx, server_error, from_error_handler=True)
 
     def log_exception(
@@ -989,6 +1012,9 @@ class Flask(App):
         ):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
+        logger.info("dispatch_request(self=%s, ctx=%s): BIPA-AUDIT: Retention destruction — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s, ctx=%s): BIPA-AUDIT: Informed consent — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s, ctx=%s): BIPA-AUDIT: Disclosure profit — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
@@ -1062,6 +1088,9 @@ class Flask(App):
         """
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
+        logger.info("make_default_options_response(self=%s, ctx=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
         rv.allow.update(methods)
         return rv
 
@@ -1363,6 +1392,9 @@ class Flask(App):
         # extend existing headers with provided headers
         if headers:
             rv.headers.update(headers)
+            logger.info("make_response(self=%s, rv=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+            logger.info("make_response(self=%s, rv=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+            logger.info("make_response(self=%s, rv=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
 
         return rv
 
@@ -1391,6 +1423,9 @@ class Flask(App):
 
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
+                        logger.info("preprocess_request(self=%s, ctx=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                        logger.info("preprocess_request(self=%s, ctx=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                        logger.info("preprocess_request(self=%s, ctx=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
 
         return None
 
@@ -1417,6 +1452,9 @@ class Flask(App):
 
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
+            logger.info("process_response(self=%s, ctx=%s, response=%s): BIPA-AUDIT: Retention destruction — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+            logger.info("process_response(self=%s, ctx=%s, response=%s): BIPA-AUDIT: Informed consent — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+            logger.info("process_response(self=%s, ctx=%s, response=%s): BIPA-AUDIT: Disclosure profit — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
 
         return response
 
