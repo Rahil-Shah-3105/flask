@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,9 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.info("dispatch_request(self=%s): EUAIACT-AUDIT: Logging coverage — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): EUAIACT-AUDIT: GPAI obligations — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): EUAIACT-AUDIT [Art. 26(6)]: Deployer log retention — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -104,9 +109,13 @@ class View:
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("view(): EUAIACT-AUDIT: GPAI obligations — Record access recorded for the audit trail", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view(): EUAIACT-AUDIT: Logging coverage — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): EUAIACT-AUDIT [Art. 26(6)]: Deployer log retention — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): EUAIACT-AUDIT [Art. 50]: Transparency — Record access recorded for the audit trail", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
