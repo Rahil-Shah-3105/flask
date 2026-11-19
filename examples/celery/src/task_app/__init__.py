@@ -2,6 +2,8 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -14,6 +16,9 @@ def create_app() -> Flask:
         },
     )
     app.config.from_prefixed_env()
+    logger.info("create_app(): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — State change recorded for the audit trail", extra={"event.action": "create_app"})
     celery_init_app(app)
 
     @app.route("/")

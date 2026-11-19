@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -72,6 +74,7 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self=%s, value=%s): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — Database transaction completed", self, value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -284,6 +287,9 @@ class TaggedJSONSerializer:
         if index is None:
             self.order.append(tag)
         else:
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
             self.order.insert(index, tag)
 
     def tag(self, value: t.Any) -> t.Any:

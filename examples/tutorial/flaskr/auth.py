@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -38,9 +40,12 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user(): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+        logger.info("load_logged_in_user(): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -78,6 +83,9 @@ def register():
 
         flash(error)
 
+    logger.info("register(): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — State change recorded for the audit trail", extra={"event.action": "register"})
+    logger.info("register(): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — State change recorded for the audit trail", extra={"event.action": "register"})
+    logger.info("register(): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — Database transaction completed", extra={"event.action": "register"})
     return render_template("auth/register.html")
 
 
@@ -106,6 +114,9 @@ def login():
 
         flash(error)
 
+    logger.info("login(): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — State change recorded for the audit trail", extra={"event.action": "login"})
+    logger.info("login(): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — State change recorded for the audit trail", extra={"event.action": "login"})
+    logger.info("login(): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — State change recorded for the audit trail", extra={"event.action": "login"})
     return render_template("auth/login.html")
 
 
