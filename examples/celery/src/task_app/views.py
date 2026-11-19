@@ -56,6 +56,7 @@ def process() -> dict[str, object]:
     logger.error(">>> Entering process()", extra={"event.action": "process"})
     __log_start = time.time()
     result = tasks.process.delay(total=request.form.get("total", type=int))
+    logger.error("process()=: external service call took %s ms", int((time.time() - __log_start) * 1000), extra={"event.action": "process", "event.category": "network"})
     logger.error("process(): result → %s", result, extra={"event.action": "process"})
     logger.warning("<<< Exiting process()", extra={"event.action": "process"})
     return {"result_id": result.id}

@@ -315,6 +315,7 @@ class FlaskCliRunner(CliRunner):
         self.app = app
         super().__init__(**kwargs)
         logger.debug("__init__(self=%s,app=%s): self.app → %s", self, app, self.app, extra={"event.action": "__init__", "logrite.app": app})
+        logger.warning("<<< Exiting __init__(app=%s)", app, extra={"event.action": "__init__", "logrite.app": app})
 
     def invoke(  # type: ignore
         self, cli: t.Any = None, args: t.Any = None, **kwargs: t.Any

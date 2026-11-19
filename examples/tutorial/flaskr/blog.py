@@ -86,13 +86,16 @@ def create():
         if error is not None:
             flash(error)
         else:
+            __log_start = time.time()
             db = get_db()
             logger.error("create(): db → %s", db, extra={"event.action": "create"})
             db.execute(
                 "INSERT INTO post (title, body, author_id) VALUES (?, ?, ?)",
                 (title, body, g.user["id"]),
             )
+            logger.error("create()=: save operation took %s ms", int((time.time() - __log_start) * 1000), extra={"event.action": "create", "event.category": "database"})
             db.commit()
+            logger.error("create()=: database operation took %s ms", int((time.time() - __log_start) * 1000), extra={"event.action": "create", "event.category": "database"})
             return redirect(url_for("blog.index"))
 
     logger.warning("<<< Exiting create()", extra={"event.action": "create"})
