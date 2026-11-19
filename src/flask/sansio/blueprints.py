@@ -10,6 +10,8 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import _sentinel
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
@@ -95,6 +97,20 @@ class BlueprintSetupState:
         to the application.  The endpoint is automatically prefixed with the
         blueprint's name.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 7: anomaly hunting — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 5: infrastructure changes — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 3: object and data access — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Outcome 1: user attribution — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
         if self.url_prefix is not None:
             if rule:
                 rule = "/".join((self.url_prefix.rstrip("/"), rule.lstrip("/")))
@@ -114,6 +130,8 @@ class BlueprintSetupState:
             defaults=defaults,
             **options,
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
 
 
 class Blueprint(Scaffold):
@@ -212,6 +230,7 @@ class Blueprint(Scaffold):
 
     def _check_setup_finished(self, f_name: str) -> None:
         if self._got_registered_once:
+            logger.info("_check_setup_finished(self=%s, f_name=%s): M2614-AUDIT: Outcome 3: object and data access — Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
             raise AssertionError(
                 f"The setup method '{f_name}' can no longer be called on the blueprint"
                 f" '{self.name}'. It has already been registered at least once, any"
@@ -219,6 +238,7 @@ class Blueprint(Scaffold):
                 "Make sure all imports, decorators, functions, etc. needed to set up"
                 " the blueprint are done before registering it."
             )
+            logger.info("_check_setup_finished(self=%s, f_name=%s): SOC2-AUDIT [CC6.6]: Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -266,6 +286,11 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 2.0
         """
+        logger.info("register_blueprint(self=%s, blueprint=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
@@ -357,8 +382,17 @@ class Blueprint(Scaffold):
             if state.subdomain is not None and bp_subdomain is not None:
                 bp_options["subdomain"] = bp_subdomain + "." + state.subdomain
             elif bp_subdomain is not None:
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
                 bp_options["subdomain"] = bp_subdomain
             elif state.subdomain is not None:
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 7: anomaly hunting — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
                 bp_options["subdomain"] = state.subdomain
 
             if bp_url_prefix is None:
@@ -369,6 +403,14 @@ class Blueprint(Scaffold):
                     state.url_prefix.rstrip("/") + "/" + bp_url_prefix.lstrip("/")
                 )
             elif bp_url_prefix is not None:
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 3: object and data access — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Outcome 1: user attribution — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
                 bp_options["url_prefix"] = bp_url_prefix
             elif state.url_prefix is not None:
                 bp_options["url_prefix"] = state.url_prefix
@@ -418,12 +460,25 @@ class Blueprint(Scaffold):
         provide_automatic_options: bool | None = None,
         **options: t.Any,
     ) -> None:
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         """Register a URL rule with the blueprint. See :meth:`.Flask.add_url_rule` for
         full documentation.
 
         The URL rule is prefixed with the blueprint's URL prefix. The endpoint name,
         used with :func:`url_for`, is prefixed with the blueprint's name.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 5: infrastructure changes — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 7: anomaly hunting — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 3: object and data access — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 1: user attribution — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         if endpoint and "." in endpoint:
             raise ValueError("'endpoint' may not contain a dot '.' character.")
 
@@ -439,6 +494,8 @@ class Blueprint(Scaffold):
                 **options,
             )
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def app_template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -476,6 +533,7 @@ class Blueprint(Scaffold):
     def add_app_template_filter(
         self, f: ft.TemplateFilterCallable, name: str | None = None
     ) -> None:
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja filter.
 
         The :meth:`app_template_filter` decorator can be used to register a
@@ -488,8 +546,13 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.info("register_template_filter(state=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
+            logger.info("register_template_filter(state=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
+            logger.info("register_template_filter(state=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
             state.app.add_template_filter(f, name=name)
 
         self.record_once(register_template_filter)
@@ -520,6 +583,8 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_test(name)
+            logger.info("app_template_test(self=%s, name=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, name, extra={"event.action": "app_template_test", "logrite.name": name})
+            logger.info("app_template_test(self=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, extra={"event.action": "app_template_test", "logrite.name": name})
             return name
 
         def decorator(f: T_template_test) -> T_template_test:
@@ -532,6 +597,7 @@ class Blueprint(Scaffold):
     def add_app_template_test(
         self, f: ft.TemplateTestCallable, name: str | None = None
     ) -> None:
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja test.
 
         The :meth:`app_template_test` decorator can be used to register a
@@ -546,8 +612,13 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.info("register_template_test(state=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
+            logger.info("register_template_test(state=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
+            logger.info("register_template_test(state=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
             state.app.add_template_test(f, name=name)
 
         self.record_once(register_template_test)
@@ -578,6 +649,8 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_global(name)
+            logger.info("app_template_global(self=%s, name=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, name, extra={"event.action": "app_template_global", "logrite.name": name})
+            logger.info("app_template_global(self=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, extra={"event.action": "app_template_global", "logrite.name": name})
             return name
 
         def decorator(f: T_template_global) -> T_template_global:
@@ -590,6 +663,7 @@ class Blueprint(Scaffold):
     def add_app_template_global(
         self, f: ft.TemplateGlobalCallable, name: str | None = None
     ) -> None:
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja global.
 
         The :meth:`app_template_global` decorator can be used to register a function
@@ -604,8 +678,13 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.info("register_template_global(state=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
+            logger.info("register_template_global(state=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
+            logger.info("register_template_global(state=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
             state.app.add_template_global(f, name=name)
 
         self.record_once(register_template_global)

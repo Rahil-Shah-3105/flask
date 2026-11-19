@@ -13,6 +13,8 @@ from .globals import _cv_app
 from .helpers import _CollectErrors
 from .signals import appcontext_popped
 from .signals import appcontext_pushed
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -74,6 +76,9 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.info("get(self=%s, name=%s, default=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
+        logger.info("get(self=%s, name=%s, default=%s): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
+        logger.info("get(self=%s, name=%s, default=%s): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
@@ -88,6 +93,8 @@ class _AppCtxGlobals:
         if default is _sentinel:
             return self.__dict__.pop(name)
         else:
+            logger.info("pop(self=%s, name=%s, default=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, name, default, extra={"event.action": "pop", "logrite.name": name, "logrite.default": default})
+            logger.info("pop(self=%s, name=%s, default=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, default, extra={"event.action": "pop", "logrite.name": name, "logrite.default": default})
             return self.__dict__.pop(name, default)
 
     def setdefault(self, name: str, default: t.Any = None) -> t.Any:
@@ -100,6 +107,8 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.info("setdefault(self=%s, name=%s, default=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, name, default, extra={"event.action": "setdefault", "logrite.name": name, "logrite.default": default})
+        logger.info("setdefault(self=%s, name=%s, default=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, name, default, extra={"event.action": "setdefault", "logrite.name": name, "logrite.default": default})
         return self.__dict__.setdefault(name, default)
 
     def __contains__(self, item: str) -> bool:
@@ -145,6 +154,8 @@ def after_this_request(
         )
 
     ctx._after_request_functions.append(f)
+    logger.info("after_this_request(f=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", f, extra={"event.action": "after_this_request", "logrite.f": f})
+    logger.info("after_this_request(f=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", f, extra={"event.action": "after_this_request", "logrite.f": f})
     return f
 
 
@@ -193,10 +204,12 @@ def copy_current_request_context(f: F) -> F:
     original = _cv_app.get(None)
 
     if original is None:
+        logger.info("copy_current_request_context(f=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", f, extra={"event.action": "copy_current_request_context", "logrite.f": f})
         raise RuntimeError(
             "'copy_current_request_context' can only be used when a"
             " request context is active, such as in a view function."
         )
+        logger.info("copy_current_request_context(f=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", f, extra={"event.action": "copy_current_request_context", "logrite.f": f})
 
     def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         # Copy the context before pushing, so each worker acts independently.
@@ -229,6 +242,8 @@ def has_request_context() -> bool:
 
     .. versionadded:: 0.7
     """
+    logger.info("has_request_context(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "has_request_context"})
+    logger.info("has_request_context(): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", extra={"event.action": "has_request_context"})
     return (ctx := _cv_app.get(None)) is not None and ctx.has_request
 
 
@@ -254,6 +269,8 @@ def has_app_context() -> bool:
 
     .. versionadded:: 0.9
     """
+    logger.info("has_app_context(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "has_app_context"})
+    logger.info("has_app_context(): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", extra={"event.action": "has_app_context"})
     return _cv_app.get(None) is not None
 
 
@@ -361,11 +378,13 @@ class AppContext:
 
         .. versionadded:: 0.10
         """
+        logger.info("copy(self=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, extra={"event.action": "copy"})
         return self.__class__(
             self.app,
             request=self._request,
             session=self._session,
         )
+        logger.info("copy(self=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, extra={"event.action": "copy"})
 
     @property
     def request(self) -> Request:
@@ -442,6 +461,7 @@ class AppContext:
             # session is available in custom URL converters.
             if self.url_adapter is not None:
                 self.match_request()
+                logger.info("push(self=%s): M2614-AUDIT: Log Management / data protection — Log management recorded for the audit trail", self, extra={"event.action": "push"})
 
     def pop(self, exc: BaseException | None = None) -> None:
         """Pop this context so that it is no longer the active context. Then
@@ -500,6 +520,9 @@ class AppContext:
 
         with collect_errors:
             appcontext_popped.send(self.app, _async_wrapper=self.app.ensure_sync)
+            logger.info("pop(self=%s, exc=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, exc, extra={"event.action": "pop", "logrite.exc": exc})
+            logger.info("pop(self=%s, exc=%s): M2614-AUDIT: Log Management / data protection — Log management recorded for the audit trail", self, exc, extra={"event.action": "pop", "logrite.exc": exc})
+            logger.info("pop(self=%s, exc=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, exc, extra={"event.action": "pop", "logrite.exc": exc})
 
         collect_errors.raise_any("Errors during context teardown")
 

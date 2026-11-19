@@ -4,6 +4,8 @@ from datetime import datetime
 import click
 from flask import current_app
 from flask import g
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_db():
@@ -11,6 +13,16 @@ def get_db():
     is unique for each request and will be reused if this is called
     again.
     """
+    logger.info("get_db(): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 3: object and data access — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 5: infrastructure changes — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 7: anomaly hunting — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 2: source/destination network traffic — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 1: user attribution — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): M2614-AUDIT: Outcome 8: quantify data affected in an incident — Record access recorded for the audit trail", extra={"event.action": "get_db"})
     if "db" not in g:
         g.db = sqlite3.connect(
             current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES

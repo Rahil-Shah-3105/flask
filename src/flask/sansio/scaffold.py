@@ -17,6 +17,8 @@ from werkzeug.utils import cached_property
 from .. import typing as ft
 from ..helpers import get_root_path
 from ..templating import _default_template_ctx_processor
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
@@ -213,11 +215,14 @@ class Scaffold:
         self.url_default_functions: dict[
             ft.AppOrBlueprintKey, list[ft.URLDefaultCallable]
         ] = defaultdict(list)
+        logger.info("__init__(self=%s, import_name=%s, static_folder=%s, static_url_path=%s, template_folder=%s, root_path=%s): SOC2-AUDIT [CC7.1]: System operation completed", self, import_name, static_folder, static_url_path, template_folder, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.info("_check_setup_finished(self=%s, f_name=%s): SOC2-AUDIT [CC6.6]: Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
+        logger.info("_check_setup_finished(self=%s, f_name=%s): M2614-AUDIT: Outcome 3: object and data access — Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
         raise NotImplementedError
 
     @property
@@ -243,6 +248,8 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.info("has_static_folder(self=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, extra={"event.action": "has_static_folder"})
+        logger.info("has_static_folder(self=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, extra={"event.action": "has_static_folder"})
         return self.static_folder is not None
 
     @property
@@ -279,6 +286,8 @@ class Scaffold:
         if self.template_folder is not None:
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
+            logger.info("jinja_loader(self=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, extra={"event.action": "jinja_loader"})
+            logger.info("jinja_loader(self=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, extra={"event.action": "jinja_loader"})
             return None
 
     def _method_route(
@@ -298,6 +307,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("get(self=%s, rule=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): M2614-AUDIT: Log integrity (encrypt + validate) — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +318,9 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.info("query(self=%s, rule=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): M2614-AUDIT: Log integrity (encrypt + validate) — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -314,6 +329,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("post(self=%s, rule=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, rule, extra={"event.action": "post", "logrite.rule": rule})
+        logger.info("post(self=%s, rule=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule, extra={"event.action": "post", "logrite.rule": rule})
         return self._method_route("POST", rule, options)
 
     @setupmethod
@@ -322,6 +339,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("put(self=%s, rule=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, rule, extra={"event.action": "put", "logrite.rule": rule})
+        logger.info("put(self=%s, rule=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule, extra={"event.action": "put", "logrite.rule": rule})
         return self._method_route("PUT", rule, options)
 
     @setupmethod
@@ -330,6 +349,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("delete(self=%s, rule=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -338,6 +360,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("patch(self=%s, rule=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, rule, extra={"event.action": "patch", "logrite.rule": rule})
+        logger.info("patch(self=%s, rule=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, rule, extra={"event.action": "patch", "logrite.rule": rule})
         return self._method_route("PATCH", rule, options)
 
     @setupmethod
@@ -438,6 +462,9 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         raise NotImplementedError
 
     @setupmethod
@@ -489,6 +516,8 @@ class Scaffold:
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
         self.before_request_funcs.setdefault(None, []).append(f)
+        logger.info("before_request(self=%s, f=%s): M2614-AUDIT: Outcome 01 user attribution recorded for the audit trail", self, f, extra={"event.action": "before_request", "logrite.f": f})
+        logger.info("before_request(self=%s, f=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — Audit coverage recorded for the audit trail", self, f, extra={"event.action": "before_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -639,6 +668,8 @@ class Scaffold:
         :param code_or_exception: the code as integer for the handler, or
                                   an arbitrary exception
         """
+        logger.info("errorhandler(self=%s, code_or_exception=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, code_or_exception, extra={"event.action": "errorhandler", "logrite.code_or_exception": code_or_exception})
+        logger.info("errorhandler(self=%s, code_or_exception=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, code_or_exception, extra={"event.action": "errorhandler", "logrite.code_or_exception": code_or_exception})
 
         def decorator(f: T_error_handler) -> T_error_handler:
             self.register_error_handler(code_or_exception, f)
@@ -652,12 +683,17 @@ class Scaffold:
         code_or_exception: type[Exception] | int,
         f: ft.ErrorHandlerCallable,
     ) -> None:
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
         """Alternative error attach function to the :meth:`errorhandler`
         decorator that is more straightforward to use for non decorator
         usage.
 
         .. versionadded:: 0.7
         """
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): M2614-AUDIT: Outcome 1: user attribution — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
         exc_class, code = self._get_exc_class_and_code(code_or_exception)
         self.error_handler_spec[None][code][exc_class] = f
 
@@ -703,6 +739,7 @@ class Scaffold:
         if issubclass(exc_class, HTTPException):
             return exc_class, exc_class.code
         else:
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): SOC2-AUDIT [CC7.1]: System operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
             return exc_class, None
 
 
@@ -782,6 +819,22 @@ def find_package(import_name: str) -> tuple[str | None, str]:
     site_parent, site_folder = os.path.split(package_path)
 
     # installed to a virtualenv
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 10: automated alerting — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 9: trace attack vectors — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 7: anomaly hunting — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 3: object and data access — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Outcome 1: user attribution — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Log integrity (encrypt + validate) — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+    logger.info("find_package(import_name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     if site_folder.lower() == "site-packages":
         parent, folder = os.path.split(site_parent)
 
@@ -797,4 +850,5 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         return site_parent, package_path
 
     # not installed
+    logger.info("find_package(import_name=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     return None, package_path

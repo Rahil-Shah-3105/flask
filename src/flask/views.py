@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,9 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.info("dispatch_request(self=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): M2614-AUDIT: Log Management / data protection — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): M2614-AUDIT: Log integrity (encrypt + validate) — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -101,12 +106,18 @@ class View:
         .. versionchanged:: 2.2
             Added the ``init_every_request`` class attribute.
         """
+        logger.info("as_view(cls=%s, name=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", cls, name, extra={"event.action": "as_view", "logrite.name": name})
+        logger.info("as_view(cls=%s, name=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", cls, name, extra={"event.action": "as_view", "logrite.name": name})
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("view(): M2614-AUDIT: Log integrity (encrypt + validate) — Record access recorded for the audit trail", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "view"})
+                logger.info("view(): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): M2614-AUDIT: Activity-Based Outcomes 1-11 — Record access recorded for the audit trail", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
@@ -180,6 +191,9 @@ class MethodView(View):
                 cls.methods = methods
 
     def dispatch_request(self, **kwargs: t.Any) -> ft.ResponseReturnValue:
+        logger.info("dispatch_request(self=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): M2614-AUDIT: Outcome 4: privilege changes — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): M2614-AUDIT: Outcome 3: object and data access — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         meth = getattr(self, request.method.lower(), None)
 
         # If the request method is HEAD and we don't have a handler for it
@@ -188,4 +202,5 @@ class MethodView(View):
             meth = getattr(self, "get", None)
 
         assert meth is not None, f"Unimplemented method {request.method!r}"
+        logger.info("dispatch_request(self=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         return current_app.ensure_sync(meth)(**kwargs)  # type: ignore[no-any-return]

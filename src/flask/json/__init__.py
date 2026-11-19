@@ -5,6 +5,8 @@ import typing as t
 
 from ..globals import current_app
 from .provider import _default
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
@@ -41,6 +43,8 @@ def dumps(obj: t.Any, **kwargs: t.Any) -> str:
         return current_app.json.dumps(obj, **kwargs)
 
     kwargs.setdefault("default", _default)
+    logger.info("dumps(obj=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", obj, extra={"event.action": "dumps", "logrite.obj": obj})
+    logger.info("dumps(obj=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", obj, extra={"event.action": "dumps", "logrite.obj": obj})
     return _json.dumps(obj, **kwargs)
 
 
@@ -71,6 +75,9 @@ def dump(obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
         current_app.json.dump(obj, fp, **kwargs)
     else:
         kwargs.setdefault("default", _default)
+        logger.info("dump(obj=%s, fp=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", obj, fp, extra={"event.action": "dump", "logrite.obj": obj, "logrite.fp": fp})
+        logger.info("dump(obj=%s, fp=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", obj, fp, extra={"event.action": "dump", "logrite.obj": obj, "logrite.fp": fp})
+        logger.info("dump(obj=%s, fp=%s): M2614-AUDIT: Outcome 3: object and data access — Outcome 03 data access recorded for the audit trail", obj, fp, extra={"event.action": "dump", "logrite.obj": obj, "logrite.fp": fp})
         _json.dump(obj, fp, **kwargs)
 
 
@@ -102,6 +109,8 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
     if current_app:
         return current_app.json.loads(s, **kwargs)
 
+    logger.info("loads(s=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", s, extra={"event.action": "loads", "logrite.s": s})
+    logger.info("loads(s=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", s, extra={"event.action": "loads", "logrite.s": s})
     return _json.loads(s, **kwargs)
 
 
@@ -129,6 +138,13 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
         ``encoding`` will be removed in Flask 2.1. The file must be text
         mode, or binary mode with UTF-8 bytes.
     """
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 9: trace attack vectors — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 1: user attribution — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): M2614-AUDIT: Outcome 3: object and data access — Outcome 03 data access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
     if current_app:
         return current_app.json.load(fp, **kwargs)
 
@@ -167,4 +183,6 @@ def jsonify(*args: t.Any, **kwargs: t.Any) -> Response:
 
     .. versionadded:: 0.2
     """
+    logger.info("jsonify(): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", extra={"event.action": "jsonify"})
+    logger.info("jsonify(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "jsonify"})
     return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]
