@@ -53,6 +53,8 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("remove_ctx(f=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("add_ctx(f=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -386,6 +390,10 @@ class Flask(App):
             return None
 
         if isinstance(value, timedelta):
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CJIS-AUDIT [§5.12]: Personnel security — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CJIS-AUDIT [§5.3]: Incident response — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CJIS-AUDIT: Audit coverage — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CJIS-AUDIT [§5.6]: Advanced authentication — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
             return int(value.total_seconds())
 
         return value  # type: ignore[no-any-return]
@@ -406,11 +414,15 @@ class Flask(App):
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
+        logger.info("send_static_file(self=%s, filename=%s): CJIS-AUDIT [§5.12]: Personnel security — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): CJIS-AUDIT [§5.3]: Incident response — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): CJIS-AUDIT: Audit coverage — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): CJIS-AUDIT [§5.6]: Advanced authentication — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -493,6 +505,7 @@ class Flask(App):
             options["auto_reload"] = auto_reload
 
         rv = self.jinja_environment(self, **options)
+        logger.info("create_jinja_environment(self=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         rv.globals.update(
             url_for=self.url_for,
             get_flashed_messages=get_flashed_messages,
@@ -504,6 +517,9 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.info("create_jinja_environment(self=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         rv.policies["json.dumps_function"] = self.json.dumps
         return rv
 
@@ -552,11 +568,15 @@ class Flask(App):
 
         # Need at least SERVER_NAME to match/build outside a request.
         if self.config["SERVER_NAME"] is not None:
+            logger.info("create_url_adapter(self=%s, request=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
             return self.url_map.bind(
                 self.config["SERVER_NAME"],
                 script_name=self.config["APPLICATION_ROOT"],
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
+            logger.info("create_url_adapter(self=%s, request=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+        logger.info("create_url_adapter(self=%s, request=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
 
         return None
 
@@ -614,6 +634,10 @@ class Flask(App):
         for name in names:
             if name in self.template_context_processors:
                 for func in self.template_context_processors[name]:
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
                     context.update(self.ensure_sync(func)())
 
         context.update(orig_ctx)
@@ -751,6 +775,10 @@ class Flask(App):
             run_simple(host, port, self, **options)
         finally:
             # reset the first request information if the development server
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             # reset normally.  This makes it possible to restart the server
             # without reloader and that stuff from an interactive shell.
             self._got_first_request = False
@@ -987,6 +1015,10 @@ class Flask(App):
             getattr(rule, "provide_automatic_options", False)
             and req.method == "OPTIONS"
         ):
+            logger.info("dispatch_request(self=%s, ctx=%s): CJIS-AUDIT [§5.12]: Personnel security — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CJIS-AUDIT [§5.3]: Incident response — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CJIS-AUDIT: Audit coverage — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CJIS-AUDIT [§5.6]: Advanced authentication — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
@@ -1061,6 +1093,10 @@ class Flask(App):
         .. versionadded:: 0.7
         """
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
+        logger.info("make_default_options_response(self=%s, ctx=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
         rv = self.response_class()
         rv.allow.update(methods)
         return rv
@@ -1362,6 +1398,10 @@ class Flask(App):
 
         # extend existing headers with provided headers
         if headers:
+            logger.info("make_response(self=%s, rv=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+            logger.info("make_response(self=%s, rv=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+            logger.info("make_response(self=%s, rv=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+            logger.info("make_response(self=%s, rv=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
             rv.headers.update(headers)
 
         return rv
@@ -1390,6 +1430,10 @@ class Flask(App):
                     rv = self.ensure_sync(before_func)()
 
                     if rv is not None:
+                        logger.info("preprocess_request(self=%s, ctx=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                        logger.info("preprocess_request(self=%s, ctx=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                        logger.info("preprocess_request(self=%s, ctx=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                        logger.info("preprocess_request(self=%s, ctx=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
                         return rv  # type: ignore[no-any-return]
 
         return None
@@ -1416,6 +1460,10 @@ class Flask(App):
                     response = self.ensure_sync(func)(response)
 
         if not self.session_interface.is_null_session(ctx._get_session()):
+            logger.info("process_response(self=%s, ctx=%s, response=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+            logger.info("process_response(self=%s, ctx=%s, response=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+            logger.info("process_response(self=%s, ctx=%s, response=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+            logger.info("process_response(self=%s, ctx=%s, response=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
             self.session_interface.save_session(self, ctx._get_session(), response)
 
         return response

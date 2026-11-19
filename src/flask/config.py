@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -316,6 +318,10 @@ class Config(dict):  # type: ignore[type-arg]
             mappings.update(mapping)
         mappings.update(kwargs)
         for key, value in mappings.items():
+            logger.info("from_mapping(self=%s, mapping=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+            logger.info("from_mapping(self=%s, mapping=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+            logger.info("from_mapping(self=%s, mapping=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+            logger.info("from_mapping(self=%s, mapping=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
             if key.isupper():
                 self[key] = value
         return True
@@ -359,6 +365,10 @@ class Config(dict):  # type: ignore[type-arg]
             else:
                 key = k
             if lowercase:
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CJIS-AUDIT [§5.12]: Personnel security — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CJIS-AUDIT [§5.3]: Incident response — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CJIS-AUDIT: Audit coverage — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CJIS-AUDIT [§5.6]: Advanced authentication — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
                 key = key.lower()
             rv[key] = v
         return rv

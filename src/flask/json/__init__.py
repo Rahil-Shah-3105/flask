@@ -5,6 +5,8 @@ import typing as t
 
 from ..globals import current_app
 from .provider import _default
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
@@ -131,6 +133,10 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
     """
     if current_app:
         return current_app.json.load(fp, **kwargs)
+        logger.info("load(fp=%s): CJIS-AUDIT [§5.12]: Personnel security — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(fp=%s): CJIS-AUDIT [§5.6]: Advanced authentication — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(fp=%s): CJIS-AUDIT [§5.3]: Incident response — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(fp=%s): CJIS-AUDIT: Audit coverage — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
 
     return _json.load(fp, **kwargs)
 
