@@ -9,6 +9,8 @@ import weakref
 from datetime import date
 
 from werkzeug.http import http_date
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
@@ -70,6 +72,9 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.info("load(self=%s, fp=%s): NIS2-AUDIT: Security events — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(self=%s, fp=%s): NIS2-AUDIT [Art. 20]: Governance — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(self=%s, fp=%s): NIS2-AUDIT [Art. 21(2)(d)]: Supply chain — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(

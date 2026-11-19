@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(__name__)
 
 # Project --------------------------------------------------------------
 
@@ -94,6 +96,7 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.info("github_link(name=%s, rawtext=%s, text=%s, lineno=%s, inliner=%s, options=%s, content=%s): NIS2-AUDIT [Art. 21(2)(d)]: Supply chain — Change management operation performed", name, rawtext, text, lineno, inliner, options, content, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
     return [node], []
 
 
