@@ -12,6 +12,8 @@ from itsdangerous import URLSafeTimedSerializer
 from werkzeug.datastructures import CallbackDict
 
 from .json.tag import TaggedJSONSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     import typing_extensions as te
@@ -87,11 +89,13 @@ class NullSession(SecureCookieSession):
     """
 
     def _fail(self, *args: t.Any, **kwargs: t.Any) -> t.NoReturn:
+        logger.info("_fail(self=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, extra={"event.action": "_fail"})
         raise RuntimeError(
             "The session is unavailable because no secret "
             "key was set.  Set the secret_key on the "
             "application to something unique and secret."
         )
+        logger.info("_fail(self=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, extra={"event.action": "_fail"})
 
     __setitem__ = __delitem__ = clear = pop = popitem = update = setdefault = _fail
     del _fail
@@ -157,6 +161,8 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
+        logger.info("make_null_session(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "make_null_session", "logrite.app": app})
+        logger.info("make_null_session(self=%s, app=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, app, extra={"event.action": "make_null_session", "logrite.app": app})
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
@@ -166,10 +172,15 @@ class SessionInterface:
         This checks if the object is an instance of :attr:`null_session_class`
         by default.
         """
+        logger.info("is_null_session(self=%s, obj=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, obj, extra={"event.action": "is_null_session", "logrite.obj": obj})
+        logger.info("is_null_session(self=%s, obj=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, obj, extra={"event.action": "is_null_session", "logrite.obj": obj})
         return isinstance(obj, self.null_session_class)
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.info("get_cookie_name(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
+        logger.info("get_cookie_name(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
+        logger.info("get_cookie_name(self=%s, app=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +193,9 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.info("get_cookie_domain(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
+        logger.info("get_cookie_domain(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
+        logger.info("get_cookie_domain(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +204,9 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.info("get_cookie_path(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
+        logger.info("get_cookie_path(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
+        logger.info("get_cookie_path(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +214,18 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.info("get_cookie_httponly(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
+        logger.info("get_cookie_httponly(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
+        logger.info("get_cookie_httponly(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.info("get_cookie_secure(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
+        logger.info("get_cookie_secure(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
+        logger.info("get_cookie_secure(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +233,9 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.info("get_cookie_samesite(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
+        logger.info("get_cookie_samesite(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
+        logger.info("get_cookie_samesite(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +244,9 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.info("get_cookie_partitioned(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
+        logger.info("get_cookie_partitioned(self=%s, app=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
+        logger.info("get_cookie_partitioned(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -226,6 +255,11 @@ class SessionInterface:
         default implementation returns now + the permanent session
         lifetime configured on the application.
         """
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): CMMC-AUDIT: Media protection — Session management operation performed for user %s", self, app, session, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): CMMC-AUDIT: Crypto protection — Session management operation performed for user %s", self, app, session, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
         return None
@@ -242,9 +276,11 @@ class SessionInterface:
         .. versionadded:: 0.11
         """
 
+        logger.info("should_set_cookie(self=%s, app=%s, session=%s): CMMC-AUDIT: Media protection — Session management operation performed for user %s", self, app, session, session, extra={"event.action": "should_set_cookie", "logrite.app": app})
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
         )
+        logger.info("should_set_cookie(self=%s, app=%s, session=%s): CMMC-AUDIT: Crypto protection — Session management operation performed for user %s", self, app, session, session, extra={"event.action": "should_set_cookie", "logrite.app": app})
 
     def open_session(self, app: Flask, request: Request) -> SessionMixin | None:
         """This is called at the beginning of each request, after
@@ -258,6 +294,8 @@ class SessionInterface:
         context will fall back to using :meth:`make_null_session`
         in this case.
         """
+        logger.info("open_session(self=%s, app=%s, request=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, app, request, extra={"event.action": "open_session", "logrite.app": app})
+        logger.info("open_session(self=%s, app=%s, request=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, app, request, extra={"event.action": "open_session", "logrite.app": app})
         raise NotImplementedError()
 
     def save_session(
@@ -267,6 +305,11 @@ class SessionInterface:
         a response, before removing the request context. It is skipped
         if :meth:`is_null_session` returns ``True``.
         """
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): CMMC-AUDIT: Media protection — Session management operation performed for user %s", self, app, session, response, session, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): CMMC-AUDIT: Crypto protection — Session management operation performed for user %s", self, app, session, response, session, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
         raise NotImplementedError()
 
 
@@ -278,6 +321,8 @@ def _lazy_sha1(string: bytes = b"") -> t.Any:
     SHA-1, in which case the import and use as a default would fail before the
     developer can configure something else.
     """
+    logger.info("_lazy_sha1(string=%s): CMMC-AUDIT: Crypto protection — Password reset operation performed", string, extra={"event.action": "_lazy_sha1", "logrite.string": string})
+    logger.info("_lazy_sha1(string=%s): CMMC-AUDIT: Media protection — Password reset operation performed", string, extra={"event.action": "_lazy_sha1", "logrite.string": string})
     return hashlib.sha1(string)
 
 
@@ -307,6 +352,10 @@ class SecureCookieSessionInterface(SessionInterface):
         keys: list[str | bytes] = []
 
         if fallbacks := app.config["SECRET_KEY_FALLBACKS"]:
+            logger.info("get_signing_serializer(self=%s, app=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
+            logger.info("get_signing_serializer(self=%s, app=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
+            logger.info("get_signing_serializer(self=%s, app=%s): CMMC-AUDIT: Crypto protection — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
+            logger.info("get_signing_serializer(self=%s, app=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
             keys.extend(fallbacks)
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
@@ -319,6 +368,7 @@ class SecureCookieSessionInterface(SessionInterface):
                 "digest_method": self.digest_method,
             },
         )
+        logger.info("get_signing_serializer(self=%s, app=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
 
     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:
         s = self.get_signing_serializer(app)

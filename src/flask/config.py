@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -315,6 +317,11 @@ class Config(dict):  # type: ignore[type-arg]
         if mapping is not None:
             mappings.update(mapping)
         mappings.update(kwargs)
+        logger.info("from_mapping(self=%s, mapping=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         for key, value in mappings.items():
             if key.isupper():
                 self[key] = value
@@ -358,6 +365,11 @@ class Config(dict):  # type: ignore[type-arg]
                 key = k[len(namespace) :]
             else:
                 key = k
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CMMC-AUDIT: Crypto protection — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
             if lowercase:
                 key = key.lower()
             rv[key] = v

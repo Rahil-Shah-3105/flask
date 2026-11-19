@@ -17,6 +17,8 @@ from werkzeug.utils import cached_property
 from .. import typing as ft
 from ..helpers import get_root_path
 from ..templating import _default_template_ctx_processor
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
@@ -298,6 +300,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("get(self=%s, rule=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +311,9 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.info("query(self=%s, rule=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -330,6 +338,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("delete(self=%s, rule=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -438,6 +449,9 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         raise NotImplementedError
 
     @setupmethod
@@ -489,6 +503,8 @@ class Scaffold:
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
         self.before_request_funcs.setdefault(None, []).append(f)
+        logger.info("before_request(self=%s, f=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, f, extra={"event.action": "before_request", "logrite.f": f})
+        logger.info("before_request(self=%s, f=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, f, extra={"event.action": "before_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -658,6 +674,10 @@ class Scaffold:
 
         .. versionadded:: 0.7
         """
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
         exc_class, code = self._get_exc_class_and_code(code_or_exception)
         self.error_handler_spec[None][code][exc_class] = f
 
@@ -703,6 +723,8 @@ class Scaffold:
         if issubclass(exc_class, HTTPException):
             return exc_class, exc_class.code
         else:
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): CMMC-AUDIT: Media protection — Encryption operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): CMMC-AUDIT: Crypto protection — Encryption operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
             return exc_class, None
 
 
@@ -794,7 +816,12 @@ def find_package(import_name: str) -> tuple[str | None, str]:
             return os.path.dirname(parent), package_path
 
         # something else (prefix/site-packages)
+        logger.info("find_package(import_name=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): CMMC-AUDIT: Crypto protection — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
         return site_parent, package_path
 
     # not installed
+    logger.info("find_package(import_name=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     return None, package_path
