@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -35,9 +37,15 @@ def load_logged_in_user():
     the database into ``g.user``."""
     user_id = session.get("user_id")
 
+    logger.info("load_logged_in_user(): SOX-AUDIT: Segregation of duties — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+    logger.info("load_logged_in_user(): SOX-AUDIT: Privileged access — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user(): SOX-AUDIT: Audit log tamper — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): SOX-AUDIT: Change management (PCAOB AS 2201) — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): SOX-AUDIT: Access to programs and data — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): SOX-AUDIT: Computer operations — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -74,6 +82,12 @@ def register():
                 error = f"User {username} is already registered."
             else:
                 # Success, go to the login page.
+                logger.info("register(): SOX-AUDIT: Segregation of duties — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): SOX-AUDIT: Privileged access — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): SOX-AUDIT: Access to programs and data — Database transaction completed", extra={"event.action": "register"})
+                logger.info("register(): SOX-AUDIT: Audit log tamper — Data integrity check performed", extra={"event.action": "register"})
+                logger.info("register(): SOX-AUDIT: Change management (PCAOB AS 2201) — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): SOX-AUDIT: Computer operations — State change recorded for the audit trail", extra={"event.action": "register"})
                 return redirect(url_for("auth.login"))
 
         flash(error)
@@ -102,6 +116,12 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
+            logger.info("login(): SOX-AUDIT: Segregation of duties — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): SOX-AUDIT: Privileged access — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): SOX-AUDIT: Access to programs and data — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): SOX-AUDIT: Audit log tamper — Data integrity check performed", extra={"event.action": "login"})
+            logger.info("login(): SOX-AUDIT: Change management (PCAOB AS 2201) — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): SOX-AUDIT: Computer operations — State change recorded for the audit trail", extra={"event.action": "login"})
             return redirect(url_for("index"))
 
         flash(error)

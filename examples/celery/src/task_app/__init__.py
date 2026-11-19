@@ -2,9 +2,13 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
+    logger.info("create_app(): SOX-AUDIT: Segregation of duties — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): SOX-AUDIT: Privileged access — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app = Flask(__name__)
     app.config.from_mapping(
         CELERY={
@@ -13,6 +17,10 @@ def create_app() -> Flask:
             "task_ignore_result": True,
         },
     )
+    logger.info("create_app(): SOX-AUDIT: Access to programs and data — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): SOX-AUDIT: Change management (PCAOB AS 2201) — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): SOX-AUDIT: Computer operations — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): SOX-AUDIT: Audit log tamper — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_prefixed_env()
     celery_init_app(app)
 

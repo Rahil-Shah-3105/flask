@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -18,6 +20,12 @@ def create_app(test_config=None):
         app.config.from_pyfile("config.py", silent=True)
     else:
         # load the test config if passed in
+        logger.info("create_app(test_config=%s): SOX-AUDIT: Segregation of duties — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOX-AUDIT: Privileged access — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOX-AUDIT: Access to programs and data — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOX-AUDIT: Computer operations — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): SOX-AUDIT: Audit log tamper — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
         app.config.update(test_config)
 
     # ensure the instance folder exists
