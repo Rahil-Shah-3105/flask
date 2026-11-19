@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -285,6 +287,7 @@ class TaggedJSONSerializer:
             self.order.append(tag)
         else:
             self.order.insert(index, tag)
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GEN-AUDIT: Security hygiene — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
 
     def tag(self, value: t.Any) -> t.Any:
         """Convert a value to a tagged representation if necessary."""

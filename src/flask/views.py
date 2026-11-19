@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,7 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.info("dispatch_request(self=%s): GEN-AUDIT: Security hygiene — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -107,6 +110,7 @@ class View:
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view(): GEN-AUDIT: Security hygiene — Record access recorded for the audit trail", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
