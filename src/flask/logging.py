@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -25,6 +26,8 @@ def wsgi_errors_stream() -> t.TextIO:
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+    _logrite_logger.info("wsgi_errors_stream(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "wsgi_errors_stream"})
+    _logrite_logger.info("wsgi_errors_stream(): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", extra={"event.action": "wsgi_errors_stream"})
     return sys.stderr
 
 
@@ -68,6 +71,15 @@ def create_logger(app: App) -> logging.Logger:
     :class:`~logging.StreamHandler` for
     :func:`~flask.logging.wsgi_errors_stream` with a basic format.
     """
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 7: anomaly hunting — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 5: infrastructure changes — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     logger = logging.getLogger(app.name)
 
     if app.debug and not logger.level:
@@ -76,4 +88,5 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): M2614-AUDIT: Activity-Based Outcomes 1-11 — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger

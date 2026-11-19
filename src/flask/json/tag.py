@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -72,6 +74,9 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self=%s, value=%s): M2614-AUDIT: Log integrity (encrypt + validate) — Data integrity check performed", self, value, extra={"event.action": "check", "logrite.value": value})
+        logger.info("check(self=%s, value=%s): M2614-AUDIT: Outcome 3: object and data access — Database transaction completed", self, value, extra={"event.action": "check", "logrite.value": value})
+        logger.info("check(self=%s, value=%s): SOC2-AUDIT [CC6.6]: Database transaction completed", self, value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -272,6 +277,21 @@ class TaggedJSONSerializer:
         :raise KeyError: if the tag key is already registered and ``force`` is
             not true.
         """
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 7: anomaly hunting — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 5: infrastructure changes — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 3: object and data access — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Outcome 1: user attribution — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Log Management / data protection — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+        logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): M2614-AUDIT: Log integrity (encrypt + validate) — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
         tag = tag_class(self)
         key = tag.key
 

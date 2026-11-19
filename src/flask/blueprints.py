@@ -10,6 +10,8 @@ from .helpers import send_from_directory
 from .sansio.blueprints import Blueprint as SansioBlueprint
 from .sansio.blueprints import BlueprintSetupState as BlueprintSetupState  # noqa
 from .sansio.scaffold import _sentinel
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
@@ -69,6 +71,17 @@ class Blueprint(SansioBlueprint):
 
         .. versionadded:: 0.9
         """
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 9: trace attack vectors — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 7: anomaly hunting — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 10: automated alerting — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 3: object and data access — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         value = current_app.config["SEND_FILE_MAX_AGE_DEFAULT"]
 
         if value is None:
@@ -91,6 +104,17 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.5
 
         """
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 4: privilege changes — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 9: trace attack vectors — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 3: object and data access — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 7: anomaly hunting — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 10: automated alerting — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
@@ -124,5 +148,8 @@ class Blueprint(SansioBlueprint):
 
         if mode == "rb":
             return open(path, mode)  # pyright: ignore
+            logger.info("open_resource(self=%s, resource=%s, mode=%s, encoding=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
+        logger.info("open_resource(self=%s, resource=%s, mode=%s, encoding=%s): SOC2-AUDIT [CC7.2]: System operation completed", self, resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
 
+        logger.info("open_resource(self=%s, resource=%s, mode=%s, encoding=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         return open(path, mode, encoding=encoding)

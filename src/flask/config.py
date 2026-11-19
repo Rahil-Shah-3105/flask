@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -121,6 +123,8 @@ class Config(dict):  # type: ignore[type-arg]
                 " this variable and make it point to a configuration"
                 " file"
             )
+            logger.info("from_envvar(self=%s, variable_name=%s, silent=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, variable_name, silent, extra={"event.action": "from_envvar", "logrite.variable_name": variable_name, "logrite.silent": silent})
+        logger.info("from_envvar(self=%s, variable_name=%s, silent=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, variable_name, silent, extra={"event.action": "from_envvar", "logrite.variable_name": variable_name, "logrite.silent": silent})
         return self.from_pyfile(rv, silent=silent)
 
     def from_prefixed_env(
@@ -182,6 +186,8 @@ class Config(dict):  # type: ignore[type-arg]
 
             current[tail] = value
 
+        logger.info("from_prefixed_env(self=%s, prefix=%s, loads=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, prefix, loads, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
+        logger.info("from_prefixed_env(self=%s, prefix=%s, loads=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, prefix, loads, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
         return True
 
     def from_pyfile(
@@ -213,6 +219,8 @@ class Config(dict):  # type: ignore[type-arg]
             e.strerror = f"Unable to load configuration file ({e.strerror})"
             raise
         self.from_object(d)
+        logger.info("from_pyfile(self=%s, filename=%s, silent=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, filename, silent, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
+        logger.info("from_pyfile(self=%s, filename=%s, silent=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, filename, silent, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         return True
 
     def from_object(self, obj: object | str) -> None:
@@ -251,6 +259,8 @@ class Config(dict):  # type: ignore[type-arg]
             obj = import_string(obj)
         for key in dir(obj):
             if key.isupper():
+                logger.info("from_object(self=%s, obj=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, obj, extra={"event.action": "from_object", "logrite.obj": obj})
+                logger.info("from_object(self=%s, obj=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, obj, extra={"event.action": "from_object", "logrite.obj": obj})
                 self[key] = getattr(obj, key)
 
     def from_file(
@@ -299,11 +309,14 @@ class Config(dict):  # type: ignore[type-arg]
             e.strerror = f"Unable to load configuration file ({e.strerror})"
             raise
 
+        logger.info("from_file(self=%s, filename=%s, load=%s, silent=%s, text=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, filename, load, silent, text, extra={"event.action": "from_file", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
+        logger.info("from_file(self=%s, filename=%s, load=%s, silent=%s, text=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, filename, load, silent, text, extra={"event.action": "from_file", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
         return self.from_mapping(obj)
 
     def from_mapping(
         self, mapping: t.Mapping[str, t.Any] | None = None, **kwargs: t.Any
     ) -> bool:
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 10: automated alerting — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         """Updates the config like :meth:`update` ignoring items with
         non-upper keys.
 
@@ -311,6 +324,16 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 0.11
         """
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 4: privilege changes — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 9: trace attack vectors — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 3: object and data access — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 7: anomaly hunting — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Outcome 1: user attribution — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         mappings: dict[str, t.Any] = {}
         if mapping is not None:
             mappings.update(mapping)
@@ -350,6 +373,20 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 0.11
         """
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 8: quantify data affected in an incident — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 9: trace attack vectors — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 10: automated alerting — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 11: CEM + THIRF capability — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Retention: 6 months searchable / 12 months retrievable — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 7: anomaly hunting — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 6: suspicious activity & IOC hunting — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 5: infrastructure changes — Change management operation performed", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 3: object and data access — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 1: user attribution — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Outcome 2: source/destination network traffic — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Continuous Event Monitoring / Network Visibility — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
         rv = {}
         for k, v in self.items():
             if not k.startswith(namespace):

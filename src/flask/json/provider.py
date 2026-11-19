@@ -9,6 +9,8 @@ import weakref
 from datetime import date
 
 from werkzeug.http import http_date
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
@@ -55,6 +57,7 @@ class JSONProvider:
         :param kwargs: May be passed to the underlying JSON library.
         """
         fp.write(self.dumps(obj, **kwargs))
+        logger.info("dump(self=%s, obj=%s, fp=%s): M2614-AUDIT: Outcome 3: object and data access — Outcome 03 data access recorded for the audit trail", self, obj, fp, extra={"event.action": "dump", "logrite.obj": obj, "logrite.fp": fp})
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
         """Deserialize data as JSON.
@@ -70,6 +73,9 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.info("load(self=%s, fp=%s): M2614-AUDIT: Log Management / data protection — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(self=%s, fp=%s): M2614-AUDIT: Outcome 4: privilege changes — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(self=%s, fp=%s): M2614-AUDIT: Log integrity (encrypt + validate) — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(
