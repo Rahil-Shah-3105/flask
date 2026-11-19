@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -72,6 +74,8 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self=%s, value=%s): SOX-AUDIT: Access to programs and data — Database transaction completed", self, value, extra={"event.action": "check", "logrite.value": value})
+        logger.info("check(self=%s, value=%s): SOX-AUDIT: Audit log tamper — Data integrity check performed", self, value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -280,10 +284,16 @@ class TaggedJSONSerializer:
                 raise KeyError(f"Tag '{key}' is already registered.")
 
             self.tags[key] = tag
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOX-AUDIT: Segregation of duties — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOX-AUDIT: Privileged access — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOX-AUDIT: Access to programs and data — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
 
         if index is None:
             self.order.append(tag)
         else:
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOX-AUDIT: Computer operations — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): SOX-AUDIT: Audit log tamper — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
             self.order.insert(index, tag)
 
     def tag(self, value: t.Any) -> t.Any:

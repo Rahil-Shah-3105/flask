@@ -4,6 +4,8 @@ from datetime import datetime
 import click
 from flask import current_app
 from flask import g
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_db():
@@ -12,9 +14,15 @@ def get_db():
     again.
     """
     if "db" not in g:
+        logger.info("get_db(): SOX-AUDIT: Segregation of duties — Record access recorded for the audit trail", extra={"event.action": "get_db"})
         g.db = sqlite3.connect(
             current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
         )
+        logger.info("get_db(): SOX-AUDIT: Privileged access — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.info("get_db(): SOX-AUDIT: Access to programs and data — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.info("get_db(): SOX-AUDIT: Audit log tamper — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.info("get_db(): SOX-AUDIT: Change management (PCAOB AS 2201) — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.info("get_db(): SOX-AUDIT: Computer operations — Record access recorded for the audit trail", extra={"event.action": "get_db"})
         g.db.row_factory = sqlite3.Row
 
     return g.db

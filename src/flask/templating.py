@@ -12,6 +12,8 @@ from .globals import app_ctx
 from .helpers import stream_with_context
 from .signals import before_render_template
 from .signals import template_rendered
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -57,6 +59,11 @@ class DispatchingJinjaLoader(BaseLoader):
     def get_source(
         self, environment: BaseEnvironment, template: str
     ) -> tuple[str, str | None, t.Callable[[], bool] | None]:
+        logger.info("get_source(self=%s, environment=%s, template=%s): SOX-AUDIT: Access to programs and data — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): SOX-AUDIT: Computer operations — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): SOX-AUDIT: Audit log tamper — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): SOX-AUDIT: Privileged access — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
         if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
             return self._get_source_explained(environment, template)
         return self._get_source_fast(environment, template)
@@ -114,6 +121,12 @@ class DispatchingJinjaLoader(BaseLoader):
         for blueprint in self.app.iter_blueprints():
             loader = blueprint.jinja_loader
             if loader is not None:
+                logger.info("list_templates(self=%s): SOX-AUDIT: Segregation of duties — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                logger.info("list_templates(self=%s): SOX-AUDIT: Privileged access — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                logger.info("list_templates(self=%s): SOX-AUDIT: Access to programs and data — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                logger.info("list_templates(self=%s): SOX-AUDIT: Audit log tamper — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                logger.info("list_templates(self=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                logger.info("list_templates(self=%s): SOX-AUDIT: Computer operations — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
                 for template in loader.list_templates():
                     result.add(template)
 
@@ -194,6 +207,7 @@ def stream_template(
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.get_or_select_template(template_name_or_list)
+    logger.info("stream_template(template_name_or_list=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Change management operation performed", template_name_or_list, extra={"event.action": "stream_template", "logrite.template_name_or_list": template_name_or_list})
     return _stream(ctx, template, context)
 
 
@@ -209,4 +223,5 @@ def stream_template_string(source: str, **context: t.Any) -> t.Iterator[str]:
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
+    logger.info("stream_template_string(source=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Change management operation performed", source, extra={"event.action": "stream_template_string", "logrite.source": source})
     return _stream(ctx, template, context)

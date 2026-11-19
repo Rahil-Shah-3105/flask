@@ -10,6 +10,8 @@ from .helpers import send_from_directory
 from .sansio.blueprints import Blueprint as SansioBlueprint
 from .sansio.blueprints import BlueprintSetupState as BlueprintSetupState  # noqa
 from .sansio.scaffold import _sentinel
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
@@ -73,6 +75,12 @@ class Blueprint(SansioBlueprint):
 
         if value is None:
             return None
+            logger.info("get_send_file_max_age(self=%s, filename=%s): SOX-AUDIT: Segregation of duties — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): SOX-AUDIT: Privileged access — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): SOX-AUDIT: Access to programs and data — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Change management operation performed", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): SOX-AUDIT: Computer operations — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): SOX-AUDIT: Audit log tamper — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
 
         if isinstance(value, timedelta):
             return int(value.total_seconds())
@@ -93,6 +101,11 @@ class Blueprint(SansioBlueprint):
         """
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
+            logger.info("send_static_file(self=%s, filename=%s): SOX-AUDIT: Segregation of duties — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): SOX-AUDIT: Privileged access — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): SOX-AUDIT: Access to programs and data — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Change management operation performed", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): SOX-AUDIT: Computer operations — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
@@ -100,6 +113,7 @@ class Blueprint(SansioBlueprint):
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): SOX-AUDIT: Audit log tamper — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
@@ -125,4 +139,5 @@ class Blueprint(SansioBlueprint):
         if mode == "rb":
             return open(path, mode)  # pyright: ignore
 
+        logger.info("open_resource(self=%s, resource=%s, mode=%s, encoding=%s): SOX-AUDIT: Change management (PCAOB AS 2201) — Change management operation performed", self, resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         return open(path, mode, encoding=encoding)
