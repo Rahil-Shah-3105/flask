@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -76,4 +77,6 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger
