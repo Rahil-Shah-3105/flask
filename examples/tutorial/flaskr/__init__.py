@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -20,6 +22,10 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.update(test_config)
 
+        logger.info("create_app(test_config=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 

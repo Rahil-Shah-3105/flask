@@ -32,6 +32,7 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import find_package
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.wrappers import Response as BaseResponse
@@ -409,6 +410,7 @@ class App(Scaffold):
 
     def _check_setup_finished(self, f_name: str) -> None:
         if self._got_first_request:
+            _logrite_logger.info("_check_setup_finished(self=%s, f_name=%s): FERPA-AUDIT: Inspect amend — Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
             raise AssertionError(
                 f"The setup method '{f_name}' can no longer be called"
                 " on the application. It has already handled its first"
@@ -418,6 +420,7 @@ class App(Scaffold):
                 " needed to set up the application are done before"
                 " running it."
             )
+            _logrite_logger.info("_check_setup_finished(self=%s, f_name=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
 
     @cached_property
     def name(self) -> str:
@@ -474,6 +477,9 @@ class App(Scaffold):
         return self.create_jinja_environment()
 
     def create_jinja_environment(self) -> Environment:
+        _logrite_logger.info("create_jinja_environment(self=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        _logrite_logger.info("create_jinja_environment(self=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        _logrite_logger.info("create_jinja_environment(self=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         raise NotImplementedError()
 
     def make_config(self, instance_relative: bool = False) -> Config:
@@ -528,6 +534,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.info("create_global_jinja_loader(self=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
+        _logrite_logger.info("create_global_jinja_loader(self=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
+        _logrite_logger.info("create_global_jinja_loader(self=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
         return DispatchingJinjaLoader(self)
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
@@ -592,6 +601,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.info("register_blueprint(self=%s, blueprint=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        _logrite_logger.info("register_blueprint(self=%s, blueprint=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        _logrite_logger.info("register_blueprint(self=%s, blueprint=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         blueprint.register(self, options)
 
     def iter_blueprints(self) -> t.ValuesView[Blueprint]:
@@ -653,11 +665,15 @@ class App(Scaffold):
         self.url_map.add(rule_obj)
         if view_func is not None:
             old_func = self.view_functions.get(endpoint)
+            _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+            _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
             if old_func is not None and old_func != view_func:
                 raise AssertionError(
                     "View function mapping is overwriting an existing"
                     f" endpoint function: {endpoint}"
                 )
+                _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+                _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
             self.view_functions[endpoint] = view_func
 
     @t.overload
@@ -708,6 +724,9 @@ class App(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        _logrite_logger.info("add_template_filter(self=%s, f=%s, name=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_filter(self=%s, f=%s, name=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_filter(self=%s, f=%s, name=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
         self.jinja_env.filters[name or f.__name__] = f
 
     @t.overload
@@ -767,6 +786,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
+        _logrite_logger.info("add_template_test(self=%s, f=%s, name=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_test(self=%s, f=%s, name=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_test(self=%s, f=%s, name=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
         self.jinja_env.tests[name or f.__name__] = f
 
     @t.overload
@@ -821,6 +843,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
+        _logrite_logger.info("add_template_global(self=%s, f=%s, name=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_global(self=%s, f=%s, name=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_global(self=%s, f=%s, name=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
         self.jinja_env.globals[name or f.__name__] = f
 
     @setupmethod

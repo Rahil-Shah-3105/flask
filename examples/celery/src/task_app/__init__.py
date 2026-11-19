@@ -2,6 +2,8 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -13,6 +15,10 @@ def create_app() -> Flask:
             "task_ignore_result": True,
         },
     )
+    logger.info("create_app(): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_prefixed_env()
     celery_init_app(app)
 

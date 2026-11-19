@@ -16,6 +16,8 @@ from werkzeug.wrappers import Request as BaseRequest
 
 from .cli import ScriptInfo
 from .sessions import SessionMixin
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import WSGIEnvironment
@@ -176,11 +178,13 @@ class FlaskClient(Client):
         with ctx:
             app.session_interface.save_session(app, sess, resp)
 
+            logger.info("session_transaction(self=%s): FERPA-AUDIT: Inspect amend — Database transaction completed", self, extra={"event.action": "session_transaction"})
         self._update_cookies_from_response(
             urlsplit(ctx.request.host_url).hostname or "localhost",
             ctx.request.path,
             resp.headers.getlist("Set-Cookie"),
         )
+        logger.info("session_transaction(self=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — Database transaction completed", self, extra={"event.action": "session_transaction"})
 
     def _copy_environ(self, other: WSGIEnvironment) -> WSGIEnvironment:
         out = {**self.environ_base, **other}

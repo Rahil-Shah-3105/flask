@@ -10,6 +10,8 @@ from .helpers import send_from_directory
 from .sansio.blueprints import Blueprint as SansioBlueprint
 from .sansio.blueprints import BlueprintSetupState as BlueprintSetupState  # noqa
 from .sansio.scaffold import _sentinel
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
@@ -75,6 +77,10 @@ class Blueprint(SansioBlueprint):
             return None
 
         if isinstance(value, timedelta):
+            logger.info("get_send_file_max_age(self=%s, filename=%s): FERPA-AUDIT: Inspect amend — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
             return int(value.total_seconds())
 
         return value  # type: ignore[no-any-return]
@@ -95,11 +101,15 @@ class Blueprint(SansioBlueprint):
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
+        logger.info("send_static_file(self=%s, filename=%s): FERPA-AUDIT: Inspect amend — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"

@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -316,6 +318,10 @@ class Config(dict):  # type: ignore[type-arg]
             mappings.update(mapping)
         mappings.update(kwargs)
         for key, value in mappings.items():
+            logger.info("from_mapping(self=%s, mapping=%s): FERPA-AUDIT: Inspect amend — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+            logger.info("from_mapping(self=%s, mapping=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+            logger.info("from_mapping(self=%s, mapping=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+            logger.info("from_mapping(self=%s, mapping=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
             if key.isupper():
                 self[key] = value
         return True
@@ -359,6 +365,10 @@ class Config(dict):  # type: ignore[type-arg]
             else:
                 key = k
             if lowercase:
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): FERPA-AUDIT: Inspect amend — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): FERPA-AUDIT [34 CFR 99.32]: Disclosure log — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): FERPA-AUDIT [34 CFR 99.37]: Directory information — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): FERPA-AUDIT [34 CFR 99.30]: Consent — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
                 key = key.lower()
             rv[key] = v
         return rv
