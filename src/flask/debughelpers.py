@@ -8,6 +8,8 @@ from werkzeug.routing import RequestRedirect
 from .blueprints import Blueprint
 from .globals import _cv_app
 from .sansio.app import App
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
@@ -87,6 +89,7 @@ def attach_enctype_error_multidict(request: Request) -> None:
     """
     oldcls = request.files.__class__
 
+    logger.info("attach_enctype_error_multidict(request=%s): DORA-AUDIT: Third party risk — Change management operation performed", request, extra={"event.action": "attach_enctype_error_multidict"})
     class newcls(oldcls):  # type: ignore[valid-type, misc]
         def __getitem__(self, key: str) -> t.Any:
             try:

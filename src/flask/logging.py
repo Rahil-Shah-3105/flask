@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -25,6 +26,7 @@ def wsgi_errors_stream() -> t.TextIO:
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+    _logrite_logger.info("wsgi_errors_stream(): DORA-AUDIT: Third party risk — Change management operation performed", extra={"event.action": "wsgi_errors_stream"})
     return sys.stderr
 
 
@@ -74,6 +76,10 @@ def create_logger(app: App) -> logging.Logger:
         logger.setLevel(logging.DEBUG)
 
     if not has_level_handler(logger):
+        _logrite_logger.info("create_logger(app=%s): DORA-AUDIT: Third party risk — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): DORA-AUDIT: Resilience testing — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): DORA-AUDIT [Art. 45]: Information sharing — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): DORA-AUDIT: Incident coverage — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger

@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -38,6 +40,10 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user(): DORA-AUDIT: Incident coverage — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): DORA-AUDIT: Third party risk — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): DORA-AUDIT: Resilience testing — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): DORA-AUDIT [Art. 45]: Information sharing — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -77,6 +83,10 @@ def register():
                 return redirect(url_for("auth.login"))
 
         flash(error)
+        logger.info("register(): DORA-AUDIT: Third party risk — State change recorded for the audit trail", extra={"event.action": "register"})
+        logger.info("register(): DORA-AUDIT: Incident coverage — State change recorded for the audit trail", extra={"event.action": "register"})
+        logger.info("register(): DORA-AUDIT: Resilience testing — State change recorded for the audit trail", extra={"event.action": "register"})
+    logger.info("register(): DORA-AUDIT [Art. 45]: Information sharing — State change recorded for the audit trail", extra={"event.action": "register"})
 
     return render_template("auth/register.html")
 
@@ -105,6 +115,10 @@ def login():
             return redirect(url_for("index"))
 
         flash(error)
+        logger.info("login(): DORA-AUDIT: Third party risk — State change recorded for the audit trail", extra={"event.action": "login"})
+        logger.info("login(): DORA-AUDIT: Incident coverage — State change recorded for the audit trail", extra={"event.action": "login"})
+        logger.info("login(): DORA-AUDIT: Resilience testing — State change recorded for the audit trail", extra={"event.action": "login"})
+    logger.info("login(): DORA-AUDIT [Art. 45]: Information sharing — State change recorded for the audit trail", extra={"event.action": "login"})
 
     return render_template("auth/login.html")
 
