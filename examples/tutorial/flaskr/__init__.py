@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -21,6 +23,9 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     # ensure the instance folder exists
+    logger.info("create_app(test_config=%s): TRAIGA-AUDIT: Regulatory sandbox — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+    logger.info("create_app(test_config=%s): TRAIGA-AUDIT: Prohibited practices — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+    logger.info("create_app(test_config=%s): TRAIGA-AUDIT: Gov ai disclosure — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
     os.makedirs(app.instance_path, exist_ok=True)
 
     @app.route("/hello")

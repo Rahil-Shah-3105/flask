@@ -13,6 +13,8 @@ from .globals import _cv_app
 from .helpers import _CollectErrors
 from .signals import appcontext_popped
 from .signals import appcontext_pushed
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -74,6 +76,9 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.info("get(self=%s, name=%s, default=%s): TRAIGA-AUDIT: Regulatory sandbox — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
+        logger.info("get(self=%s, name=%s, default=%s): TRAIGA-AUDIT: Prohibited practices — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
+        logger.info("get(self=%s, name=%s, default=%s): TRAIGA-AUDIT: Gov ai disclosure — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
