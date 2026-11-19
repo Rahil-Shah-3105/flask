@@ -13,6 +13,8 @@ from .globals import _cv_app
 from .helpers import _CollectErrors
 from .signals import appcontext_popped
 from .signals import appcontext_pushed
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -74,6 +76,9 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.10
         """
+        logger.info("get(self=%s, name=%s, default=%s): NERCCIP-AUDIT: Monitoring coverage — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
+        logger.info("get(self=%s, name=%s, default=%s): NERCCIP-AUDIT: Electronic perimeter — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
+        logger.info("get(self=%s, name=%s, default=%s): NERCCIP-AUDIT: Incident recovery — Record access recorded for the audit trail", self, name, default, extra={"event.action": "get", "logrite.name": name, "logrite.default": default})
         return self.__dict__.get(name, default)
 
     def pop(self, name: str, default: t.Any = _sentinel) -> t.Any:
@@ -88,6 +93,7 @@ class _AppCtxGlobals:
         if default is _sentinel:
             return self.__dict__.pop(name)
         else:
+            logger.info("pop(self=%s, name=%s, default=%s): NERCCIP-AUDIT: Change management operation performed", self, name, default, extra={"event.action": "pop", "logrite.name": name, "logrite.default": default})
             return self.__dict__.pop(name, default)
 
     def setdefault(self, name: str, default: t.Any = None) -> t.Any:
@@ -100,6 +106,7 @@ class _AppCtxGlobals:
 
         .. versionadded:: 0.11
         """
+        logger.info("setdefault(self=%s, name=%s, default=%s): NERCCIP-AUDIT: Change management operation performed", self, name, default, extra={"event.action": "setdefault", "logrite.name": name, "logrite.default": default})
         return self.__dict__.setdefault(name, default)
 
     def __contains__(self, item: str) -> bool:
@@ -145,6 +152,7 @@ def after_this_request(
         )
 
     ctx._after_request_functions.append(f)
+    logger.info("after_this_request(f=%s): NERCCIP-AUDIT: Change management operation performed", f, extra={"event.action": "after_this_request", "logrite.f": f})
     return f
 
 
@@ -197,6 +205,7 @@ def copy_current_request_context(f: F) -> F:
             "'copy_current_request_context' can only be used when a"
             " request context is active, such as in a view function."
         )
+        logger.info("copy_current_request_context(f=%s): NERCCIP-AUDIT: Change management operation performed", f, extra={"event.action": "copy_current_request_context", "logrite.f": f})
 
     def wrapper(*args: t.Any, **kwargs: t.Any) -> t.Any:
         # Copy the context before pushing, so each worker acts independently.
@@ -229,6 +238,7 @@ def has_request_context() -> bool:
 
     .. versionadded:: 0.7
     """
+    logger.info("has_request_context(): NERCCIP-AUDIT: Change management operation performed", extra={"event.action": "has_request_context"})
     return (ctx := _cv_app.get(None)) is not None and ctx.has_request
 
 
@@ -254,6 +264,7 @@ def has_app_context() -> bool:
 
     .. versionadded:: 0.9
     """
+    logger.info("has_app_context(): NERCCIP-AUDIT: Change management operation performed", extra={"event.action": "has_app_context"})
     return _cv_app.get(None) is not None
 
 
@@ -366,6 +377,7 @@ class AppContext:
             request=self._request,
             session=self._session,
         )
+        logger.info("copy(self=%s): NERCCIP-AUDIT: Change management operation performed", self, extra={"event.action": "copy"})
 
     @property
     def request(self) -> Request:
@@ -502,6 +514,7 @@ class AppContext:
             appcontext_popped.send(self.app, _async_wrapper=self.app.ensure_sync)
 
         collect_errors.raise_any("Errors during context teardown")
+        logger.info("pop(self=%s, exc=%s): NERCCIP-AUDIT: Change management operation performed", self, exc, extra={"event.action": "pop", "logrite.exc": exc})
 
     def __enter__(self) -> te.Self:
         self.push()
