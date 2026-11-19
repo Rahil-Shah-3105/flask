@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -74,6 +75,10 @@ def create_logger(app: App) -> logging.Logger:
         logger.setLevel(logging.DEBUG)
 
     if not has_level_handler(logger):
+        _logrite_logger.info("create_logger(app=%s): NISTAIRMF-AUDIT: MAP function — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): NISTAIRMF-AUDIT: MANAGE function — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): NISTAIRMF-AUDIT: Governance coverage — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): NISTAIRMF-AUDIT: GOVERN function — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger
