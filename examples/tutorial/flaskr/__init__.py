@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -20,6 +22,10 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.update(test_config)
 
+        logger.info("create_app(test_config=%s): GLBA-AUDIT: Security program — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GLBA-AUDIT: Encryption disposal — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GLBA-AUDIT [16 CFR 314.4(j)]: Breach notification — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GLBA-AUDIT [16 CFR 314.4(c)(5)]: Access controls — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 

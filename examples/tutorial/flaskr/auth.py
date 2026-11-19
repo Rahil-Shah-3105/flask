@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -38,6 +40,10 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user(): GLBA-AUDIT: Security program — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): GLBA-AUDIT [16 CFR 314.4(c)(5)]: Access controls — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): GLBA-AUDIT: Encryption disposal — Session management operation performed", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): GLBA-AUDIT [16 CFR 314.4(j)]: Breach notification — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -77,6 +83,10 @@ def register():
                 return redirect(url_for("auth.login"))
 
         flash(error)
+        logger.info("register(): GLBA-AUDIT: Security program — State change recorded for the audit trail", extra={"event.action": "register"})
+        logger.info("register(): GLBA-AUDIT [16 CFR 314.4(c)(5)]: Access controls — State change recorded for the audit trail", extra={"event.action": "register"})
+        logger.info("register(): GLBA-AUDIT: Encryption disposal — Password reset operation performed", extra={"event.action": "register"})
+    logger.info("register(): GLBA-AUDIT [16 CFR 314.4(j)]: Breach notification — State change recorded for the audit trail", extra={"event.action": "register"})
 
     return render_template("auth/register.html")
 
@@ -102,6 +112,11 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
+            logger.info("login(): GLBA-AUDIT: Security program — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): GLBA-AUDIT: Encryption disposal — Session management operation performed", extra={"event.action": "login"})
+            logger.info("login(): GLBA-AUDIT [16 CFR 314.4(c)(5)]: Access controls — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): GLBA-AUDIT: Encryption disposal — Password reset operation performed", extra={"event.action": "login"})
+            logger.info("login(): GLBA-AUDIT [16 CFR 314.4(j)]: Breach notification — State change recorded for the audit trail", extra={"event.action": "login"})
             return redirect(url_for("index"))
 
         flash(error)
@@ -113,4 +128,5 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.info("logout(): GLBA-AUDIT: Encryption disposal — Session management operation performed", extra={"event.action": "logout"})
     return redirect(url_for("index"))
