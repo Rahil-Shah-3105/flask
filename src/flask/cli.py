@@ -769,6 +769,7 @@ def _path_is_ancestor(path: str, other: str) -> bool:
 def load_dotenv(
     path: str | os.PathLike[str] | None = None, load_defaults: bool = True
 ) -> bool:
+    logger.error(">>> Entering load_dotenv(path=%s,load_defaults=%s)", path, load_defaults, extra={"event.action": "load_dotenv", "logrite.path": path, "logrite.load_defaults": load_defaults})
     """Load "dotenv" files to set environment variables. A given path takes
     precedence over ``.env``, which takes precedence over ``.flaskenv``. After
     loading and combining these files, values are only set if the key is not
@@ -803,6 +804,7 @@ def load_dotenv(
     try:
         import dotenv
     except ImportError:
+        logger.error("Exception in load_dotenv(path=%s,load_defaults=%s)", path, load_defaults, exc_info=True, extra={"event.action": "load_dotenv", "event.category": "process", "logrite.path": path, "logrite.load_defaults": load_defaults})
         if path or os.path.isfile(".env") or os.path.isfile(".flaskenv"):
             click.secho(
                 " * Tip: There are .env files present. Install python-dotenv"
@@ -831,6 +833,7 @@ def load_dotenv(
 
         os.environ[key] = value
 
+    logger.warning("<<< Exiting load_dotenv(path=%s,load_defaults=%s)", path, load_defaults, extra={"event.action": "load_dotenv", "logrite.path": path, "logrite.load_defaults": load_defaults})
     return bool(data)  # True if at least one env var was loaded.
 
 
@@ -867,9 +870,11 @@ class CertParamType(click.ParamType):  # type: ignore[type-arg]
     def convert(
         self, value: t.Any, param: click.Parameter | None, ctx: click.Context | None
     ) -> t.Any:
+        logger.error(">>> Entering convert(value=%s,param=%s,ctx=%s)", value, param, ctx, extra={"event.action": "convert", "logrite.value": value, "logrite.param": param})
         try:
             import ssl
         except ImportError:
+            logger.error("Exception in convert(value=%s,param=%s,ctx=%s)", value, param, ctx, exc_info=True, extra={"event.action": "convert", "event.category": "process", "logrite.value": value, "logrite.param": param})
             raise click.BadParameter(
                 'Using "--cert" requires Python to be compiled with SSL support.',
                 ctx,
@@ -958,7 +963,9 @@ class SeparatedPathType(click.Path):
     ) -> t.Any:
         items = self.split_envvar_value(value)
         # can't call no-arg super() inside list comprehension until Python 3.12
+        logger.error("convert(value=%s,param=%s,ctx=%s): items → %s", value, param, ctx, items, extra={"event.action": "convert", "logrite.value": value, "logrite.param": param})
         super_convert = super().convert
+        logger.error("convert(value=%s,param=%s,ctx=%s): super_convert → %s", value, param, ctx, super_convert, extra={"event.action": "convert", "logrite.value": value, "logrite.param": param})
         return [super_convert(item, param, ctx) for item in items]
 
 

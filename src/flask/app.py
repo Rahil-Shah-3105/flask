@@ -477,6 +477,7 @@ class Flask(App):
     def open_instance_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
     ) -> t.IO[t.AnyStr]:
+        logger.error(">>> Entering open_instance_resource(resource=%s,mode=%s,encoding=%s)", resource, mode, encoding, extra={"event.action": "open_instance_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         """Open a resource file relative to the application's instance folder
         :attr:`instance_path`. Unlike :meth:`open_resource`, files in the
         instance folder can be opened for writing.
@@ -490,10 +491,12 @@ class Flask(App):
             Added the ``encoding`` parameter.
         """
         path = os.path.join(self.instance_path, resource)
+        logger.error("open_instance_resource(resource=%s,mode=%s,encoding=%s): path → %s", resource, mode, encoding, path, extra={"event.action": "open_instance_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
 
         if "b" in mode:
             return open(path, mode)
 
+        logger.warning("<<< Exiting open_instance_resource(resource=%s,mode=%s,encoding=%s)", resource, mode, encoding, extra={"event.action": "open_instance_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         return open(path, mode, encoding=encoding)
 
     def create_jinja_environment(self) -> Environment:
@@ -653,6 +656,7 @@ class Flask(App):
         orig_ctx = context.copy()
         logger.error("update_template_context(ctx=%s,context=%s): orig_ctx → %s", ctx, context, orig_ctx, extra={"event.action": "update_template_context"})
 
+        __log_start = time.time()
         for name in names:
             if name in self.template_context_processors:
                 for func in self.template_context_processors[name]:
@@ -660,6 +664,7 @@ class Flask(App):
 
                     logger.warning("<<< Exiting update_template_context(ctx=%s,context=%s)", ctx, context, extra={"event.action": "update_template_context"})
         context.update(orig_ctx)
+        logger.error("update_template_context(ctx,context)=%s,%s: update operation took %s ms", ctx, context, int((time.time() - __log_start) * 1000), extra={"event.action": "update_template_context", "event.category": "database"})
 
     def make_shell_context(self) -> dict[str, t.Any]:
         """Returns the shell context for an interactive shell for this
