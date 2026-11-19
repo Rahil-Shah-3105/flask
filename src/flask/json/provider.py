@@ -9,6 +9,8 @@ import weakref
 from datetime import date
 
 from werkzeug.http import http_date
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
@@ -36,7 +38,9 @@ class JSONProvider:
     """
 
     def __init__(self, app: App) -> None:
+        logger.error(">>> Entering __init__(app=%s)", app, extra={"event.action": "__init__", "logrite.app": app})
         self._app: App = weakref.proxy(app)
+        logger.warning("<<< Exiting __init__(app=%s)", app, extra={"event.action": "__init__", "logrite.app": app})
 
     def dumps(self, obj: t.Any, **kwargs: t.Any) -> str:
         """Serialize data as JSON.
@@ -44,6 +48,8 @@ class JSONProvider:
         :param obj: The data to serialize.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.error(">>> Entering dumps(obj=%s)", obj, extra={"event.action": "dumps", "logrite.obj": obj})
+        logger.warning("<<< Exiting dumps(obj=%s)", obj, extra={"event.action": "dumps", "logrite.obj": obj})
         raise NotImplementedError
 
     def dump(self, obj: t.Any, fp: t.IO[str], **kwargs: t.Any) -> None:
@@ -54,7 +60,9 @@ class JSONProvider:
             encoding to be valid JSON.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.error(">>> Entering dump(obj=%s,fp=%s)", obj, fp, extra={"event.action": "dump", "logrite.obj": obj, "logrite.fp": fp})
         fp.write(self.dumps(obj, **kwargs))
+        logger.warning("<<< Exiting dump(obj=%s,fp=%s)", obj, fp, extra={"event.action": "dump", "logrite.obj": obj, "logrite.fp": fp})
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
         """Deserialize data as JSON.
@@ -62,6 +70,8 @@ class JSONProvider:
         :param s: Text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.error(">>> Entering loads(s=%s)", s, extra={"event.action": "loads", "logrite.s": s})
+        logger.warning("<<< Exiting loads(s=%s)", s, extra={"event.action": "loads", "logrite.s": s})
         raise NotImplementedError
 
     def load(self, fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
@@ -70,11 +80,14 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.error(">>> Entering load(fp=%s)", fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.warning("<<< Exiting load(fp=%s)", fp, extra={"event.action": "load", "logrite.fp": fp})
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(
         self, args: tuple[t.Any, ...], kwargs: dict[str, t.Any]
     ) -> t.Any:
+        logger.error(">>> Entering _prepare_response_obj(args=%s,kwargs=%s)", args, kwargs, extra={"event.action": "_prepare_response_obj"})
         if args and kwargs:
             raise TypeError("app.json.response() takes either args or kwargs, not both")
 
@@ -84,6 +97,7 @@ class JSONProvider:
         if len(args) == 1:
             return args[0]
 
+        logger.warning("<<< Exiting _prepare_response_obj(args=%s,kwargs=%s)", args, kwargs, extra={"event.action": "_prepare_response_obj"})
         return args or kwargs
 
     def response(self, *args: t.Any, **kwargs: t.Any) -> Response:
@@ -101,11 +115,15 @@ class JSONProvider:
             treat as a list to serialize.
         :param kwargs: Treat as a dict to serialize.
         """
+        logger.error(">>> Entering response()", extra={"event.action": "response"})
         obj = self._prepare_response_obj(args, kwargs)
+        logger.error("response(): obj → %s", obj, extra={"event.action": "response"})
+        logger.warning("<<< Exiting response()", extra={"event.action": "response"})
         return self._app.response_class(self.dumps(obj), mimetype="application/json")
 
 
 def _default(o: t.Any) -> t.Any:
+    logger.error(">>> Entering _default(o=%s)", o, extra={"event.action": "_default", "logrite.o": o})
     if isinstance(o, date):
         return http_date(o)
 
@@ -116,6 +134,7 @@ def _default(o: t.Any) -> t.Any:
         return dataclasses.asdict(o)  # type: ignore[arg-type]
 
     if hasattr(o, "__html__"):
+        logger.warning("<<< Exiting _default(o=%s)", o, extra={"event.action": "_default", "logrite.o": o})
         return str(o.__html__())
 
     raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
@@ -176,6 +195,7 @@ class DefaultJSONProvider(JSONProvider):
         kwargs.setdefault("default", self.default)
         kwargs.setdefault("ensure_ascii", self.ensure_ascii)
         kwargs.setdefault("sort_keys", self.sort_keys)
+        logger.debug("dumps(self=%s,obj=%s): kwargs → %s", self, obj, kwargs, extra={"event.action": "dumps", "logrite.obj": obj})
         return json.dumps(obj, **kwargs)
 
     def loads(self, s: str | bytes, **kwargs: t.Any) -> t.Any:
@@ -204,10 +224,12 @@ class DefaultJSONProvider(JSONProvider):
         """
         obj = self._prepare_response_obj(args, kwargs)
         dump_args: dict[str, t.Any] = {}
+        logger.error("response(): dump_args → %s", dump_args, extra={"event.action": "response"})
 
         if (self.compact is None and self._app.debug) or self.compact is False:
             dump_args.setdefault("indent", 2)
         else:
+            logger.debug("response(self=%s): dump_args → %s", self, dump_args, extra={"event.action": "response"})
             dump_args.setdefault("separators", (",", ":"))
 
         return self._app.response_class(

@@ -1,11 +1,16 @@
 import os
 
 from flask import Flask
+import time
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
+    logger.error(">>> Entering create_app(test_config=%s)", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
     app = Flask(__name__, instance_relative_config=True)
+    logger.error("create_app(test_config=%s): app → %s", test_config, app, extra={"event.action": "create_app", "logrite.test_config": test_config})
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
@@ -17,14 +22,18 @@ def create_app(test_config=None):
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile("config.py", silent=True)
     else:
+        __log_start = time.time()
         # load the test config if passed in
         app.config.update(test_config)
+        logger.error("create_app(test_config)=%s: update operation took %s ms", test_config, int((time.time() - __log_start) * 1000), extra={"event.action": "create_app", "event.category": "database", "logrite.test_config": test_config})
 
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 
     @app.route("/hello")
     def hello():
+        logger.error(">>> Entering hello()", extra={"event.action": "hello"})
+        logger.warning("<<< Exiting hello()", extra={"event.action": "hello"})
         return "Hello, World!"
 
     # register the database commands

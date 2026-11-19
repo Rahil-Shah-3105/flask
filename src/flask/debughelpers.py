@@ -8,6 +8,8 @@ from werkzeug.routing import RequestRedirect
 from .blueprints import Blueprint
 from .globals import _cv_app
 from .sansio.app import App
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
@@ -26,7 +28,9 @@ class DebugFilesKeyError(KeyError, AssertionError):
     """
 
     def __init__(self, request: Request, key: str) -> None:
+        logger.error(">>> Entering __init__(request=%s,key=%s)", request, key, extra={"event.action": "__init__", "logrite.key": key})
         form_matches = request.form.getlist(key)
+        logger.error("__init__(request=%s,key=%s): form_matches → %s", request, key, form_matches, extra={"event.action": "__init__", "logrite.key": key})
         buf = [
             f"You tried to access the file {key!r} in the request.files"
             " dictionary but it does not exist. The mimetype for the"
@@ -37,13 +41,18 @@ class DebugFilesKeyError(KeyError, AssertionError):
         ]
         if form_matches:
             names = ", ".join(repr(x) for x in form_matches)
+            logger.error("__init__(request=%s,key=%s): names → %s", request, key, names, extra={"event.action": "__init__", "logrite.key": key})
             buf.append(
                 "\n\nThe browser instead transmitted some file names. "
                 f"This was submitted: {names}"
             )
+            logger.warning("<<< Exiting __init__(request=%s,key=%s)", request, key, extra={"event.action": "__init__", "logrite.key": key})
         self.msg = "".join(buf)
+        logger.error("__init__(request=%s,key=%s): self.msg → %s", request, key, self.msg, extra={"event.action": "__init__", "logrite.key": key})
 
     def __str__(self) -> str:
+        logger.error(">>> Entering __str__()", extra={"event.action": "__str__"})
+        logger.warning("<<< Exiting __str__()", extra={"event.action": "__str__"})
         return self.msg
 
 
@@ -55,6 +64,7 @@ class FormDataRoutingRedirect(AssertionError):
     """
 
     def __init__(self, request: Request) -> None:
+        logger.error(">>> Entering __init__(request=%s)", request, extra={"event.action": "__init__"})
         exc = request.routing_exception
         assert isinstance(exc, RequestRedirect)
         buf = [
@@ -85,14 +95,20 @@ def attach_enctype_error_multidict(request: Request) -> None:
     :param request: The request to patch.
     :meta private:
     """
+    logger.error(">>> Entering attach_enctype_error_multidict(request=%s)", request, extra={"event.action": "attach_enctype_error_multidict"})
     oldcls = request.files.__class__
 
+    logger.warning("<<< Exiting attach_enctype_error_multidict(request=%s)", request, extra={"event.action": "attach_enctype_error_multidict"})
     class newcls(oldcls):  # type: ignore[valid-type, misc]
+        logger.error("Exception in attach_enctype_error_multidict(request=%s)", request, exc_info=True, extra={"event.action": "attach_enctype_error_multidict", "event.category": "process"})
         def __getitem__(self, key: str) -> t.Any:
+            logger.error(">>> Entering __getitem__(key=%s)", key, extra={"event.action": "__getitem__", "logrite.key": key})
             try:
                 return super().__getitem__(key)
             except KeyError as e:
+                logger.error("Exception in __getitem__(key=%s): %s", key, str(e), exc_info=True, extra={"event.action": "__getitem__", "event.category": "process", "logrite.key": key})
                 if key not in request.form:
+                    logger.warning("<<< Exiting __getitem__(key=%s)", key, extra={"event.action": "__getitem__", "logrite.key": key})
                     raise
 
                 raise DebugFilesKeyError(request, key).with_traceback(
@@ -105,6 +121,7 @@ def attach_enctype_error_multidict(request: Request) -> None:
 
 
 def _dump_loader_info(loader: BaseLoader) -> t.Iterator[str]:
+    logger.error(">>> Entering _dump_loader_info(loader=%s)", loader, extra={"event.action": "_dump_loader_info", "logrite.loader": loader})
     yield f"class: {type(loader).__module__}.{type(loader).__name__}"
     for key, value in sorted(loader.__dict__.items()):
         if key.startswith("_"):
@@ -119,6 +136,7 @@ def _dump_loader_info(loader: BaseLoader) -> t.Iterator[str]:
         elif not isinstance(value, (str, int, float, bool)):
             continue
         yield f"{key}: {value!r}"
+        logger.warning("<<< Exiting _dump_loader_info(loader=%s)", loader, extra={"event.action": "_dump_loader_info", "logrite.loader": loader})
 
 
 def explain_template_loading_attempts(
@@ -132,6 +150,7 @@ def explain_template_loading_attempts(
         ]
     ],
 ) -> None:
+    logger.error(">>> Entering explain_template_loading_attempts(app=%s,template=%s,attempts=%s)", app, template, attempts, extra={"event.action": "explain_template_loading_attempts", "logrite.app": app, "logrite.template": template, "logrite.attempts": attempts})
     """This should help developers understand what failed"""
     info = [f"Locating template {template!r}:"]
     total_found = 0
@@ -176,4 +195,5 @@ def explain_template_loading_attempts(
         info.append("  Maybe you did not place a template in the right folder?")
         info.append("  See https://flask.palletsprojects.com/blueprints/#templates")
 
+    logger.warning("<<< Exiting explain_template_loading_attempts(app=%s,template=%s,attempts=%s)", app, template, attempts, extra={"event.action": "explain_template_loading_attempts", "logrite.app": app, "logrite.template": template, "logrite.attempts": attempts})
     app.logger.info("\n".join(info))

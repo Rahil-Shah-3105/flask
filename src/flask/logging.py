@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -22,9 +23,11 @@ def wsgi_errors_stream() -> t.TextIO:
     can't import this directly, you can refer to it as
     ``ext://flask.logging.wsgi_errors_stream``.
     """
+    _logrite_logger.error(">>> Entering wsgi_errors_stream()", extra={"event.action": "wsgi_errors_stream"})
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+    _logrite_logger.warning("<<< Exiting wsgi_errors_stream()", extra={"event.action": "wsgi_errors_stream"})
     return sys.stderr
 
 
@@ -32,7 +35,9 @@ def has_level_handler(logger: logging.Logger) -> bool:
     """Check if there is a handler in the logging chain that will handle the
     given logger's :meth:`effective level <~logging.Logger.getEffectiveLevel>`.
     """
+    _logrite_logger.error(">>> Entering has_level_handler(logger=%s)", logger, extra={"event.action": "has_level_handler", "logrite.logger": logger})
     level = logger.getEffectiveLevel()
+    _logrite_logger.error("has_level_handler(logger=%s): level → %s", logger, level, extra={"event.action": "has_level_handler", "logrite.logger": logger})
     current = logger
 
     while current:
@@ -44,6 +49,7 @@ def has_level_handler(logger: logging.Logger) -> bool:
 
         current = current.parent  # type: ignore
 
+    _logrite_logger.warning("<<< Exiting has_level_handler(logger=%s)", logger, extra={"event.action": "has_level_handler", "logrite.logger": logger})
     return False
 
 
@@ -68,12 +74,16 @@ def create_logger(app: App) -> logging.Logger:
     :class:`~logging.StreamHandler` for
     :func:`~flask.logging.wsgi_errors_stream` with a basic format.
     """
+    _logrite_logger.error(">>> Entering create_logger(app=%s)", app, extra={"event.action": "create_logger", "logrite.app": app})
     logger = logging.getLogger(app.name)
+    _logrite_logger.error("create_logger(app=%s): logger → %s", app, logger, extra={"event.action": "create_logger", "logrite.app": app})
 
     if app.debug and not logger.level:
         logger.setLevel(logging.DEBUG)
+        _logrite_logger.debug("create_logger(app=%s): logger → %s", app, logger, extra={"event.action": "create_logger", "logrite.app": app})
 
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+    _logrite_logger.warning("<<< Exiting create_logger(app=%s)", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger

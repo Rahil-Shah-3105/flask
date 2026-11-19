@@ -12,6 +12,8 @@ from itsdangerous import URLSafeTimedSerializer
 from werkzeug.datastructures import CallbackDict
 
 from .json.tag import TaggedJSONSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     import typing_extensions as te
@@ -27,11 +29,15 @@ class SessionMixin(MutableMapping[str, t.Any]):
     @property
     def permanent(self) -> bool:
         """This reflects the ``'_permanent'`` key in the dict."""
+        logger.error(">>> Entering permanent()", extra={"event.action": "permanent"})
+        logger.warning("<<< Exiting permanent()", extra={"event.action": "permanent"})
         return self.get("_permanent", False)  # type: ignore[no-any-return]
 
     @permanent.setter
     def permanent(self, value: bool) -> None:
+        logger.error(">>> Entering permanent(value=%s)", value, extra={"event.action": "permanent", "logrite.value": value})
         self["_permanent"] = bool(value)
+        logger.warning("<<< Exiting permanent(value=%s)", value, extra={"event.action": "permanent", "logrite.value": value})
 
     #: Some implementations can detect whether a session is newly
     #: created, but that is not guaranteed. Use with caution. The mixin
@@ -74,10 +80,15 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
         self,
         initial: c.Mapping[str, t.Any] | None = None,
     ) -> None:
+        logger.error(">>> Entering __init__(initial=%s)", initial, extra={"event.action": "__init__", "logrite.initial": initial})
         def on_update(self: te.Self) -> None:
+            logger.error(">>> Entering on_update()", extra={"event.action": "on_update"})
             self.modified = True
+            logger.warning("<<< Exiting on_update()", extra={"event.action": "on_update"})
+            logger.debug("on_update(self=%s): self.modified → %s", self, self.modified, extra={"event.action": "on_update"})
 
         super().__init__(initial, on_update)
+
 
 
 class NullSession(SecureCookieSession):
@@ -87,11 +98,13 @@ class NullSession(SecureCookieSession):
     """
 
     def _fail(self, *args: t.Any, **kwargs: t.Any) -> t.NoReturn:
+        logger.error(">>> Entering _fail()", extra={"event.action": "_fail"})
         raise RuntimeError(
             "The session is unavailable because no secret "
             "key was set.  Set the secret_key on the "
             "application to something unique and secret."
         )
+        logger.warning("<<< Exiting _fail()", extra={"event.action": "_fail"})
 
     __setitem__ = __delitem__ = clear = pop = popitem = update = setdefault = _fail
     del _fail
@@ -157,6 +170,8 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
+        logger.error(">>> Entering make_null_session(app=%s)", app, extra={"event.action": "make_null_session", "logrite.app": app})
+        logger.warning("<<< Exiting make_null_session(app=%s)", app, extra={"event.action": "make_null_session", "logrite.app": app})
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
@@ -166,10 +181,14 @@ class SessionInterface:
         This checks if the object is an instance of :attr:`null_session_class`
         by default.
         """
+        logger.error(">>> Entering is_null_session(obj=%s)", obj, extra={"event.action": "is_null_session", "logrite.obj": obj})
+        logger.warning("<<< Exiting is_null_session(obj=%s)", obj, extra={"event.action": "is_null_session", "logrite.obj": obj})
         return isinstance(obj, self.null_session_class)
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.error(">>> Entering get_cookie_name(app=%s)", app, extra={"event.action": "get_cookie_name", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_name(app=%s)", app, extra={"event.action": "get_cookie_name", "logrite.app": app})
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +201,8 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.error(">>> Entering get_cookie_domain(app=%s)", app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_domain(app=%s)", app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +211,8 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.error(">>> Entering get_cookie_path(app=%s)", app, extra={"event.action": "get_cookie_path", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_path(app=%s)", app, extra={"event.action": "get_cookie_path", "logrite.app": app})
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +220,16 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.error(">>> Entering get_cookie_httponly(app=%s)", app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_httponly(app=%s)", app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.error(">>> Entering get_cookie_secure(app=%s)", app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_secure(app=%s)", app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +237,8 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.error(">>> Entering get_cookie_samesite(app=%s)", app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_samesite(app=%s)", app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +247,8 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.error(">>> Entering get_cookie_partitioned(app=%s)", app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
+        logger.warning("<<< Exiting get_cookie_partitioned(app=%s)", app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -226,8 +257,10 @@ class SessionInterface:
         default implementation returns now + the permanent session
         lifetime configured on the application.
         """
+        logger.error(">>> Entering get_expiration_time(app=%s,session=%s)", app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
+        logger.warning("<<< Exiting get_expiration_time(app=%s,session=%s)", app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
         return None
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
@@ -241,7 +274,9 @@ class SessionInterface:
 
         .. versionadded:: 0.11
         """
+        logger.error(">>> Entering should_set_cookie(app=%s,session=%s)", app, session, extra={"event.action": "should_set_cookie", "logrite.app": app})
 
+        logger.warning("<<< Exiting should_set_cookie(app=%s,session=%s)", app, session, extra={"event.action": "should_set_cookie", "logrite.app": app})
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
         )
@@ -258,15 +293,20 @@ class SessionInterface:
         context will fall back to using :meth:`make_null_session`
         in this case.
         """
+        logger.error(">>> Entering open_session(app=%s,request=%s)", app, request, extra={"event.action": "open_session", "logrite.app": app})
+        logger.warning("<<< Exiting open_session(app=%s,request=%s)", app, request, extra={"event.action": "open_session", "logrite.app": app})
+        logger.error("Exception in open_session(app=%s,request=%s)", app, request, exc_info=True, extra={"event.action": "open_session", "event.category": "process", "logrite.app": app})
         raise NotImplementedError()
 
     def save_session(
         self, app: Flask, session: SessionMixin, response: Response
     ) -> None:
+        logger.error(">>> Entering save_session(app=%s,session=%s,response=%s)", app, session, response, extra={"event.action": "save_session", "logrite.app": app})
         """This is called at the end of each request, after generating
         a response, before removing the request context. It is skipped
         if :meth:`is_null_session` returns ``True``.
         """
+        logger.warning("<<< Exiting save_session(app=%s,session=%s,response=%s)", app, session, response, extra={"event.action": "save_session", "logrite.app": app})
         raise NotImplementedError()
 
 
@@ -278,6 +318,8 @@ def _lazy_sha1(string: bytes = b"") -> t.Any:
     SHA-1, in which case the import and use as a default would fail before the
     developer can configure something else.
     """
+    logger.error(">>> Entering _lazy_sha1(string=%s)", string, extra={"event.action": "_lazy_sha1", "logrite.string": string})
+    logger.warning("<<< Exiting _lazy_sha1(string=%s)", string, extra={"event.action": "_lazy_sha1", "logrite.string": string})
     return hashlib.sha1(string)
 
 
@@ -301,6 +343,7 @@ class SecureCookieSessionInterface(SessionInterface):
     session_class = SecureCookieSession
 
     def get_signing_serializer(self, app: Flask) -> URLSafeTimedSerializer | None:
+        logger.error(">>> Entering get_signing_serializer(app=%s)", app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
         if not app.secret_key:
             return None
 
@@ -310,6 +353,7 @@ class SecureCookieSessionInterface(SessionInterface):
             keys.extend(fallbacks)
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
+        logger.warning("<<< Exiting get_signing_serializer(app=%s)", app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
         return URLSafeTimedSerializer(
             keys,  # type: ignore[arg-type]
             salt=self.salt,
@@ -322,6 +366,7 @@ class SecureCookieSessionInterface(SessionInterface):
 
     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:
         s = self.get_signing_serializer(app)
+        logger.error("open_session(app=%s,request=%s): s → %s", app, request, s, extra={"event.action": "open_session", "logrite.app": app})
         if s is None:
             return None
         val = request.cookies.get(self.get_cookie_name(app))
@@ -338,6 +383,7 @@ class SecureCookieSessionInterface(SessionInterface):
         self, app: Flask, session: SessionMixin, response: Response
     ) -> None:
         name = self.get_cookie_name(app)
+        logger.error("save_session(app=%s,session=%s,response=%s): name → %s", app, session, response, name, extra={"event.action": "save_session", "logrite.app": app})
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         secure = self.get_cookie_secure(app)

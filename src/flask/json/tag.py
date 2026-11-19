@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -68,25 +70,36 @@ class JSONTag:
 
     def __init__(self, serializer: TaggedJSONSerializer) -> None:
         """Create a tagger for the given serializer."""
+        logger.error(">>> Entering __init__(serializer=%s)", serializer, extra={"event.action": "__init__", "logrite.serializer": serializer})
         self.serializer = serializer
+        logger.warning("<<< Exiting __init__(serializer=%s)", serializer, extra={"event.action": "__init__", "logrite.serializer": serializer})
+        logger.debug("__init__(self=%s,serializer=%s): self.serializer → %s", self, serializer, self.serializer, extra={"event.action": "__init__", "logrite.serializer": serializer})
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.error(">>> Entering check(value=%s)", value, extra={"event.action": "check", "logrite.value": value})
+        logger.warning("<<< Exiting check(value=%s)", value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
         """Convert the Python object to an object that is a valid JSON type.
         The tag will be added later."""
+        logger.error(">>> Entering to_json(value=%s)", value, extra={"event.action": "to_json", "logrite.value": value})
+        logger.warning("<<< Exiting to_json(value=%s)", value, extra={"event.action": "to_json", "logrite.value": value})
         raise NotImplementedError
 
     def to_python(self, value: t.Any) -> t.Any:
         """Convert the JSON representation back to the correct type. The tag
         will already be removed."""
+        logger.error(">>> Entering to_python(value=%s)", value, extra={"event.action": "to_python", "logrite.value": value})
+        logger.warning("<<< Exiting to_python(value=%s)", value, extra={"event.action": "to_python", "logrite.value": value})
         raise NotImplementedError
 
     def tag(self, value: t.Any) -> dict[str, t.Any]:
         """Convert the value to a valid JSON type and add the tag structure
         around it."""
+        logger.error(">>> Entering tag(value=%s)", value, extra={"event.action": "tag", "logrite.value": value})
+        logger.warning("<<< Exiting tag(value=%s)", value, extra={"event.action": "tag", "logrite.value": value})
         return {self.key: self.to_json(value)}
 
 
@@ -109,10 +122,12 @@ class TagDict(JSONTag):
 
     def to_json(self, value: t.Any) -> t.Any:
         key = next(iter(value))
+        logger.error("to_json(value=%s): key → %s", value, key, extra={"event.action": "to_json", "logrite.value": value})
         return {f"{key}__": self.serializer.tag(value[key])}
 
     def to_python(self, value: t.Any) -> t.Any:
         key = next(iter(value))
+        logger.error("to_python(value=%s): key → %s", value, key, extra={"event.action": "to_python", "logrite.value": value})
         return {key[:-2]: value[key]}
 
 
@@ -247,11 +262,13 @@ class TaggedJSONSerializer:
     ]
 
     def __init__(self) -> None:
+        logger.error(">>> Entering __init__()", extra={"event.action": "__init__"})
         self.tags: dict[str, JSONTag] = {}
         self.order: list[JSONTag] = []
 
         for cls in self.default_tags:
             self.register(cls)
+            logger.warning("<<< Exiting __init__()", extra={"event.action": "__init__"})
 
     def register(
         self,
@@ -259,6 +276,7 @@ class TaggedJSONSerializer:
         force: bool = False,
         index: int | None = None,
     ) -> None:
+        logger.error(">>> Entering register(tag_class=%s,force=%s,index=%s)", tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
         """Register a new tag with this serializer.
 
         :param tag_class: tag class to register. Will be instantiated with this
@@ -273,7 +291,9 @@ class TaggedJSONSerializer:
             not true.
         """
         tag = tag_class(self)
+        logger.error("register(tag_class=%s,force=%s,index=%s): tag → %s", tag_class, force, index, tag, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
         key = tag.key
+        logger.error("register(tag_class=%s,force=%s,index=%s): key → %s", tag_class, force, index, key, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
 
         if key:
             if not force and key in self.tags:
@@ -285,6 +305,7 @@ class TaggedJSONSerializer:
             self.order.append(tag)
         else:
             self.order.insert(index, tag)
+            logger.warning("<<< Exiting register(tag_class=%s,force=%s,index=%s)", tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
 
     def tag(self, value: t.Any) -> t.Any:
         """Convert a value to a tagged representation if necessary."""
@@ -296,6 +317,7 @@ class TaggedJSONSerializer:
 
     def untag(self, value: dict[str, t.Any]) -> t.Any:
         """Convert a tagged representation back to the original type."""
+        logger.error(">>> Entering untag(value=%s)", value, extra={"event.action": "untag", "logrite.value": value})
         if len(value) != 1:
             return value
 
@@ -304,24 +326,32 @@ class TaggedJSONSerializer:
         if key not in self.tags:
             return value
 
+        logger.warning("<<< Exiting untag(value=%s)", value, extra={"event.action": "untag", "logrite.value": value})
         return self.tags[key].to_python(value[key])
 
     def _untag_scan(self, value: t.Any) -> t.Any:
+        logger.error(">>> Entering _untag_scan(value=%s)", value, extra={"event.action": "_untag_scan", "logrite.value": value})
         if isinstance(value, dict):
             # untag each item recursively
             value = {k: self._untag_scan(v) for k, v in value.items()}
+            logger.error("_untag_scan(value=%s): value → %s", value, value, extra={"event.action": "_untag_scan", "logrite.value": value})
             # untag the dict itself
             value = self.untag(value)
         elif isinstance(value, list):
             # untag each item recursively
             value = [self._untag_scan(item) for item in value]
 
+        logger.warning("<<< Exiting _untag_scan(value=%s)", value, extra={"event.action": "_untag_scan", "logrite.value": value})
         return value
 
     def dumps(self, value: t.Any) -> str:
         """Tag the value and dump it to a compact JSON string."""
+        logger.error(">>> Entering dumps(value=%s)", value, extra={"event.action": "dumps", "logrite.value": value})
+        logger.warning("<<< Exiting dumps(value=%s)", value, extra={"event.action": "dumps", "logrite.value": value})
         return dumps(self.tag(value), separators=(",", ":"))
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.error(">>> Entering loads(value=%s)", value, extra={"event.action": "loads", "logrite.value": value})
+        logger.warning("<<< Exiting loads(value=%s)", value, extra={"event.action": "loads", "logrite.value": value})
         return self._untag_scan(loads(value))

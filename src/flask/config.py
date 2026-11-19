@@ -7,6 +7,9 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import time
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -23,9 +26,13 @@ class ConfigAttribute(t.Generic[T]):
     def __init__(
         self, name: str, get_converter: t.Callable[[t.Any], T] | None = None
     ) -> None:
+        logger.error(">>> Entering __init__(name=%s,get_converter=%s)", name, get_converter, extra={"event.action": "__init__", "logrite.name": name, "logrite.get_converter": get_converter})
         self.__name__ = name
+        logger.debug("__init__(self=%s,name=%s,get_converter=%s): self.__name__ → %s", self, name, get_converter, self.__name__, extra={"event.action": "__init__", "logrite.name": name, "logrite.get_converter": get_converter})
         self.get_converter = get_converter
+        logger.debug("__init__(self=%s,name=%s,get_converter=%s): self.get_converter → %s", self, name, get_converter, self.get_converter, extra={"event.action": "__init__", "logrite.name": name, "logrite.get_converter": get_converter})
 
+        logger.warning("<<< Exiting __init__(name=%s,get_converter=%s)", name, get_converter, extra={"event.action": "__init__", "logrite.name": name, "logrite.get_converter": get_converter})
     @t.overload
     def __get__(self, obj: None, owner: None) -> te.Self: ...
 
@@ -33,6 +40,7 @@ class ConfigAttribute(t.Generic[T]):
     def __get__(self, obj: App, owner: type[App]) -> T: ...
 
     def __get__(self, obj: App | None, owner: type[App] | None = None) -> T | te.Self:
+        logger.error(">>> Entering __get__(obj=%s,owner=%s)", obj, owner, extra={"event.action": "__get__", "logrite.obj": obj, "logrite.owner": owner})
         if obj is None:
             return self
 
@@ -41,10 +49,13 @@ class ConfigAttribute(t.Generic[T]):
         if self.get_converter is not None:
             rv = self.get_converter(rv)
 
+        logger.warning("<<< Exiting __get__(obj=%s,owner=%s)", obj, owner, extra={"event.action": "__get__", "logrite.obj": obj, "logrite.owner": owner})
         return rv  # type: ignore[no-any-return]
 
     def __set__(self, obj: App, value: t.Any) -> None:
+        logger.error(">>> Entering __set__(obj=%s,value=%s)", obj, value, extra={"event.action": "__set__", "logrite.obj": obj, "logrite.value": value})
         obj.config[self.__name__] = value
+        logger.warning("<<< Exiting __set__(obj=%s,value=%s)", obj, value, extra={"event.action": "__set__", "logrite.obj": obj, "logrite.value": value})
 
 
 class Config(dict):  # type: ignore[type-arg]
@@ -111,7 +122,9 @@ class Config(dict):  # type: ignore[type-arg]
                        files.
         :return: ``True`` if the file was loaded successfully.
         """
+        logger.error(">>> Entering from_envvar(variable_name=%s,silent=%s)", variable_name, silent, extra={"event.action": "from_envvar", "logrite.variable_name": variable_name, "logrite.silent": silent})
         rv = os.environ.get(variable_name)
+        logger.error("from_envvar(variable_name=%s,silent=%s): rv → %s", variable_name, silent, rv, extra={"event.action": "from_envvar", "logrite.variable_name": variable_name, "logrite.silent": silent})
         if not rv:
             if silent:
                 return False
@@ -121,11 +134,13 @@ class Config(dict):  # type: ignore[type-arg]
                 " this variable and make it point to a configuration"
                 " file"
             )
+        logger.warning("<<< Exiting from_envvar(variable_name=%s,silent=%s)", variable_name, silent, extra={"event.action": "from_envvar", "logrite.variable_name": variable_name, "logrite.silent": silent})
         return self.from_pyfile(rv, silent=silent)
 
     def from_prefixed_env(
         self, prefix: str = "FLASK", *, loads: t.Callable[[str], t.Any] = json.loads
     ) -> bool:
+        logger.error(">>> Entering from_prefixed_env(prefix=%s,loads=%s)", prefix, loads, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
         """Load any environment variables that start with ``FLASK_``,
         dropping the prefix from the env key for the config key. Values
         are passed through a loading function to attempt to convert them
@@ -150,17 +165,21 @@ class Config(dict):  # type: ignore[type-arg]
         .. versionadded:: 2.1
         """
         prefix = f"{prefix}_"
+        logger.error("from_prefixed_env(prefix=%s,loads=%s): prefix → %s", prefix, loads, prefix, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
 
         for key in sorted(os.environ):
             if not key.startswith(prefix):
                 continue
 
             value = os.environ[key]
+            logger.error("from_prefixed_env(prefix=%s,loads=%s): value → %s", prefix, loads, value, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
             key = key.removeprefix(prefix)
+            logger.error("from_prefixed_env(prefix=%s,loads=%s): key → %s", prefix, loads, key, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
 
             try:
                 value = loads(value)
             except Exception:
+                logger.error("Exception in from_prefixed_env(prefix=%s,loads=%s)", prefix, loads, exc_info=True, extra={"event.action": "from_prefixed_env", "event.category": "process", "logrite.prefix": prefix, "logrite.loads": loads})
                 # Keep the value as a string if loading failed.
                 pass
 
@@ -182,11 +201,13 @@ class Config(dict):  # type: ignore[type-arg]
 
             current[tail] = value
 
+        logger.warning("<<< Exiting from_prefixed_env(prefix=%s,loads=%s)", prefix, loads, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
         return True
 
     def from_pyfile(
         self, filename: str | os.PathLike[str], silent: bool = False
     ) -> bool:
+        logger.error(">>> Entering from_pyfile(filename=%s,silent=%s)", filename, silent, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         """Updates the values in the config from a Python file.  This function
         behaves as if the file was imported as module with the
         :meth:`from_object` function.
@@ -202,17 +223,22 @@ class Config(dict):  # type: ignore[type-arg]
            `silent` parameter.
         """
         filename = os.path.join(self.root_path, filename)
+        logger.error("from_pyfile(filename=%s,silent=%s): filename → %s", filename, silent, filename, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         d = types.ModuleType("config")
+        logger.error("from_pyfile(filename=%s,silent=%s): d → %s", filename, silent, d, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         d.__file__ = filename
+        logger.debug("from_pyfile(self=%s,filename=%s,silent=%s): d.__file__ → %s", self, filename, silent, d.__file__, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         try:
             with open(filename, mode="rb") as config_file:
                 exec(compile(config_file.read(), filename, "exec"), d.__dict__)
         except OSError as e:
+            logger.error("Exception in from_pyfile(filename=%s,silent=%s): %s", filename, silent, str(e), exc_info=True, extra={"event.action": "from_pyfile", "event.category": "process", "logrite.filename": filename, "logrite.silent": silent})
             if silent and e.errno in (errno.ENOENT, errno.EISDIR, errno.ENOTDIR):
                 return False
             e.strerror = f"Unable to load configuration file ({e.strerror})"
             raise
         self.from_object(d)
+        logger.warning("<<< Exiting from_pyfile(filename=%s,silent=%s)", filename, silent, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         return True
 
     def from_object(self, obj: object | str) -> None:
@@ -247,11 +273,14 @@ class Config(dict):  # type: ignore[type-arg]
 
         :param obj: an import name or object
         """
+        logger.error(">>> Entering from_object(obj=%s)", obj, extra={"event.action": "from_object", "logrite.obj": obj})
         if isinstance(obj, str):
             obj = import_string(obj)
+            logger.error("from_object(obj=%s): obj → %s", obj, obj, extra={"event.action": "from_object", "logrite.obj": obj})
         for key in dir(obj):
             if key.isupper():
                 self[key] = getattr(obj, key)
+                logger.warning("<<< Exiting from_object(obj=%s)", obj, extra={"event.action": "from_object", "logrite.obj": obj})
 
     def from_file(
         self,
@@ -260,6 +289,8 @@ class Config(dict):  # type: ignore[type-arg]
         silent: bool = False,
         text: bool = True,
     ) -> bool:
+        logger.error(">>> Entering from_file(filename=%s,load=%s,silent=%s,text=%s)", filename, load, silent, text, extra={"event.action": "from_file", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
+        __log_start = time.time()
         """Update the values in the config from a file that is loaded
         using the ``load`` parameter. The loaded data is passed to the
         :meth:`from_mapping` method.
@@ -287,23 +318,28 @@ class Config(dict):  # type: ignore[type-arg]
 
         .. versionadded:: 2.0
         """
+        logger.error("from_file(filename,load,silent,text)=%s,%s,%s,%s: update operation took %s ms", filename, load, silent, text, int((time.time() - __log_start) * 1000), extra={"event.action": "from_file", "event.category": "database", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
         filename = os.path.join(self.root_path, filename)
+        logger.error("from_file(filename=%s,load=%s,silent=%s,text=%s): filename → %s", filename, load, silent, text, filename, extra={"event.action": "from_file", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
 
         try:
             with open(filename, "r" if text else "rb") as f:
                 obj = load(f)
         except OSError as e:
+            logger.error("Exception in from_file(filename=%s,load=%s,silent=%s,text=%s): %s", filename, load, silent, text, str(e), exc_info=True, extra={"event.action": "from_file", "event.category": "process", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
             if silent and e.errno in (errno.ENOENT, errno.EISDIR):
                 return False
 
             e.strerror = f"Unable to load configuration file ({e.strerror})"
             raise
 
+        logger.warning("<<< Exiting from_file(filename=%s,load=%s,silent=%s,text=%s)", filename, load, silent, text, extra={"event.action": "from_file", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
         return self.from_mapping(obj)
 
     def from_mapping(
         self, mapping: t.Mapping[str, t.Any] | None = None, **kwargs: t.Any
     ) -> bool:
+        logger.error(">>> Entering from_mapping(mapping=%s)", mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         """Updates the config like :meth:`update` ignoring items with
         non-upper keys.
 
@@ -312,17 +348,21 @@ class Config(dict):  # type: ignore[type-arg]
         .. versionadded:: 0.11
         """
         mappings: dict[str, t.Any] = {}
+        __log_start = time.time()
         if mapping is not None:
             mappings.update(mapping)
+            logger.error("from_mapping(mapping)=%s: update operation took %s ms", mapping, int((time.time() - __log_start) * 1000), extra={"event.action": "from_mapping", "event.category": "database", "logrite.mapping": mapping})
         mappings.update(kwargs)
         for key, value in mappings.items():
             if key.isupper():
                 self[key] = value
+        logger.warning("<<< Exiting from_mapping(mapping=%s)", mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         return True
 
     def get_namespace(
         self, namespace: str, lowercase: bool = True, trim_namespace: bool = True
     ) -> dict[str, t.Any]:
+        logger.error(">>> Entering get_namespace(namespace=%s,lowercase=%s,trim_namespace=%s)", namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
         """Returns a dictionary containing a subset of configuration options
         that match the specified namespace/prefix. Example usage::
 
@@ -358,10 +398,14 @@ class Config(dict):  # type: ignore[type-arg]
                 key = k[len(namespace) :]
             else:
                 key = k
+                logger.error("get_namespace(namespace=%s,lowercase=%s,trim_namespace=%s): key → %s", namespace, lowercase, trim_namespace, key, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
             if lowercase:
                 key = key.lower()
             rv[key] = v
+        logger.warning("<<< Exiting get_namespace(namespace=%s,lowercase=%s,trim_namespace=%s)", namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
         return rv
 
     def __repr__(self) -> str:
+        logger.error(">>> Entering __repr__()", extra={"event.action": "__repr__"})
+        logger.warning("<<< Exiting __repr__()", extra={"event.action": "__repr__"})
         return f"<{type(self).__name__} {dict.__repr__(self)}>"

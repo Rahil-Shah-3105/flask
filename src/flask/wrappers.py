@@ -10,6 +10,8 @@ from werkzeug.wrappers import Response as ResponseBase
 from . import json
 from .globals import current_app
 from .helpers import _split_blueprint_path
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.routing import Rule
@@ -77,17 +79,22 @@ class Request(RequestBase):
         .. versionchanged:: 0.6
             This is configurable through Flask config.
         """
+        logger.error(">>> Entering max_content_length()", extra={"event.action": "max_content_length"})
         if self._max_content_length is not None:
             return self._max_content_length
 
         if not current_app:
             return super().max_content_length
 
+        logger.warning("<<< Exiting max_content_length()", extra={"event.action": "max_content_length"})
         return current_app.config["MAX_CONTENT_LENGTH"]  # type: ignore[no-any-return]
 
     @max_content_length.setter
     def max_content_length(self, value: int | None) -> None:
+        logger.error(">>> Entering max_content_length(value=%s)", value, extra={"event.action": "max_content_length", "logrite.value": value})
         self._max_content_length = value
+        logger.warning("<<< Exiting max_content_length(value=%s)", value, extra={"event.action": "max_content_length", "logrite.value": value})
+        logger.debug("max_content_length(self=%s,value=%s): self._max_content_length → %s", self, value, self._max_content_length, extra={"event.action": "max_content_length", "logrite.value": value})
 
     @property
     def max_form_memory_size(self) -> int | None:
@@ -104,17 +111,22 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
+        logger.error(">>> Entering max_form_memory_size()", extra={"event.action": "max_form_memory_size"})
         if self._max_form_memory_size is not None:
             return self._max_form_memory_size
 
         if not current_app:
             return super().max_form_memory_size
 
+        logger.warning("<<< Exiting max_form_memory_size()", extra={"event.action": "max_form_memory_size"})
         return current_app.config["MAX_FORM_MEMORY_SIZE"]  # type: ignore[no-any-return]
 
     @max_form_memory_size.setter
     def max_form_memory_size(self, value: int | None) -> None:
+        logger.error(">>> Entering max_form_memory_size(value=%s)", value, extra={"event.action": "max_form_memory_size", "logrite.value": value})
         self._max_form_memory_size = value
+        logger.warning("<<< Exiting max_form_memory_size(value=%s)", value, extra={"event.action": "max_form_memory_size", "logrite.value": value})
+        logger.debug("max_form_memory_size(self=%s,value=%s): self._max_form_memory_size → %s", self, value, self._max_form_memory_size, extra={"event.action": "max_form_memory_size", "logrite.value": value})
 
     @property  # type: ignore[override]
     def max_form_parts(self) -> int | None:
@@ -131,17 +143,22 @@ class Request(RequestBase):
         .. versionchanged:: 3.1
             This is configurable through Flask config.
         """
+        logger.error(">>> Entering max_form_parts()", extra={"event.action": "max_form_parts"})
         if self._max_form_parts is not None:
             return self._max_form_parts
 
         if not current_app:
             return super().max_form_parts
 
+        logger.warning("<<< Exiting max_form_parts()", extra={"event.action": "max_form_parts"})
         return current_app.config["MAX_FORM_PARTS"]  # type: ignore[no-any-return]
 
     @max_form_parts.setter
     def max_form_parts(self, value: int | None) -> None:
+        logger.error(">>> Entering max_form_parts(value=%s)", value, extra={"event.action": "max_form_parts", "logrite.value": value})
         self._max_form_parts = value
+        logger.warning("<<< Exiting max_form_parts(value=%s)", value, extra={"event.action": "max_form_parts", "logrite.value": value})
+        logger.debug("max_form_parts(self=%s,value=%s): self._max_form_parts → %s", self, value, self._max_form_parts, extra={"event.action": "max_form_parts", "logrite.value": value})
 
     @property
     def endpoint(self) -> str | None:
@@ -153,9 +170,11 @@ class Request(RequestBase):
         This in combination with :attr:`view_args` can be used to
         reconstruct the same URL or a modified URL.
         """
+        logger.error(">>> Entering endpoint()", extra={"event.action": "endpoint"})
         if self.url_rule is not None:
             return self.url_rule.endpoint  # type: ignore[no-any-return]
 
+        logger.warning("<<< Exiting endpoint()", extra={"event.action": "endpoint"})
         return None
 
     @property
@@ -170,11 +189,13 @@ class Request(RequestBase):
         created with. It may have been nested, or registered with a
         different name.
         """
+        logger.error(">>> Entering blueprint()", extra={"event.action": "blueprint"})
         endpoint = self.endpoint
 
         if endpoint is not None and "." in endpoint:
             return endpoint.rpartition(".")[0]
 
+        logger.warning("<<< Exiting blueprint()", extra={"event.action": "blueprint"})
         return None
 
     @property
@@ -187,15 +208,19 @@ class Request(RequestBase):
 
         .. versionadded:: 2.0.1
         """
+        logger.error(">>> Entering blueprints()", extra={"event.action": "blueprints"})
         name = self.blueprint
+        logger.error("blueprints(): name → %s", name, extra={"event.action": "blueprints"})
 
         if name is None:
             return []
 
+        logger.warning("<<< Exiting blueprints()", extra={"event.action": "blueprints"})
         return _split_blueprint_path(name)
 
     def _load_form_data(self) -> None:
         super()._load_form_data()
+        logger.error(">>> Entering _load_form_data()", extra={"event.action": "_load_form_data"})
 
         # In debug mode we're replacing the files multidict with an ad-hoc
         # subclass that raises a different error for key errors.
@@ -208,12 +233,16 @@ class Request(RequestBase):
             from .debughelpers import attach_enctype_error_multidict
 
             attach_enctype_error_multidict(self)
+            logger.warning("<<< Exiting _load_form_data()", extra={"event.action": "_load_form_data"})
 
     def on_json_loading_failed(self, e: ValueError | None) -> t.Any:
+        logger.error(">>> Entering on_json_loading_failed(e=%s)", e, extra={"event.action": "on_json_loading_failed", "logrite.e": e})
         try:
             return super().on_json_loading_failed(e)
         except BadRequest as ebr:
+            logger.error("Exception in on_json_loading_failed(e=%s): %s", e, str(ebr), exc_info=True, extra={"event.action": "on_json_loading_failed", "event.category": "process", "logrite.e": e})
             if current_app and current_app.debug:
+                logger.warning("<<< Exiting on_json_loading_failed(e=%s)", e, extra={"event.action": "on_json_loading_failed", "logrite.e": e})
                 raise
 
             raise BadRequest() from ebr
@@ -250,8 +279,10 @@ class Response(ResponseBase):
         See :attr:`~werkzeug.wrappers.Response.max_cookie_size` in
         Werkzeug's docs.
         """
+        logger.error(">>> Entering max_cookie_size()", extra={"event.action": "max_cookie_size"})
         if current_app:
             return current_app.config["MAX_COOKIE_SIZE"]  # type: ignore[no-any-return]
 
         # return Werkzeug's default when not in an app context
+        logger.warning("<<< Exiting max_cookie_size()", extra={"event.action": "max_cookie_size"})
         return super().max_cookie_size

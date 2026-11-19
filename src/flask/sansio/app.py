@@ -32,6 +32,7 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import find_package
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.wrappers import Response as BaseResponse
@@ -50,9 +51,11 @@ T_template_test = t.TypeVar("T_template_test", bound=ft.TemplateTestCallable)
 
 
 def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
+    _logrite_logger.error(">>> Entering _make_timedelta(value=%s)", value, extra={"event.action": "_make_timedelta", "logrite.value": value})
     if value is None or isinstance(value, timedelta):
         return value
 
+    _logrite_logger.warning("<<< Exiting _make_timedelta(value=%s)", value, extra={"event.action": "_make_timedelta", "logrite.value": value})
     return timedelta(seconds=value)
 
 
@@ -309,6 +312,7 @@ class App(Scaffold):
         #:
         #: .. versionadded:: 0.8
         self.instance_path = instance_path
+        _logrite_logger.debug("__init__(self=%s,import_name=%s,static_url_path=%s,static_folder=%s,static_host=%s,host_matching=%s,subdomain_matching=%s,template_folder=%s,instance_path=%s,instance_relative_config=%s,root_path=%s): self.instance_path → %s", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, self.instance_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
 
         #: The configuration dictionary as :class:`Config`.  This behaves
         #: exactly like a regular dictionary but supports additional methods
@@ -402,12 +406,15 @@ class App(Scaffold):
         self.url_map = self.url_map_class(host_matching=host_matching)
 
         self.subdomain_matching = subdomain_matching
+        _logrite_logger.debug("__init__(self=%s,import_name=%s,static_url_path=%s,static_folder=%s,static_host=%s,host_matching=%s,subdomain_matching=%s,template_folder=%s,instance_path=%s,instance_relative_config=%s,root_path=%s): self.subdomain_matching → %s", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, self.subdomain_matching, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
 
         # tracks internally if the application already handled at least one
         # request.
         self._got_first_request = False
+        _logrite_logger.debug("__init__(self=%s,import_name=%s,static_url_path=%s,static_folder=%s,static_host=%s,host_matching=%s,subdomain_matching=%s,template_folder=%s,instance_path=%s,instance_relative_config=%s,root_path=%s): self._got_first_request → %s", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, self._got_first_request, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
 
     def _check_setup_finished(self, f_name: str) -> None:
+        _logrite_logger.error(">>> Entering _check_setup_finished(f_name=%s)", f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
         if self._got_first_request:
             raise AssertionError(
                 f"The setup method '{f_name}' can no longer be called"
@@ -418,6 +425,7 @@ class App(Scaffold):
                 " needed to set up the application are done before"
                 " running it."
             )
+            _logrite_logger.warning("<<< Exiting _check_setup_finished(f_name=%s)", f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
 
     @cached_property
     def name(self) -> str:
@@ -429,11 +437,13 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
+        _logrite_logger.error(">>> Entering name()", extra={"event.action": "name"})
         if self.import_name == "__main__":
             fn: str | None = getattr(sys.modules["__main__"], "__file__", None)
             if fn is None:
                 return "__main__"
             return os.path.splitext(os.path.basename(fn))[0]
+        _logrite_logger.warning("<<< Exiting name()", extra={"event.action": "name"})
         return self.import_name
 
     @cached_property
@@ -461,6 +471,8 @@ class App(Scaffold):
 
         .. versionadded:: 0.3
         """
+        _logrite_logger.error(">>> Entering logger()", extra={"event.action": "logger"})
+        _logrite_logger.warning("<<< Exiting logger()", extra={"event.action": "logger"})
         return create_logger(self)
 
     @cached_property
@@ -471,9 +483,13 @@ class App(Scaffold):
         accessed. Changing :attr:`jinja_options` after that will have no
         effect.
         """
+        _logrite_logger.error(">>> Entering jinja_env()", extra={"event.action": "jinja_env"})
+        _logrite_logger.warning("<<< Exiting jinja_env()", extra={"event.action": "jinja_env"})
         return self.create_jinja_environment()
 
     def create_jinja_environment(self) -> Environment:
+        _logrite_logger.error(">>> Entering create_jinja_environment()", extra={"event.action": "create_jinja_environment"})
+        _logrite_logger.warning("<<< Exiting create_jinja_environment()", extra={"event.action": "create_jinja_environment"})
         raise NotImplementedError()
 
     def make_config(self, instance_relative: bool = False) -> Config:
@@ -485,11 +501,14 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
+        _logrite_logger.error(">>> Entering make_config(instance_relative=%s)", instance_relative, extra={"event.action": "make_config", "logrite.instance_relative": instance_relative})
         root_path = self.root_path
         if instance_relative:
             root_path = self.instance_path
         defaults = dict(self.default_config)
+        _logrite_logger.error("make_config(instance_relative=%s): defaults → %s", instance_relative, defaults, extra={"event.action": "make_config", "logrite.instance_relative": instance_relative})
         defaults["DEBUG"] = get_debug_flag()
+        _logrite_logger.warning("<<< Exiting make_config(instance_relative=%s)", instance_relative, extra={"event.action": "make_config", "logrite.instance_relative": instance_relative})
         return self.config_class(root_path, defaults)
 
     def make_aborter(self) -> Aborter:
@@ -502,6 +521,8 @@ class App(Scaffold):
 
         .. versionadded:: 2.2
         """
+        _logrite_logger.error(">>> Entering make_aborter()", extra={"event.action": "make_aborter"})
+        _logrite_logger.warning("<<< Exiting make_aborter()", extra={"event.action": "make_aborter"})
         return self.aborter_class()
 
     def auto_find_instance_path(self) -> str:
@@ -512,9 +533,11 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
+        _logrite_logger.error(">>> Entering auto_find_instance_path()", extra={"event.action": "auto_find_instance_path"})
         prefix, package_path = find_package(self.import_name)
         if prefix is None:
             return os.path.join(package_path, "instance")
+        _logrite_logger.warning("<<< Exiting auto_find_instance_path()", extra={"event.action": "auto_find_instance_path"})
         return os.path.join(prefix, "var", f"{self.name}-instance")
 
     def create_global_jinja_loader(self) -> DispatchingJinjaLoader:
@@ -528,6 +551,8 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.error(">>> Entering create_global_jinja_loader()", extra={"event.action": "create_global_jinja_loader"})
+        _logrite_logger.warning("<<< Exiting create_global_jinja_loader()", extra={"event.action": "create_global_jinja_loader"})
         return DispatchingJinjaLoader(self)
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
@@ -542,8 +567,10 @@ class App(Scaffold):
 
         .. versionadded:: 0.5
         """
+        _logrite_logger.error(">>> Entering select_jinja_autoescape(filename=%s)", filename, extra={"event.action": "select_jinja_autoescape", "logrite.filename": filename})
         if filename is None:
             return True
+        _logrite_logger.warning("<<< Exiting select_jinja_autoescape(filename=%s)", filename, extra={"event.action": "select_jinja_autoescape", "logrite.filename": filename})
         return filename.lower().endswith((".html", ".htm", ".xml", ".xhtml", ".svg"))
 
     @property
@@ -557,14 +584,18 @@ class App(Scaffold):
 
         Default: ``False``
         """
+        _logrite_logger.error(">>> Entering debug()", extra={"event.action": "debug"})
+        _logrite_logger.warning("<<< Exiting debug()", extra={"event.action": "debug"})
         return self.config["DEBUG"]  # type: ignore[no-any-return]
 
     @debug.setter
     def debug(self, value: bool) -> None:
+        _logrite_logger.error(">>> Entering debug(value=%s)", value, extra={"event.action": "debug", "logrite.value": value})
         self.config["DEBUG"] = value
 
         if self.config["TEMPLATES_AUTO_RELOAD"] is None:
             self.jinja_env.auto_reload = value
+            _logrite_logger.warning("<<< Exiting debug(value=%s)", value, extra={"event.action": "debug", "logrite.value": value})
 
     @setupmethod
     def register_blueprint(self, blueprint: Blueprint, **options: t.Any) -> None:
@@ -592,13 +623,17 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.error(">>> Entering register_blueprint(blueprint=%s)", blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         blueprint.register(self, options)
+        _logrite_logger.warning("<<< Exiting register_blueprint(blueprint=%s)", blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
 
     def iter_blueprints(self) -> t.ValuesView[Blueprint]:
         """Iterates over all blueprints by the order they were registered.
 
         .. versionadded:: 0.11
         """
+        _logrite_logger.error(">>> Entering iter_blueprints()", extra={"event.action": "iter_blueprints"})
+        _logrite_logger.warning("<<< Exiting iter_blueprints()", extra={"event.action": "iter_blueprints"})
         return self.blueprints.values()
 
     @setupmethod
@@ -610,10 +645,13 @@ class App(Scaffold):
         provide_automatic_options: bool | None = None,
         **options: t.Any,
     ) -> None:
+        _logrite_logger.error(">>> Entering add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s)", rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         if endpoint is None:
             endpoint = _endpoint_from_view_func(view_func)  # type: ignore
+            _logrite_logger.error("add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s): endpoint → %s", rule, endpoint, view_func, provide_automatic_options, endpoint, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         options["endpoint"] = endpoint
         methods = options.pop("methods", None)
+        _logrite_logger.error("add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s): methods → %s", rule, endpoint, view_func, provide_automatic_options, methods, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
         # if the methods are not given and the view_func object knows its
         # methods we can use that instead.  If neither exists, we go with
@@ -648,17 +686,21 @@ class App(Scaffold):
         methods |= required_methods
 
         rule_obj = self.url_rule_class(rule, methods=methods, **options)
+        _logrite_logger.error("add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s): rule_obj → %s", rule, endpoint, view_func, provide_automatic_options, rule_obj, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         rule_obj.provide_automatic_options = provide_automatic_options  # type: ignore[attr-defined]
+        _logrite_logger.debug("add_url_rule(self=%s,rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s): rule_obj.provide_automatic_options → %s", self, rule, endpoint, view_func, provide_automatic_options, rule_obj.provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
         self.url_map.add(rule_obj)
         if view_func is not None:
             old_func = self.view_functions.get(endpoint)
+            _logrite_logger.error("add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s): old_func → %s", rule, endpoint, view_func, provide_automatic_options, old_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
             if old_func is not None and old_func != view_func:
                 raise AssertionError(
                     "View function mapping is overwriting an existing"
                     f" endpoint function: {endpoint}"
                 )
             self.view_functions[endpoint] = view_func
+            _logrite_logger.warning("<<< Exiting add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s)", rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -670,6 +712,7 @@ class App(Scaffold):
     def template_filter(
         self, name: T_template_filter | str | None = None
     ) -> T_template_filter | t.Callable[[T_template_filter], T_template_filter]:
+        _logrite_logger.error(">>> Entering template_filter(name=%s)", name, extra={"event.action": "template_filter", "logrite.name": name})
         """Decorate a function to register it as a custom Jinja filter. The name
         is optional. The decorator may be used without parentheses.
 
@@ -687,10 +730,13 @@ class App(Scaffold):
         """
         if callable(name):
             self.add_template_filter(name)
+            _logrite_logger.warning("<<< Exiting template_filter(name=%s)", name, extra={"event.action": "template_filter", "logrite.name": name})
             return name
 
         def decorator(f: T_template_filter) -> T_template_filter:
+            _logrite_logger.error(">>> Entering decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             self.add_template_filter(f, name=name)
+            _logrite_logger.warning("<<< Exiting decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             return f
 
         return decorator
@@ -699,6 +745,7 @@ class App(Scaffold):
     def add_template_filter(
         self, f: ft.TemplateFilterCallable, name: str | None = None
     ) -> None:
+        _logrite_logger.error(">>> Entering add_template_filter(f=%s,name=%s)", f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja filter.
 
         The :meth:`template_filter` decorator can be used to register a function
@@ -709,6 +756,7 @@ class App(Scaffold):
             function's name.
         """
         self.jinja_env.filters[name or f.__name__] = f
+        _logrite_logger.warning("<<< Exiting add_template_filter(f=%s,name=%s)", f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
 
     @t.overload
     def template_test(self, name: T_template_test) -> T_template_test: ...
@@ -720,6 +768,7 @@ class App(Scaffold):
     def template_test(
         self, name: T_template_test | str | None = None
     ) -> T_template_test | t.Callable[[T_template_test], T_template_test]:
+        _logrite_logger.error(">>> Entering template_test(name=%s)", name, extra={"event.action": "template_test", "logrite.name": name})
         """Decorate a function to register it as a custom Jinja test. The name
         is optional. The decorator may be used without parentheses.
 
@@ -744,6 +793,7 @@ class App(Scaffold):
         """
         if callable(name):
             self.add_template_test(name)
+            _logrite_logger.warning("<<< Exiting template_test(name=%s)", name, extra={"event.action": "template_test", "logrite.name": name})
             return name
 
         def decorator(f: T_template_test) -> T_template_test:
@@ -756,6 +806,7 @@ class App(Scaffold):
     def add_template_test(
         self, f: ft.TemplateTestCallable, name: str | None = None
     ) -> None:
+        _logrite_logger.error(">>> Entering add_template_test(f=%s,name=%s)", f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja test.
 
         The :meth:`template_test` decorator can be used to register a function
@@ -768,6 +819,7 @@ class App(Scaffold):
         .. versionadded:: 0.10
         """
         self.jinja_env.tests[name or f.__name__] = f
+        _logrite_logger.warning("<<< Exiting add_template_test(f=%s,name=%s)", f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
 
     @t.overload
     def template_global(self, name: T_template_global) -> T_template_global: ...
@@ -779,6 +831,7 @@ class App(Scaffold):
     def template_global(
         self, name: T_template_global | str | None = None
     ) -> T_template_global | t.Callable[[T_template_global], T_template_global]:
+        _logrite_logger.error(">>> Entering template_global(name=%s)", name, extra={"event.action": "template_global", "logrite.name": name})
         """Decorate a function to register it as a custom Jinja global. The name
         is optional. The decorator may be used without parentheses.
 
@@ -798,6 +851,7 @@ class App(Scaffold):
         """
         if callable(name):
             self.add_template_global(name)
+            _logrite_logger.warning("<<< Exiting template_global(name=%s)", name, extra={"event.action": "template_global", "logrite.name": name})
             return name
 
         def decorator(f: T_template_global) -> T_template_global:
@@ -810,6 +864,7 @@ class App(Scaffold):
     def add_template_global(
         self, f: ft.TemplateGlobalCallable, name: str | None = None
     ) -> None:
+        _logrite_logger.error(">>> Entering add_template_global(f=%s,name=%s)", f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja global.
 
         The :meth:`template_global` decorator can be used to register a function
@@ -822,6 +877,7 @@ class App(Scaffold):
         .. versionadded:: 0.10
         """
         self.jinja_env.globals[name or f.__name__] = f
+        _logrite_logger.warning("<<< Exiting add_template_global(f=%s,name=%s)", f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
 
     @setupmethod
     def teardown_appcontext(self, f: T_teardown) -> T_teardown:
@@ -851,23 +907,28 @@ class App(Scaffold):
 
         .. versionadded:: 0.9
         """
+        _logrite_logger.error(">>> Entering teardown_appcontext(f=%s)", f, extra={"event.action": "teardown_appcontext", "logrite.f": f})
         self.teardown_appcontext_funcs.append(f)
+        _logrite_logger.warning("<<< Exiting teardown_appcontext(f=%s)", f, extra={"event.action": "teardown_appcontext", "logrite.f": f})
         return f
 
     @setupmethod
     def shell_context_processor(
         self, f: T_shell_context_processor
     ) -> T_shell_context_processor:
+        _logrite_logger.error(">>> Entering shell_context_processor(f=%s)", f, extra={"event.action": "shell_context_processor", "logrite.f": f})
         """Registers a shell context processor function.
 
         .. versionadded:: 0.11
         """
         self.shell_context_processors.append(f)
+        _logrite_logger.warning("<<< Exiting shell_context_processor(f=%s)", f, extra={"event.action": "shell_context_processor", "logrite.f": f})
         return f
 
     def _find_error_handler(
         self, e: Exception, blueprints: list[str]
     ) -> ft.ErrorHandlerCallable | None:
+        _logrite_logger.error(">>> Entering _find_error_handler(e=%s,blueprints=%s)", e, blueprints, extra={"event.action": "_find_error_handler", "logrite.e": e, "logrite.blueprints": blueprints})
         """Return a registered error handler for an exception in this order:
         blueprint handler for a specific code, app handler for a specific code,
         blueprint handler for an exception class, app handler for an exception
@@ -875,6 +936,7 @@ class App(Scaffold):
         """
         exc_class, code = self._get_exc_class_and_code(type(e))
         names = (*blueprints, None)
+        _logrite_logger.error("_find_error_handler(e=%s,blueprints=%s): names → %s", e, blueprints, names, extra={"event.action": "_find_error_handler", "logrite.e": e, "logrite.blueprints": blueprints})
 
         for c in (code, None) if code is not None else (None,):
             for name in names:
@@ -885,9 +947,11 @@ class App(Scaffold):
 
                 for cls in exc_class.__mro__:
                     handler = handler_map.get(cls)
+                    _logrite_logger.error("_find_error_handler(e=%s,blueprints=%s): handler → %s", e, blueprints, handler, extra={"event.action": "_find_error_handler", "logrite.e": e, "logrite.blueprints": blueprints})
 
                     if handler is not None:
                         return handler
+        _logrite_logger.warning("<<< Exiting _find_error_handler(e=%s,blueprints=%s)", e, blueprints, extra={"event.action": "_find_error_handler", "logrite.e": e, "logrite.blueprints": blueprints})
         return None
 
     def trap_http_exception(self, e: Exception) -> bool:
@@ -907,6 +971,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.8
         """
+        _logrite_logger.error(">>> Entering trap_http_exception(e=%s)", e, extra={"event.action": "trap_http_exception", "logrite.e": e})
         if self.config["TRAP_HTTP_EXCEPTIONS"]:
             return True
 
@@ -923,6 +988,7 @@ class App(Scaffold):
         if trap_bad_request:
             return isinstance(e, BadRequest)
 
+        _logrite_logger.warning("<<< Exiting trap_http_exception(e=%s)", e, extra={"event.action": "trap_http_exception", "logrite.e": e})
         return False
 
     should_ignore_error: None = None
@@ -951,6 +1017,8 @@ class App(Scaffold):
         .. versionadded:: 2.2
             Moved from ``flask.redirect``, which calls this method.
         """
+        _logrite_logger.error(">>> Entering redirect(location=%s,code=%s)", location, code, extra={"event.action": "redirect", "logrite.location": location, "logrite.code": code})
+        _logrite_logger.warning("<<< Exiting redirect(location=%s,code=%s)", location, code, extra={"event.action": "redirect", "logrite.location": location, "logrite.code": code})
         return _wz_redirect(
             location,
             code=code,
@@ -964,6 +1032,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.error(">>> Entering inject_url_defaults(endpoint=%s,values=%s)", endpoint, values, extra={"event.action": "inject_url_defaults", "logrite.endpoint": endpoint, "logrite.values": values})
         names: t.Iterable[str | None] = (None,)
 
         # url_for may be called outside a request context, parse the
@@ -977,10 +1046,12 @@ class App(Scaffold):
             if name in self.url_default_functions:
                 for func in self.url_default_functions[name]:
                     func(endpoint, values)
+                    _logrite_logger.warning("<<< Exiting inject_url_defaults(endpoint=%s,values=%s)", endpoint, values, extra={"event.action": "inject_url_defaults", "logrite.endpoint": endpoint, "logrite.values": values})
 
     def handle_url_build_error(
         self, error: BuildError, endpoint: str, values: dict[str, t.Any]
     ) -> str:
+        _logrite_logger.error(">>> Entering handle_url_build_error(error=%s,endpoint=%s,values=%s)", error, endpoint, values, extra={"event.action": "handle_url_build_error", "logrite.error": error, "logrite.endpoint": endpoint, "logrite.values": values})
         """Called by :meth:`.url_for` if a
         :exc:`~werkzeug.routing.BuildError` was raised. If this returns
         a value, it will be returned by ``url_for``, otherwise the error
@@ -999,10 +1070,13 @@ class App(Scaffold):
             try:
                 rv = handler(error, endpoint, values)
             except BuildError as e:
+                _logrite_logger.error("Exception in handle_url_build_error(error=%s,endpoint=%s,values=%s): %s", error, endpoint, values, str(e), exc_info=True, extra={"event.action": "handle_url_build_error", "event.category": "process", "logrite.error": error, "logrite.endpoint": endpoint, "logrite.values": values})
                 # make error available outside except block
                 error = e
             else:
+                _logrite_logger.error("handle_url_build_error(error=%s,endpoint=%s,values=%s): rv → %s", error, endpoint, values, rv, extra={"event.action": "handle_url_build_error", "logrite.error": error, "logrite.endpoint": endpoint, "logrite.values": values})
                 if rv is not None:
+                    _logrite_logger.warning("<<< Exiting handle_url_build_error(error=%s,endpoint=%s,values=%s)", error, endpoint, values, extra={"event.action": "handle_url_build_error", "logrite.error": error, "logrite.endpoint": endpoint, "logrite.values": values})
                     return rv
 
         # Re-raise if called with an active exception, otherwise raise

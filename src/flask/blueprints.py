@@ -10,6 +10,8 @@ from .helpers import send_from_directory
 from .sansio.blueprints import Blueprint as SansioBlueprint
 from .sansio.blueprints import BlueprintSetupState as BlueprintSetupState  # noqa
 from .sansio.scaffold import _sentinel
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
@@ -69,7 +71,9 @@ class Blueprint(SansioBlueprint):
 
         .. versionadded:: 0.9
         """
+        logger.error(">>> Entering get_send_file_max_age(filename=%s)", filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         value = current_app.config["SEND_FILE_MAX_AGE_DEFAULT"]
+        logger.error("get_send_file_max_age(filename=%s): value → %s", filename, value, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
 
         if value is None:
             return None
@@ -77,6 +81,7 @@ class Blueprint(SansioBlueprint):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+        logger.warning("<<< Exiting get_send_file_max_age(filename=%s)", filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -91,12 +96,15 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.5
 
         """
+        logger.error(">>> Entering send_static_file(filename=%s)", filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
+        logger.warning("<<< Exiting send_static_file(filename=%s)", filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         max_age = self.get_send_file_max_age(filename)
+        logger.error("send_static_file(filename=%s): max_age → %s", filename, max_age, extra={"event.action": "send_static_file", "logrite.filename": filename})
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
@@ -104,6 +112,7 @@ class Blueprint(SansioBlueprint):
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
     ) -> t.IO[t.AnyStr]:
+        logger.error(">>> Entering open_resource(resource=%s,mode=%s,encoding=%s)", resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         """Open a resource file relative to :attr:`root_path` for reading. The
         blueprint-relative equivalent of the app's :meth:`~.Flask.open_resource`
         method.
@@ -121,8 +130,10 @@ class Blueprint(SansioBlueprint):
             raise ValueError("Resources can only be opened for reading.")
 
         path = os.path.join(self.root_path, resource)
+        logger.error("open_resource(resource=%s,mode=%s,encoding=%s): path → %s", resource, mode, encoding, path, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
 
         if mode == "rb":
             return open(path, mode)  # pyright: ignore
 
+        logger.warning("<<< Exiting open_resource(resource=%s,mode=%s,encoding=%s)", resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         return open(path, mode, encoding=encoding)

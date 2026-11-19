@@ -17,6 +17,9 @@ from werkzeug.utils import cached_property
 from .. import typing as ft
 from ..helpers import get_root_path
 from ..templating import _default_template_ctx_processor
+import time
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
@@ -40,10 +43,14 @@ T_route = t.TypeVar("T_route", bound=ft.RouteCallable)
 
 
 def setupmethod(f: F) -> F:
+    logger.error(">>> Entering setupmethod(f=%s)", f, extra={"event.action": "setupmethod", "logrite.f": f})
     f_name = f.__name__
+    logger.warning("<<< Exiting setupmethod(f=%s)", f, extra={"event.action": "setupmethod", "logrite.f": f})
 
     def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        logger.error(">>> Entering wrapper_func()", extra={"event.action": "wrapper_func"})
         self._check_setup_finished(f_name)
+        logger.warning("<<< Exiting wrapper_func()", extra={"event.action": "wrapper_func"})
         return f(self, *args, **kwargs)
 
     return t.cast(F, update_wrapper(wrapper_func, f))
@@ -80,17 +87,22 @@ class Scaffold:
         template_folder: str | os.PathLike[str] | None = None,
         root_path: str | None = None,
     ):
+        logger.error(">>> Entering __init__(import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s)", import_name, static_folder, static_url_path, template_folder, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
         #: The name of the package or module that this object belongs
         #: to. Do not change this once it is set by the constructor.
         self.import_name = import_name
+        logger.debug("__init__(self=%s,import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s): self.import_name → %s", self, import_name, static_folder, static_url_path, template_folder, root_path, self.import_name, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
 
         self.static_folder = static_folder
+        logger.debug("__init__(self=%s,import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s): self.static_folder → %s", self, import_name, static_folder, static_url_path, template_folder, root_path, self.static_folder, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
         self.static_url_path = static_url_path
+        logger.debug("__init__(self=%s,import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s): self.static_url_path → %s", self, import_name, static_folder, static_url_path, template_folder, root_path, self.static_url_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
 
         #: The path to the templates folder, relative to
         #: :attr:`root_path`, to add to the template loader. ``None`` if
         #: templates should not be added.
         self.template_folder = template_folder
+        logger.debug("__init__(self=%s,import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s): self.template_folder → %s", self, import_name, static_folder, static_url_path, template_folder, root_path, self.template_folder, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
 
         if root_path is None:
             root_path = get_root_path(self.import_name)
@@ -98,6 +110,7 @@ class Scaffold:
         #: Absolute path to the package on the filesystem. Used to look
         #: up resources contained in the package.
         self.root_path = root_path
+        logger.debug("__init__(self=%s,import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s): self.root_path → %s", self, import_name, static_folder, static_url_path, template_folder, root_path, self.root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
 
         #: A dictionary mapping endpoint names to view functions.
         #:
@@ -213,11 +226,16 @@ class Scaffold:
         self.url_default_functions: dict[
             ft.AppOrBlueprintKey, list[ft.URLDefaultCallable]
         ] = defaultdict(list)
+        logger.warning("<<< Exiting __init__(import_name=%s,static_folder=%s,static_url_path=%s,template_folder=%s,root_path=%s)", import_name, static_folder, static_url_path, template_folder, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_folder": static_folder, "logrite.static_url_path": static_url_path, "logrite.template_folder": template_folder, "logrite.root_path": root_path})
 
     def __repr__(self) -> str:
+        logger.error(">>> Entering __repr__()", extra={"event.action": "__repr__"})
+        logger.warning("<<< Exiting __repr__()", extra={"event.action": "__repr__"})
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.error(">>> Entering _check_setup_finished(f_name=%s)", f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
+        logger.warning("<<< Exiting _check_setup_finished(f_name=%s)", f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
         raise NotImplementedError
 
     @property
@@ -225,17 +243,23 @@ class Scaffold:
         """The absolute path to the configured static folder. ``None``
         if no static folder is set.
         """
+        logger.error(">>> Entering static_folder()", extra={"event.action": "static_folder"})
         if self._static_folder is not None:
             return os.path.join(self.root_path, self._static_folder)
         else:
+            logger.warning("<<< Exiting static_folder()", extra={"event.action": "static_folder"})
             return None
 
     @static_folder.setter
     def static_folder(self, value: str | os.PathLike[str] | None) -> None:
+        logger.error(">>> Entering static_folder(value=%s)", value, extra={"event.action": "static_folder", "logrite.value": value})
         if value is not None:
             value = os.fspath(value).rstrip(r"\/")
+            logger.error("static_folder(value=%s): value → %s", value, value, extra={"event.action": "static_folder", "logrite.value": value})
 
+            logger.warning("<<< Exiting static_folder(value=%s)", value, extra={"event.action": "static_folder", "logrite.value": value})
         self._static_folder = value
+        logger.debug("static_folder(self=%s,value=%s): self._static_folder → %s", self, value, self._static_folder, extra={"event.action": "static_folder", "logrite.value": value})
 
     @property
     def has_static_folder(self) -> bool:
@@ -243,6 +267,8 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.error(">>> Entering has_static_folder()", extra={"event.action": "has_static_folder"})
+        logger.warning("<<< Exiting has_static_folder()", extra={"event.action": "has_static_folder"})
         return self.static_folder is not None
 
     @property
@@ -252,6 +278,7 @@ class Scaffold:
         If it was not configured during init, it is derived from
         :attr:`static_folder`.
         """
+        logger.error(">>> Entering static_url_path()", extra={"event.action": "static_url_path"})
         if self._static_url_path is not None:
             return self._static_url_path
 
@@ -259,14 +286,19 @@ class Scaffold:
             basename = os.path.basename(self.static_folder)
             return f"/{basename}".rstrip("/")
 
+        logger.warning("<<< Exiting static_url_path()", extra={"event.action": "static_url_path"})
         return None
 
     @static_url_path.setter
     def static_url_path(self, value: str | None) -> None:
+        logger.error(">>> Entering static_url_path(value=%s)", value, extra={"event.action": "static_url_path", "logrite.value": value})
         if value is not None:
             value = value.rstrip("/")
+            logger.error("static_url_path(value=%s): value → %s", value, value, extra={"event.action": "static_url_path", "logrite.value": value})
 
+            logger.warning("<<< Exiting static_url_path(value=%s)", value, extra={"event.action": "static_url_path", "logrite.value": value})
         self._static_url_path = value
+        logger.debug("static_url_path(self=%s,value=%s): self._static_url_path → %s", self, value, self._static_url_path, extra={"event.action": "static_url_path", "logrite.value": value})
 
     @cached_property
     def jinja_loader(self) -> BaseLoader | None:
@@ -276,9 +308,11 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.error(">>> Entering jinja_loader()", extra={"event.action": "jinja_loader"})
         if self.template_folder is not None:
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
+            logger.warning("<<< Exiting jinja_loader()", extra={"event.action": "jinja_loader"})
             return None
 
     def _method_route(
@@ -287,9 +321,11 @@ class Scaffold:
         rule: str,
         options: dict[str, t.Any],
     ) -> t.Callable[[T_route], T_route]:
+        logger.error(">>> Entering _method_route(method=%s,rule=%s,options=%s)", method, rule, options, extra={"event.action": "_method_route", "logrite.method": method, "logrite.rule": rule, "logrite.options": options})
         if "methods" in options:
             raise TypeError("Use the 'route' decorator to use the 'methods' argument.")
 
+        logger.warning("<<< Exiting _method_route(method=%s,rule=%s,options=%s)", method, rule, options, extra={"event.action": "_method_route", "logrite.method": method, "logrite.rule": rule, "logrite.options": options})
         return self.route(rule, methods=[method], **options)
 
     @setupmethod
@@ -298,6 +334,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering get(rule=%s)", rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.warning("<<< Exiting get(rule=%s)", rule, extra={"event.action": "get", "logrite.rule": rule})
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +344,8 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.error(">>> Entering query(rule=%s)", rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.warning("<<< Exiting query(rule=%s)", rule, extra={"event.action": "query", "logrite.rule": rule})
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -314,6 +354,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering post(rule=%s)", rule, extra={"event.action": "post", "logrite.rule": rule})
+        logger.warning("<<< Exiting post(rule=%s)", rule, extra={"event.action": "post", "logrite.rule": rule})
         return self._method_route("POST", rule, options)
 
     @setupmethod
@@ -322,6 +364,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering put(rule=%s)", rule, extra={"event.action": "put", "logrite.rule": rule})
+        logger.warning("<<< Exiting put(rule=%s)", rule, extra={"event.action": "put", "logrite.rule": rule})
         return self._method_route("PUT", rule, options)
 
     @setupmethod
@@ -330,6 +374,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering delete(rule=%s)", rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.warning("<<< Exiting delete(rule=%s)", rule, extra={"event.action": "delete", "logrite.rule": rule})
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -338,6 +384,8 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering patch(rule=%s)", rule, extra={"event.action": "patch", "logrite.rule": rule})
+        logger.warning("<<< Exiting patch(rule=%s)", rule, extra={"event.action": "patch", "logrite.rule": rule})
         return self._method_route("PATCH", rule, options)
 
     @setupmethod
@@ -364,10 +412,15 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.error(">>> Entering route(rule=%s)", rule, extra={"event.action": "route", "logrite.rule": rule})
 
+        logger.warning("<<< Exiting route(rule=%s)", rule, extra={"event.action": "route", "logrite.rule": rule})
         def decorator(f: T_route) -> T_route:
+            logger.error(">>> Entering decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             endpoint = options.pop("endpoint", None)
+            logger.error("decorator(f=%s): endpoint → %s", f, endpoint, extra={"event.action": "decorator", "logrite.f": f})
             self.add_url_rule(rule, endpoint, f, **options)
+            logger.warning("<<< Exiting decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             return f
 
         return decorator
@@ -381,6 +434,7 @@ class Scaffold:
         provide_automatic_options: bool | None = None,
         **options: t.Any,
     ) -> None:
+        logger.error(">>> Entering add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s)", rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         """Register a rule for routing incoming requests and building
         URLs. The :meth:`route` decorator is a shortcut to call this
         with the ``view_func`` argument. These are equivalent:
@@ -438,6 +492,7 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.warning("<<< Exiting add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s)", rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         raise NotImplementedError
 
     @setupmethod
@@ -457,7 +512,9 @@ class Scaffold:
         :param endpoint: The endpoint name to associate with the view
             function.
         """
+        logger.error(">>> Entering endpoint(endpoint=%s)", endpoint, extra={"event.action": "endpoint", "logrite.endpoint": endpoint})
 
+        logger.warning("<<< Exiting endpoint(endpoint=%s)", endpoint, extra={"event.action": "endpoint", "logrite.endpoint": endpoint})
         def decorator(f: F) -> F:
             self.view_functions[endpoint] = f
             return f
@@ -466,6 +523,7 @@ class Scaffold:
 
     @setupmethod
     def before_request(self, f: T_before_request) -> T_before_request:
+        __log_start = time.time()
         """Register a function to run before each request.
 
         For example, this can be used to open a database connection, or
@@ -488,7 +546,10 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
+        logger.error(">>> Entering before_request(f=%s)", f, extra={"event.action": "before_request", "logrite.f": f})
         self.before_request_funcs.setdefault(None, []).append(f)
+        logger.error("before_request(f)=%s: find operation took %s ms", f, int((time.time() - __log_start) * 1000), extra={"event.action": "before_request", "event.category": "database", "logrite.f": f})
+        logger.warning("<<< Exiting before_request(f=%s)", f, extra={"event.action": "before_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -509,7 +570,9 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.after_app_request`.
         """
+        logger.error(">>> Entering after_request(f=%s)", f, extra={"event.action": "after_request", "logrite.f": f})
         self.after_request_funcs.setdefault(None, []).append(f)
+        logger.warning("<<< Exiting after_request(f=%s)", f, extra={"event.action": "after_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -543,7 +606,9 @@ class Scaffold:
         every request that the blueprint handles. To register with a blueprint and
         execute after every request, use :meth:`.Blueprint.teardown_app_request`.
         """
+        logger.error(">>> Entering teardown_request(f=%s)", f, extra={"event.action": "teardown_request", "logrite.f": f})
         self.teardown_request_funcs.setdefault(None, []).append(f)
+        logger.warning("<<< Exiting teardown_request(f=%s)", f, extra={"event.action": "teardown_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -551,6 +616,7 @@ class Scaffold:
         self,
         f: T_template_context_processor,
     ) -> T_template_context_processor:
+        logger.error(">>> Entering context_processor(f=%s)", f, extra={"event.action": "context_processor", "logrite.f": f})
         """Registers a template context processor function. These functions run before
         rendering a template. The keys of the returned dict are added as variables
         available in the template.
@@ -561,6 +627,7 @@ class Scaffold:
         and affect every template, use :meth:`.Blueprint.app_context_processor`.
         """
         self.template_context_processors[None].append(f)
+        logger.warning("<<< Exiting context_processor(f=%s)", f, extra={"event.action": "context_processor", "logrite.f": f})
         return f
 
     @setupmethod
@@ -568,6 +635,7 @@ class Scaffold:
         self,
         f: T_url_value_preprocessor,
     ) -> T_url_value_preprocessor:
+        logger.error(">>> Entering url_value_preprocessor(f=%s)", f, extra={"event.action": "url_value_preprocessor", "logrite.f": f})
         """Register a URL value preprocessor function for all view
         functions in the application. These functions will be called before the
         :meth:`before_request` functions.
@@ -586,6 +654,7 @@ class Scaffold:
         every request, use :meth:`.Blueprint.app_url_value_preprocessor`.
         """
         self.url_value_preprocessors[None].append(f)
+        logger.warning("<<< Exiting url_value_preprocessor(f=%s)", f, extra={"event.action": "url_value_preprocessor", "logrite.f": f})
         return f
 
     @setupmethod
@@ -599,13 +668,16 @@ class Scaffold:
         requests that the blueprint handles. To register with a blueprint and affect
         every request, use :meth:`.Blueprint.app_url_defaults`.
         """
+        logger.error(">>> Entering url_defaults(f=%s)", f, extra={"event.action": "url_defaults", "logrite.f": f})
         self.url_default_functions[None].append(f)
+        logger.warning("<<< Exiting url_defaults(f=%s)", f, extra={"event.action": "url_defaults", "logrite.f": f})
         return f
 
     @setupmethod
     def errorhandler(
         self, code_or_exception: type[Exception] | int
     ) -> t.Callable[[T_error_handler], T_error_handler]:
+        logger.error(">>> Entering errorhandler(code_or_exception=%s)", code_or_exception, extra={"event.action": "errorhandler", "logrite.code_or_exception": code_or_exception})
         """Register a function to handle errors by code or exception class.
 
         A decorator that is used to register a function given an
@@ -639,6 +711,7 @@ class Scaffold:
         :param code_or_exception: the code as integer for the handler, or
                                   an arbitrary exception
         """
+        logger.warning("<<< Exiting errorhandler(code_or_exception=%s)", code_or_exception, extra={"event.action": "errorhandler", "logrite.code_or_exception": code_or_exception})
 
         def decorator(f: T_error_handler) -> T_error_handler:
             self.register_error_handler(code_or_exception, f)
@@ -652,6 +725,7 @@ class Scaffold:
         code_or_exception: type[Exception] | int,
         f: ft.ErrorHandlerCallable,
     ) -> None:
+        logger.error(">>> Entering register_error_handler(code_or_exception=%s,f=%s)", code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
         """Alternative error attach function to the :meth:`errorhandler`
         decorator that is more straightforward to use for non decorator
         usage.
@@ -660,11 +734,13 @@ class Scaffold:
         """
         exc_class, code = self._get_exc_class_and_code(code_or_exception)
         self.error_handler_spec[None][code][exc_class] = f
+        logger.warning("<<< Exiting register_error_handler(code_or_exception=%s,f=%s)", code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
 
     @staticmethod
     def _get_exc_class_and_code(
         exc_class_or_code: type[Exception] | int,
     ) -> tuple[type[Exception], int | None]:
+        logger.error(">>> Entering _get_exc_class_and_code(exc_class_or_code=%s)", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
         """Get the exception class being handled. For HTTP status codes
         or ``HTTPException`` subclasses, return both the exception and
         status code.
@@ -678,6 +754,7 @@ class Scaffold:
             try:
                 exc_class = default_exceptions[exc_class_or_code]
             except KeyError:
+                logger.error("Exception in _get_exc_class_and_code(exc_class_or_code=%s)", exc_class_or_code, exc_info=True, extra={"event.action": "_get_exc_class_and_code", "event.category": "process", "logrite.exc_class_or_code": exc_class_or_code})
                 raise ValueError(
                     f"'{exc_class_or_code}' is not a recognized HTTP"
                     " error code. Use a subclass of HTTPException with"
@@ -703,6 +780,7 @@ class Scaffold:
         if issubclass(exc_class, HTTPException):
             return exc_class, exc_class.code
         else:
+            logger.warning("<<< Exiting _get_exc_class_and_code(exc_class_or_code=%s)", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
             return exc_class, None
 
 
@@ -710,20 +788,25 @@ def _endpoint_from_view_func(view_func: ft.RouteCallable) -> str:
     """Internal helper that returns the default endpoint for a given
     function.  This always is the function name.
     """
+    logger.error(">>> Entering _endpoint_from_view_func(view_func=%s)", view_func, extra={"event.action": "_endpoint_from_view_func", "logrite.view_func": view_func})
     assert view_func is not None, "expected view func if endpoint is not provided."
+    logger.warning("<<< Exiting _endpoint_from_view_func(view_func=%s)", view_func, extra={"event.action": "_endpoint_from_view_func", "logrite.view_func": view_func})
     return view_func.__name__
 
 
 def _find_package_path(import_name: str) -> str:
     """Find the path that contains the package or module."""
+    logger.error(">>> Entering _find_package_path(import_name=%s)", import_name, extra={"event.action": "_find_package_path", "logrite.import_name": import_name})
     root_mod_name, _, _ = import_name.partition(".")
 
     try:
         root_spec = importlib.util.find_spec(root_mod_name)
+        logger.error("_find_package_path(import_name=%s): root_spec → %s", import_name, root_spec, extra={"event.action": "_find_package_path", "logrite.import_name": import_name})
 
         if root_spec is None:
             raise ValueError("not found")
     except (ImportError, ValueError):
+        logger.error("Exception in _find_package_path(import_name=%s)", import_name, exc_info=True, extra={"event.action": "_find_package_path", "event.category": "process", "logrite.import_name": import_name})
         # ImportError: the machinery told us it does not exist
         # ValueError:
         #    - the module name was invalid
@@ -756,6 +839,7 @@ def _find_package_path(import_name: str) -> str:
             return os.path.dirname(os.path.dirname(root_spec.origin))
     else:
         # module
+        logger.warning("<<< Exiting _find_package_path(import_name=%s)", import_name, extra={"event.action": "_find_package_path", "logrite.import_name": import_name})
         return os.path.dirname(root_spec.origin)  # type: ignore[type-var, return-value]
 
 
@@ -772,8 +856,11 @@ def find_package(import_name: str) -> tuple[str | None, str]:
     for import. If the package is not installed, it's assumed that the
     package was imported from the current working directory.
     """
+    logger.error(">>> Entering find_package(import_name=%s)", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     package_path = _find_package_path(import_name)
+    logger.error("find_package(import_name=%s): package_path → %s", import_name, package_path, extra={"event.action": "find_package", "logrite.import_name": import_name})
     py_prefix = os.path.abspath(sys.prefix)
+    logger.error("find_package(import_name=%s): py_prefix → %s", import_name, py_prefix, extra={"event.action": "find_package", "logrite.import_name": import_name})
 
     # installed to the system
     if pathlib.PurePath(package_path).is_relative_to(py_prefix):
@@ -797,4 +884,5 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         return site_parent, package_path
 
     # not installed
+    logger.warning("<<< Exiting find_package(import_name=%s)", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     return None, package_path

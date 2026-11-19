@@ -23,6 +23,8 @@ from werkzeug.utils import import_string
 from .globals import current_app
 from .helpers import get_debug_flag
 from .helpers import get_load_dotenv
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import ssl
@@ -42,11 +44,13 @@ def find_best_app(module: ModuleType) -> Flask:
     """Given a module instance this tries to find the best possible
     application in the module or raises an exception.
     """
+    logger.error(">>> Entering find_best_app(module=%s)", module, extra={"event.action": "find_best_app", "logrite.module": module})
     from . import Flask
 
     # Search for the most common names first.
     for attr_name in ("app", "application"):
         app = getattr(module, attr_name, None)
+        logger.error("find_best_app(module=%s): app → %s", module, app, extra={"event.action": "find_best_app", "logrite.module": module})
 
         if isinstance(app, Flask):
             return app
@@ -74,7 +78,9 @@ def find_best_app(module: ModuleType) -> Flask:
                 if isinstance(app, Flask):
                     return app
             except TypeError as e:
+                logger.error("Exception in find_best_app(module=%s): %s", module, str(e), exc_info=True, extra={"event.action": "find_best_app", "event.category": "process", "logrite.module": module})
                 if not _called_with_wrong_args(app_factory):
+                    logger.warning("<<< Exiting find_best_app(module=%s)", module, extra={"event.action": "find_best_app", "logrite.module": module})
                     raise
 
                 raise NoAppException(
@@ -99,6 +105,7 @@ def _called_with_wrong_args(f: t.Callable[..., Flask]) -> bool:
     :param f: The function that was called.
     :return: ``True`` if the call failed.
     """
+    logger.error(">>> Entering _called_with_wrong_args(f=%s)", f, extra={"event.action": "_called_with_wrong_args", "logrite.f": f})
     tb = sys.exc_info()[2]
 
     try:
@@ -112,6 +119,7 @@ def _called_with_wrong_args(f: t.Callable[..., Flask]) -> bool:
         # Didn't reach the function.
         return True
     finally:
+        logger.warning("<<< Exiting _called_with_wrong_args(f=%s)", f, extra={"event.action": "_called_with_wrong_args", "logrite.f": f})
         # Delete tb to break a circular reference.
         # https://docs.python.org/2/library/sys.html#sys.exc_info
         del tb
@@ -121,6 +129,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     """Check if the given string is a variable name or a function. Call
     a function to get the app instance, or return the variable directly.
     """
+    logger.error(">>> Entering find_app_by_string(module=%s,app_name=%s)", module, app_name, extra={"event.action": "find_app_by_string", "logrite.module": module, "logrite.app_name": app_name})
     from . import Flask
 
     # Parse app_name as a single expression to determine if it's a valid
@@ -128,13 +137,16 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     try:
         expr = ast.parse(app_name.strip(), mode="eval").body
     except SyntaxError:
+        logger.error("Exception in find_app_by_string(module=%s,app_name=%s)", module, app_name, exc_info=True, extra={"event.action": "find_app_by_string", "event.category": "process", "logrite.module": module, "logrite.app_name": app_name})
         raise NoAppException(
             f"Failed to parse {app_name!r} as an attribute name or function call."
         ) from None
 
     if isinstance(expr, ast.Name):
         name = expr.id
+        logger.error("find_app_by_string(module=%s,app_name=%s): name → %s", module, app_name, name, extra={"event.action": "find_app_by_string", "logrite.module": module, "logrite.app_name": app_name})
         args = []
+        logger.error("find_app_by_string(module=%s,app_name=%s): args → %s", module, app_name, args, extra={"event.action": "find_app_by_string", "logrite.module": module, "logrite.app_name": app_name})
         kwargs = {}
     elif isinstance(expr, ast.Call):
         # Ensure the function name is an attribute name only.
@@ -167,6 +179,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
     try:
         attr = getattr(module, name)
     except AttributeError as e:
+        logger.error("Exception in find_app_by_string(module=%s,app_name=%s): %s", module, app_name, str(e), exc_info=True, extra={"event.action": "find_app_by_string", "event.category": "process", "logrite.module": module, "logrite.app_name": app_name})
         raise NoAppException(
             f"Failed to find attribute {name!r} in {module.__name__!r}."
         ) from e
@@ -189,6 +202,7 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Flask:
         app = attr
 
     if isinstance(app, Flask):
+        logger.warning("<<< Exiting find_app_by_string(module=%s,app_name=%s)", module, app_name, extra={"event.action": "find_app_by_string", "logrite.module": module, "logrite.app_name": app_name})
         return app
 
     raise NoAppException(
@@ -201,7 +215,9 @@ def prepare_import(path: str) -> str:
     """Given a filename this will try to calculate the python path, add it
     to the search path and return the actual module name that is expected.
     """
+    logger.error(">>> Entering prepare_import(path=%s)", path, extra={"event.action": "prepare_import", "logrite.path": path})
     path = os.path.realpath(path)
+    logger.error("prepare_import(path=%s): path → %s", path, path, extra={"event.action": "prepare_import", "logrite.path": path})
 
     fname, ext = os.path.splitext(path)
     if ext == ".py":
@@ -223,6 +239,7 @@ def prepare_import(path: str) -> str:
     if sys.path[0] != path:
         sys.path.insert(0, path)
 
+    logger.warning("<<< Exiting prepare_import(path=%s)", path, extra={"event.action": "prepare_import", "logrite.path": path})
     return ".".join(module_name[::-1])
 
 
@@ -241,9 +258,11 @@ def locate_app(
 def locate_app(
     module_name: str, app_name: str | None, raise_if_not_found: bool = True
 ) -> Flask | None:
+    logger.error(">>> Entering locate_app(module_name=%s,app_name=%s,raise_if_not_found=%s)", module_name, app_name, raise_if_not_found, extra={"event.action": "locate_app", "logrite.module_name": module_name, "logrite.app_name": app_name, "logrite.raise_if_not_found": raise_if_not_found})
     try:
         __import__(module_name)
     except ImportError:
+        logger.error("Exception in locate_app(module_name=%s,app_name=%s,raise_if_not_found=%s)", module_name, app_name, raise_if_not_found, exc_info=True, extra={"event.action": "locate_app", "event.category": "process", "logrite.module_name": module_name, "logrite.app_name": app_name, "logrite.raise_if_not_found": raise_if_not_found})
         # Reraise the ImportError if it occurred within the imported module.
         # Determine this by checking whether the trace has a depth > 1.
         if sys.exc_info()[2].tb_next:  # type: ignore[union-attr]
@@ -261,11 +280,14 @@ def locate_app(
     if app_name is None:
         return find_best_app(module)
     else:
+        logger.warning("<<< Exiting locate_app(module_name=%s,app_name=%s,raise_if_not_found=%s)", module_name, app_name, raise_if_not_found, extra={"event.action": "locate_app", "logrite.module_name": module_name, "logrite.app_name": app_name, "logrite.raise_if_not_found": raise_if_not_found})
         return find_app_by_string(module, app_name)
 
 
 def get_version(ctx: click.Context, param: click.Parameter, value: t.Any) -> None:
+    logger.error(">>> Entering get_version(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "get_version", "logrite.param": param, "logrite.value": value})
     if not value or ctx.resilient_parsing:
+        logger.warning("<<< Exiting get_version(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "get_version", "logrite.param": param, "logrite.value": value})
         return
 
     flask_version = importlib.metadata.version("flask")
@@ -309,15 +331,20 @@ class ScriptInfo:
         set_debug_flag: bool = True,
         load_dotenv_defaults: bool = True,
     ) -> None:
+        logger.error(">>> Entering __init__(app_import_path=%s,create_app=%s,set_debug_flag=%s,load_dotenv_defaults=%s)", app_import_path, create_app, set_debug_flag, load_dotenv_defaults, extra={"event.action": "__init__", "logrite.app_import_path": app_import_path, "logrite.create_app": create_app, "logrite.set_debug_flag": set_debug_flag, "logrite.load_dotenv_defaults": load_dotenv_defaults})
+        logger.error("__init__(app_import_path=%s,create_app=%s,set_debug_flag=%s,load_dotenv_defaults=%s): load_dotenv_defaults → %s", app_import_path, create_app, set_debug_flag, load_dotenv_defaults, load_dotenv_defaults, extra={"event.action": "__init__", "logrite.app_import_path": app_import_path, "logrite.create_app": create_app, "logrite.set_debug_flag": set_debug_flag, "logrite.load_dotenv_defaults": load_dotenv_defaults})
         #: Optionally the import path for the Flask application.
         self.app_import_path = app_import_path
+        logger.debug("__init__(self=%s,app_import_path=%s,create_app=%s,set_debug_flag=%s,load_dotenv_defaults=%s): self.app_import_path → %s", self, app_import_path, create_app, set_debug_flag, load_dotenv_defaults, self.app_import_path, extra={"event.action": "__init__", "logrite.app_import_path": app_import_path, "logrite.create_app": create_app, "logrite.set_debug_flag": set_debug_flag, "logrite.load_dotenv_defaults": load_dotenv_defaults})
         #: Optionally a function that is passed the script info to create
         #: the instance of the application.
         self.create_app = create_app
+        logger.debug("__init__(self=%s,app_import_path=%s,create_app=%s,set_debug_flag=%s,load_dotenv_defaults=%s): self.create_app → %s", self, app_import_path, create_app, set_debug_flag, load_dotenv_defaults, self.create_app, extra={"event.action": "__init__", "logrite.app_import_path": app_import_path, "logrite.create_app": create_app, "logrite.set_debug_flag": set_debug_flag, "logrite.load_dotenv_defaults": load_dotenv_defaults})
         #: A dictionary with arbitrary data that can be associated with
         #: this script info.
         self.data: dict[t.Any, t.Any] = {}
         self.set_debug_flag = set_debug_flag
+        logger.debug("__init__(self=%s,app_import_path=%s,create_app=%s,set_debug_flag=%s,load_dotenv_defaults=%s): self.set_debug_flag → %s", self, app_import_path, create_app, set_debug_flag, load_dotenv_defaults, self.set_debug_flag, extra={"event.action": "__init__", "logrite.app_import_path": app_import_path, "logrite.create_app": create_app, "logrite.set_debug_flag": set_debug_flag, "logrite.load_dotenv_defaults": load_dotenv_defaults})
 
         self.load_dotenv_defaults = get_load_dotenv(load_dotenv_defaults)
         """Whether default ``.flaskenv`` and ``.env`` files should be loaded.
@@ -329,12 +356,14 @@ class ScriptInfo:
         """
 
         self._loaded_app: Flask | None = None
+        logger.warning("<<< Exiting __init__(app_import_path=%s,create_app=%s,set_debug_flag=%s,load_dotenv_defaults=%s)", app_import_path, create_app, set_debug_flag, load_dotenv_defaults, extra={"event.action": "__init__", "logrite.app_import_path": app_import_path, "logrite.create_app": create_app, "logrite.set_debug_flag": set_debug_flag, "logrite.load_dotenv_defaults": load_dotenv_defaults})
 
     def load_app(self) -> Flask:
         """Loads the Flask app (if not yet loaded) and returns it.  Calling
         this multiple times will just result in the already loaded app to
         be returned.
         """
+        logger.error(">>> Entering load_app()", extra={"event.action": "load_app"})
         if self._loaded_app is not None:
             return self._loaded_app
         app: Flask | None = None
@@ -369,6 +398,8 @@ class ScriptInfo:
             app.debug = get_debug_flag()
 
         self._loaded_app = app
+        logger.debug("load_app(self=%s): self._loaded_app → %s", self, self._loaded_app, extra={"event.action": "load_app"})
+        logger.warning("<<< Exiting load_app()", extra={"event.action": "load_app"})
         return app
 
 
@@ -390,13 +421,17 @@ def with_appcontext(f: F) -> F:
         decorated callback. The app context is always available to
         ``app.cli`` command and parameter callbacks.
     """
+    logger.error(">>> Entering with_appcontext(f=%s)", f, extra={"event.action": "with_appcontext", "logrite.f": f})
 
     @click.pass_context
     def decorator(ctx: click.Context, /, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        logger.error(">>> Entering decorator(ctx=%s)", ctx, extra={"event.action": "decorator"})
         if not current_app:
             app = ctx.ensure_object(ScriptInfo).load_app()
+            logger.error("decorator(ctx=%s): app → %s", ctx, app, extra={"event.action": "decorator"})
             ctx.with_resource(app.app_context())
 
+        logger.warning("<<< Exiting decorator(ctx=%s)", ctx, extra={"event.action": "decorator"})
         return ctx.invoke(f, *args, **kwargs)
 
     return update_wrapper(decorator, f)  # type: ignore[return-value]
@@ -413,15 +448,20 @@ class AppGroup(click.Group):
     def command(  # type: ignore[override]
         self, *args: t.Any, **kwargs: t.Any
     ) -> t.Callable[[t.Callable[..., t.Any]], click.Command]:
+        logger.error(">>> Entering command()", extra={"event.action": "command"})
         """This works exactly like the method of the same name on a regular
         :class:`click.Group` but it wraps callbacks in :func:`with_appcontext`
         unless it's disabled by passing ``with_appcontext=False``.
         """
+        logger.warning("<<< Exiting command()", extra={"event.action": "command"})
         wrap_for_ctx = kwargs.pop("with_appcontext", True)
+        logger.error("command(): wrap_for_ctx → %s", wrap_for_ctx, extra={"event.action": "command"})
 
         def decorator(f: t.Callable[..., t.Any]) -> click.Command:
+            logger.error(">>> Entering decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             if wrap_for_ctx:
                 f = with_appcontext(f)
+            logger.error("decorator(f=%s): f → %s", f, f, extra={"event.action": "decorator", "logrite.f": f})
             return super(AppGroup, self).command(*args, **kwargs)(f)  # type: ignore[no-any-return]
 
         return decorator
@@ -429,20 +469,26 @@ class AppGroup(click.Group):
     def group(  # type: ignore[override]
         self, *args: t.Any, **kwargs: t.Any
     ) -> t.Callable[[t.Callable[..., t.Any]], click.Group]:
+        logger.error(">>> Entering group()", extra={"event.action": "group"})
         """This works exactly like the method of the same name on a regular
         :class:`click.Group` but it defaults the group class to
         :class:`AppGroup`.
         """
         kwargs.setdefault("cls", AppGroup)
+        logger.debug("group(self=%s): kwargs → %s", self, kwargs, extra={"event.action": "group"})
+        logger.warning("<<< Exiting group()", extra={"event.action": "group"})
         return super().group(*args, **kwargs)  # type: ignore[no-any-return]
 
 
 def _set_app(ctx: click.Context, param: click.Option, value: str | None) -> str | None:
+    logger.error(">>> Entering _set_app(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "_set_app", "logrite.param": param, "logrite.value": value})
     if value is None:
         return None
 
     info = ctx.ensure_object(ScriptInfo)
     info.app_import_path = value
+    logger.debug("_set_app(ctx=%s,param=%s,value=%s): info.app_import_path → %s", ctx, param, value, info.app_import_path, extra={"event.action": "_set_app", "logrite.param": param, "logrite.value": value})
+    logger.warning("<<< Exiting _set_app(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "_set_app", "logrite.param": param, "logrite.value": value})
     return value
 
 
@@ -466,9 +512,11 @@ _app_option = click.Option(
 
 
 def _set_debug(ctx: click.Context, param: click.Option, value: bool) -> bool | None:
+    logger.error(">>> Entering _set_debug(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "_set_debug", "logrite.param": param, "logrite.value": value})
     # If the flag isn't provided, it will default to False. Don't use
     # that, let debug be set by env in that case.
     source = ctx.get_parameter_source(param.name)
+    logger.error("_set_debug(ctx=%s,param=%s,value=%s): source → %s", ctx, param, value, source, extra={"event.action": "_set_debug", "logrite.param": param, "logrite.value": value})
 
     if source is not None and source in (
         ParameterSource.DEFAULT,
@@ -479,6 +527,7 @@ def _set_debug(ctx: click.Context, param: click.Option, value: bool) -> bool | N
     # Set with env var instead of ScriptInfo.load so that it can be
     # accessed early during a factory function.
     os.environ["FLASK_DEBUG"] = "1" if value else "0"
+    logger.warning("<<< Exiting _set_debug(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "_set_debug", "logrite.param": param, "logrite.value": value})
     return value
 
 
@@ -569,6 +618,7 @@ class FlaskGroup(AppGroup):
         set_debug_flag: bool = True,
         **extra: t.Any,
     ) -> None:
+        logger.error(">>> Entering __init__(add_default_commands=%s,create_app=%s,add_version_option=%s,load_dotenv=%s,set_debug_flag=%s)", add_default_commands, create_app, add_version_option, load_dotenv, set_debug_flag, extra={"event.action": "__init__", "logrite.add_default_commands": add_default_commands, "logrite.create_app": create_app, "logrite.add_version_option": add_version_option, "logrite.load_dotenv": load_dotenv, "logrite.set_debug_flag": set_debug_flag})
         params: list[click.Parameter] = list(extra.pop("params", None) or ())
         # Processing is done with option callbacks instead of a group
         # callback. This allows users to make a custom group callback
@@ -587,26 +637,35 @@ class FlaskGroup(AppGroup):
         super().__init__(params=params, **extra)
 
         self.create_app = create_app
+        logger.debug("__init__(self=%s,add_default_commands=%s,create_app=%s,add_version_option=%s,load_dotenv=%s,set_debug_flag=%s): self.create_app → %s", self, add_default_commands, create_app, add_version_option, load_dotenv, set_debug_flag, self.create_app, extra={"event.action": "__init__", "logrite.add_default_commands": add_default_commands, "logrite.create_app": create_app, "logrite.add_version_option": add_version_option, "logrite.load_dotenv": load_dotenv, "logrite.set_debug_flag": set_debug_flag})
         self.load_dotenv = load_dotenv
+        logger.debug("__init__(self=%s,add_default_commands=%s,create_app=%s,add_version_option=%s,load_dotenv=%s,set_debug_flag=%s): self.load_dotenv → %s", self, add_default_commands, create_app, add_version_option, load_dotenv, set_debug_flag, self.load_dotenv, extra={"event.action": "__init__", "logrite.add_default_commands": add_default_commands, "logrite.create_app": create_app, "logrite.add_version_option": add_version_option, "logrite.load_dotenv": load_dotenv, "logrite.set_debug_flag": set_debug_flag})
         self.set_debug_flag = set_debug_flag
+        logger.debug("__init__(self=%s,add_default_commands=%s,create_app=%s,add_version_option=%s,load_dotenv=%s,set_debug_flag=%s): self.set_debug_flag → %s", self, add_default_commands, create_app, add_version_option, load_dotenv, set_debug_flag, self.set_debug_flag, extra={"event.action": "__init__", "logrite.add_default_commands": add_default_commands, "logrite.create_app": create_app, "logrite.add_version_option": add_version_option, "logrite.load_dotenv": load_dotenv, "logrite.set_debug_flag": set_debug_flag})
 
         if add_default_commands:
             self.add_command(run_command)
             self.add_command(shell_command)
             self.add_command(routes_command)
 
+            logger.warning("<<< Exiting __init__(add_default_commands=%s,create_app=%s,add_version_option=%s,load_dotenv=%s,set_debug_flag=%s)", add_default_commands, create_app, add_version_option, load_dotenv, set_debug_flag, extra={"event.action": "__init__", "logrite.add_default_commands": add_default_commands, "logrite.create_app": create_app, "logrite.add_version_option": add_version_option, "logrite.load_dotenv": load_dotenv, "logrite.set_debug_flag": set_debug_flag})
         self._loaded_plugin_commands = False
+        logger.debug("__init__(self=%s,add_default_commands=%s,create_app=%s,add_version_option=%s,load_dotenv=%s,set_debug_flag=%s): self._loaded_plugin_commands → %s", self, add_default_commands, create_app, add_version_option, load_dotenv, set_debug_flag, self._loaded_plugin_commands, extra={"event.action": "__init__", "logrite.add_default_commands": add_default_commands, "logrite.create_app": create_app, "logrite.add_version_option": add_version_option, "logrite.load_dotenv": load_dotenv, "logrite.set_debug_flag": set_debug_flag})
 
     def _load_plugin_commands(self) -> None:
+        logger.error(">>> Entering _load_plugin_commands()", extra={"event.action": "_load_plugin_commands"})
         if self._loaded_plugin_commands:
+            logger.warning("<<< Exiting _load_plugin_commands()", extra={"event.action": "_load_plugin_commands"})
             return
 
         for ep in importlib.metadata.entry_points(group="flask.commands"):
             self.add_command(ep.load(), ep.name)
 
         self._loaded_plugin_commands = True
+        logger.debug("_load_plugin_commands(self=%s): self._loaded_plugin_commands → %s", self, self._loaded_plugin_commands, extra={"event.action": "_load_plugin_commands"})
 
     def get_command(self, ctx: click.Context, name: str) -> click.Command | None:
+        logger.error(">>> Entering get_command(ctx=%s,name=%s)", ctx, name, extra={"event.action": "get_command", "logrite.name": name})
         self._load_plugin_commands()
         # Look up built-in and plugin commands, which should be
         # available even if the app fails to load.
@@ -622,6 +681,7 @@ class FlaskGroup(AppGroup):
         try:
             app = info.load_app()
         except NoAppException as e:
+            logger.error("Exception in get_command(ctx=%s,name=%s): %s", ctx, name, str(e), exc_info=True, extra={"event.action": "get_command", "event.category": "process", "logrite.name": name})
             click.secho(f"Error: {e.format_message()}\n", err=True, fg="red")
             return None
 
@@ -631,19 +691,23 @@ class FlaskGroup(AppGroup):
         if not current_app or current_app._get_current_object() is not app:
             ctx.with_resource(app.app_context())
 
+        logger.warning("<<< Exiting get_command(ctx=%s,name=%s)", ctx, name, extra={"event.action": "get_command", "logrite.name": name})
         return app.cli.get_command(ctx, name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
+        logger.error(">>> Entering list_commands(ctx=%s)", ctx, extra={"event.action": "list_commands"})
         self._load_plugin_commands()
         # Start with the built-in and plugin commands.
         rv = set(super().list_commands(ctx))
         info = ctx.ensure_object(ScriptInfo)
+        logger.error("list_commands(ctx=%s): info → %s", ctx, info, extra={"event.action": "list_commands"})
 
         # Add commands provided by the app, showing an error and
         # continuing if the app couldn't be loaded.
         try:
             rv.update(info.load_app().cli.list_commands(ctx))
         except NoAppException as e:
+            logger.error("Exception in list_commands(ctx=%s): %s", ctx, str(e), exc_info=True, extra={"event.action": "list_commands", "event.category": "process"})
             # When an app couldn't be loaded, show the error message
             # without the traceback.
             click.secho(f"Error: {e.format_message()}\n", err=True, fg="red")
@@ -652,6 +716,7 @@ class FlaskGroup(AppGroup):
             # full traceback.
             click.secho(f"{traceback.format_exc()}\n", err=True, fg="red")
 
+        logger.warning("<<< Exiting list_commands(ctx=%s)", ctx, extra={"event.action": "list_commands"})
         return sorted(rv)
 
     def make_context(
@@ -661,6 +726,7 @@ class FlaskGroup(AppGroup):
         parent: click.Context | None = None,
         **extra: t.Any,
     ) -> click.Context:
+        logger.error(">>> Entering make_context(info_name=%s,args=%s,parent=%s)", info_name, args, parent, extra={"event.action": "make_context", "logrite.info_name": info_name})
         # Set a flag to tell app.run to become a no-op. If app.run was
         # not in a __name__ == __main__ guard, it would start the server
         # when importing, blocking whatever command is being called.
@@ -673,9 +739,11 @@ class FlaskGroup(AppGroup):
                 load_dotenv_defaults=self.load_dotenv,
             )
 
+        logger.warning("<<< Exiting make_context(info_name=%s,args=%s,parent=%s)", info_name, args, parent, extra={"event.action": "make_context", "logrite.info_name": info_name})
         return super().make_context(info_name, args, parent=parent, **extra)
 
     def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        logger.error(">>> Entering parse_args(ctx=%s,args=%s)", ctx, args, extra={"event.action": "parse_args"})
         if (not args and self.no_args_is_help) or (
             len(args) == 1 and args[0] in self.get_help_option_names(ctx)
         ):
@@ -685,6 +753,7 @@ class FlaskGroup(AppGroup):
             _env_file_option.handle_parse_result(ctx, {}, [])
             _app_option.handle_parse_result(ctx, {}, [])
 
+        logger.warning("<<< Exiting parse_args(ctx=%s,args=%s)", ctx, args, extra={"event.action": "parse_args"})
         return super().parse_args(ctx, args)
 
 
@@ -692,6 +761,8 @@ def _path_is_ancestor(path: str, other: str) -> bool:
     """Take ``other`` and remove the length of ``path`` from it. Then join it
     to ``path``. If it is the original value, ``path`` is an ancestor of
     ``other``."""
+    logger.error(">>> Entering _path_is_ancestor(path=%s,other=%s)", path, other, extra={"event.action": "_path_is_ancestor", "logrite.path": path, "logrite.other": other})
+    logger.warning("<<< Exiting _path_is_ancestor(path=%s,other=%s)", path, other, extra={"event.action": "_path_is_ancestor", "logrite.path": path, "logrite.other": other})
     return os.path.join(path, other[len(path) :].lstrip(os.sep)) == other
 
 
@@ -767,7 +838,9 @@ def show_server_banner(debug: bool, app_import_path: str | None) -> None:
     """Show extra startup messages the first time the server is run,
     ignoring the reloader.
     """
+    logger.error(">>> Entering show_server_banner(debug=%s,app_import_path=%s)", debug, app_import_path, extra={"event.action": "show_server_banner", "logrite.debug": debug, "logrite.app_import_path": app_import_path})
     if is_running_from_reloader():
+        logger.warning("<<< Exiting show_server_banner(debug=%s,app_import_path=%s)", debug, app_import_path, extra={"event.action": "show_server_banner", "logrite.debug": debug, "logrite.app_import_path": app_import_path})
         return
 
     if app_import_path is not None:
@@ -786,7 +859,10 @@ class CertParamType(click.ParamType):  # type: ignore[type-arg]
     name = "path"
 
     def __init__(self) -> None:
+        logger.error(">>> Entering __init__()", extra={"event.action": "__init__"})
         self.path_type = click.Path(exists=True, dir_okay=False, resolve_path=True)
+        logger.warning("<<< Exiting __init__()", extra={"event.action": "__init__"})
+        logger.error("__init__(): self.path_type → %s", self.path_type, extra={"event.action": "__init__"})
 
     def convert(
         self, value: t.Any, param: click.Parameter | None, ctx: click.Context | None
@@ -820,6 +896,7 @@ class CertParamType(click.ParamType):  # type: ignore[type-arg]
             obj = import_string(value, silent=True)
 
             if isinstance(obj, ssl.SSLContext):
+                logger.warning("<<< Exiting convert(value=%s,param=%s,ctx=%s)", value, param, ctx, extra={"event.action": "convert", "logrite.value": value, "logrite.param": param})
                 return obj
 
             raise
@@ -829,15 +906,20 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
     """The ``--key`` option must be specified when ``--cert`` is a file.
     Modifies the ``cert`` param to be a ``(cert, key)`` pair if needed.
     """
+    logger.error(">>> Entering _validate_key(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "_validate_key", "logrite.param": param, "logrite.value": value})
     cert = ctx.params.get("cert")
+    logger.error("_validate_key(ctx=%s,param=%s,value=%s): cert → %s", ctx, param, value, cert, extra={"event.action": "_validate_key", "logrite.param": param, "logrite.value": value})
     is_adhoc = cert == "adhoc"
+    logger.error("_validate_key(ctx=%s,param=%s,value=%s): is_adhoc → %s", ctx, param, value, is_adhoc, extra={"event.action": "_validate_key", "logrite.param": param, "logrite.value": value})
 
     try:
         import ssl
     except ImportError:
+        logger.error("Exception in _validate_key(ctx=%s,param=%s,value=%s)", ctx, param, value, exc_info=True, extra={"event.action": "_validate_key", "event.category": "process", "logrite.param": param, "logrite.value": value})
         is_context = False
     else:
         is_context = isinstance(cert, ssl.SSLContext)
+        logger.error("_validate_key(ctx=%s,param=%s,value=%s): is_context → %s", ctx, param, value, is_context, extra={"event.action": "_validate_key", "logrite.param": param, "logrite.value": value})
 
     if value is not None:
         if is_adhoc:
@@ -861,6 +943,7 @@ def _validate_key(ctx: click.Context, param: click.Parameter, value: t.Any) -> t
         if cert and not (is_adhoc or is_context):
             raise click.BadParameter('Required when using "--cert".', ctx, param)
 
+    logger.warning("<<< Exiting _validate_key(ctx=%s,param=%s,value=%s)", ctx, param, value, extra={"event.action": "_validate_key", "logrite.param": param, "logrite.value": value})
     return value
 
 
@@ -963,6 +1046,8 @@ def run_command(
             def app(
                 environ: WSGIEnvironment, start_response: StartResponse
             ) -> cabc.Iterable[bytes]:
+                logger.error(">>> Entering app(environ=%s,start_response=%s)", environ, start_response, extra={"event.action": "app"})
+                logger.warning("<<< Exiting app(environ=%s,start_response=%s)", environ, start_response, extra={"event.action": "app"})
                 raise err from None
 
         else:
@@ -1006,6 +1091,7 @@ def shell_command() -> None:
     This is useful for executing small snippets of management code
     without having to manually configure the application.
     """
+    logger.error(">>> Entering shell_command()", extra={"event.action": "shell_command"})
     import code
 
     banner = (
@@ -1018,6 +1104,7 @@ def shell_command() -> None:
     # Support the regular Python interpreter startup script if someone
     # is using it.
     startup = os.environ.get("PYTHONSTARTUP")
+    logger.error("shell_command(): startup → %s", startup, extra={"event.action": "shell_command"})
     if startup and os.path.isfile(startup):
         with open(startup) as f:
             eval(compile(f.read(), startup, "exec"), ctx)
@@ -1028,21 +1115,25 @@ def shell_command() -> None:
     # entering interactive mode. The default one sets up readline with
     # tab and history completion.
     interactive_hook = getattr(sys, "__interactivehook__", None)
+    logger.error("shell_command(): interactive_hook → %s", interactive_hook, extra={"event.action": "shell_command"})
 
     if interactive_hook is not None:
         try:
             import readline
             from rlcompleter import Completer
         except ImportError:
+            logger.error("Exception in shell_command()", exc_info=True, extra={"event.action": "shell_command", "event.category": "process"})
             pass
         else:
             # rlcompleter uses __main__.__dict__ by default, which is
             # flask.__main__. Use the shell context instead.
             readline.set_completer(Completer(ctx).complete)
+            logger.debug("shell_command(): readline → %s", readline, extra={"event.action": "shell_command"})
 
         interactive_hook()
 
     code.interact(banner=banner, local=ctx)
+    logger.warning("<<< Exiting shell_command()", extra={"event.action": "shell_command"})
 
 
 @click.command("routes", short_help="Show the routes for the app.")
@@ -1060,10 +1151,13 @@ def shell_command() -> None:
 @with_appcontext
 def routes_command(sort: str, all_methods: bool) -> None:
     """Show all registered routes with endpoints and methods."""
+    logger.error(">>> Entering routes_command(sort=%s,all_methods=%s)", sort, all_methods, extra={"event.action": "routes_command", "logrite.sort": sort, "logrite.all_methods": all_methods})
     rules = list(current_app.url_map.iter_rules())
+    logger.error("routes_command(sort=%s,all_methods=%s): rules → %s", sort, all_methods, rules, extra={"event.action": "routes_command", "logrite.sort": sort, "logrite.all_methods": all_methods})
 
     if not rules:
         click.echo("No routes were registered.")
+        logger.warning("<<< Exiting routes_command(sort=%s,all_methods=%s)", sort, all_methods, extra={"event.action": "routes_command", "logrite.sort": sort, "logrite.all_methods": all_methods})
         return
 
     ignored_methods = set() if all_methods else {"HEAD", "OPTIONS"}
@@ -1096,6 +1190,7 @@ def routes_command(sort: str, all_methods: bool) -> None:
     try:
         rows.sort(key=itemgetter(sorts.index(sort)))
     except ValueError:
+        logger.error("Exception in routes_command(sort=%s,all_methods=%s)", sort, all_methods, exc_info=True, extra={"event.action": "routes_command", "event.category": "process", "logrite.sort": sort, "logrite.all_methods": all_methods})
         pass
 
     rows.insert(0, headers)
@@ -1120,7 +1215,9 @@ in the current directory.
 
 
 def main() -> None:
+    logger.error(">>> Entering main()", extra={"event.action": "main"})
     cli.main()
+    logger.warning("<<< Exiting main()", extra={"event.action": "main"})
 
 
 if __name__ == "__main__":

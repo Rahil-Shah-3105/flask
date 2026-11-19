@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,12 +82,15 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.error(">>> Entering dispatch_request()", extra={"event.action": "dispatch_request"})
+        logger.warning("<<< Exiting dispatch_request()", extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
     def as_view(
         cls, name: str, *class_args: t.Any, **class_kwargs: t.Any
     ) -> ft.RouteCallable:
+        logger.error(">>> Entering as_view(name=%s)", name, extra={"event.action": "as_view", "logrite.name": name})
         """Convert the class into a view function that can be registered
         for a route.
 
@@ -101,12 +106,17 @@ class View:
         .. versionchanged:: 2.2
             Added the ``init_every_request`` class attribute.
         """
+        logger.error("Exception in as_view(name=%s)", name, exc_info=True, extra={"event.action": "as_view", "event.category": "process", "logrite.name": name})
         if cls.init_every_request:
+            logger.warning("<<< Exiting as_view(name=%s)", name, extra={"event.action": "as_view", "logrite.name": name})
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.error(">>> Entering view()", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.debug("view(): self → %s", self, extra={"event.action": "view"})
+                logger.warning("<<< Exiting view()", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
@@ -164,9 +174,11 @@ class MethodView(View):
 
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         super().__init_subclass__(**kwargs)
+        logger.error(">>> Entering __init_subclass__()", extra={"event.action": "__init_subclass__"})
 
         if "methods" not in cls.__dict__:
             methods = set()
+            logger.error("__init_subclass__(): methods → %s", methods, extra={"event.action": "__init_subclass__"})
 
             for base in cls.__bases__:
                 if getattr(base, "methods", None):
@@ -177,10 +189,13 @@ class MethodView(View):
                     methods.add(key.upper())
 
             if methods:
+                logger.warning("<<< Exiting __init_subclass__()", extra={"event.action": "__init_subclass__"})
                 cls.methods = methods
+                logger.debug("__init_subclass__(cls=%s): cls.methods → %s", cls, cls.methods, extra={"event.action": "__init_subclass__"})
 
     def dispatch_request(self, **kwargs: t.Any) -> ft.ResponseReturnValue:
         meth = getattr(self, request.method.lower(), None)
+        logger.error("dispatch_request(): meth → %s", meth, extra={"event.action": "dispatch_request"})
 
         # If the request method is HEAD and we don't have a handler for it
         # retry with GET.

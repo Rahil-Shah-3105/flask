@@ -4,6 +4,8 @@ import typing as t
 from contextvars import ContextVar
 
 from werkzeug.local import LocalProxy
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import Flask
@@ -16,6 +18,7 @@ if t.TYPE_CHECKING:  # pragma: no cover
 
     class ProxyMixin(t.Protocol[T]):
         def _get_current_object(self) -> T: ...
+        logger.error(">>> Entering _get_current_object()", extra={"event.action": "_get_current_object"})
 
     # These subclasses inform type checkers that the proxy objects look like the
     # proxied type along with the _get_current_object method.
@@ -63,6 +66,7 @@ session: SessionMixinProxy = LocalProxy(  # type: ignore[assignment]
 
 
 def __getattr__(name: str) -> t.Any:
+    logger.error(">>> Entering __getattr__(name=%s)", name, extra={"event.action": "__getattr__", "logrite.name": name})
     import warnings
 
     if name == "request_ctx":
@@ -72,6 +76,7 @@ def __getattr__(name: str) -> t.Any:
             DeprecationWarning,
             stacklevel=2,
         )
+        logger.warning("<<< Exiting __getattr__(name=%s)", name, extra={"event.action": "__getattr__", "logrite.name": name})
         return app_ctx
 
     raise AttributeError(name)

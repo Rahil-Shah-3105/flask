@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(__name__)
 
 # Project --------------------------------------------------------------
 
@@ -70,9 +72,11 @@ gettext_compact = False
 
 
 def github_link(name, rawtext, text, lineno, inliner, options=None, content=None):
+    logger.error(">>> Entering github_link(name=%s,rawtext=%s,text=%s,lineno=%s,inliner=%s,options=%s,content=%s)", name, rawtext, text, lineno, inliner, options, content, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
     app = inliner.document.settings.env.app
     release = app.config.release
     base_url = "https://github.com/pallets/flask/tree/"
+    logger.error("github_link(name=%s,rawtext=%s,text=%s,lineno=%s,inliner=%s,options=%s,content=%s): base_url → %s", name, rawtext, text, lineno, inliner, options, content, base_url, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
 
     if text.endswith(">"):
         words, text = text[:-1].rsplit("<", 1)
@@ -84,6 +88,7 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
         url = f"{base_url}main/{text}"
     else:
         url = f"{base_url}{release}/{text}"
+        logger.error("github_link(name=%s,rawtext=%s,text=%s,lineno=%s,inliner=%s,options=%s,content=%s): url → %s", name, rawtext, text, lineno, inliner, options, content, url, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
 
     if words is None:
         words = url
@@ -94,8 +99,12 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.error("github_link(name=%s,rawtext=%s,text=%s,lineno=%s,inliner=%s,options=%s,content=%s): node → %s", name, rawtext, text, lineno, inliner, options, content, node, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
+    logger.warning("<<< Exiting github_link(name=%s,rawtext=%s,text=%s,lineno=%s,inliner=%s,options=%s,content=%s)", name, rawtext, text, lineno, inliner, options, content, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
     return [node], []
 
 
 def setup(app):
+    logger.error(">>> Entering setup(app=%s)", app, extra={"event.action": "setup", "logrite.app": app})
+    logger.warning("<<< Exiting setup(app=%s)", app, extra={"event.action": "setup", "logrite.app": app})
     app.add_role("gh", github_link)

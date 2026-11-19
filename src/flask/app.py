@@ -53,6 +53,9 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import time
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -72,9 +75,11 @@ T_template_test = t.TypeVar("T_template_test", bound=ft.TemplateTestCallable)
 
 
 def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
+    logger.error(">>> Entering _make_timedelta(value=%s)", value, extra={"event.action": "_make_timedelta", "logrite.value": value})
     if value is None or isinstance(value, timedelta):
         return value
 
+    logger.warning("<<< Exiting _make_timedelta(value=%s)", value, extra={"event.action": "_make_timedelta", "logrite.value": value})
     return timedelta(seconds=value)
 
 
@@ -84,6 +89,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.error(">>> Entering remove_ctx(f=%s)", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,12 +102,16 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.error(">>> Entering add_ctx(f=%s)", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        logger.error(">>> Entering wrapper()", extra={"event.action": "wrapper"})
         if not args:
             args = (app_ctx._get_current_object(),)
         elif not isinstance(args[0], AppContext):
             args = (app_ctx._get_current_object(), *args)
+        logger.error("wrapper(): args → %s", args, extra={"event.action": "wrapper"})
 
+        logger.warning("<<< Exiting wrapper()", extra={"event.action": "wrapper"})
         return f(self, *args, **kwargs)
 
     return update_wrapper(wrapper, f)  # type: ignore[return-value]
@@ -253,6 +263,7 @@ class Flask(App):
     session_interface: SessionInterface = SecureCookieSessionInterface()
 
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
+        logger.error(">>> Entering __init_subclass__()", extra={"event.action": "__init_subclass__"})
         import warnings
 
         # These method signatures were updated to take a ctx param. Detect
@@ -273,6 +284,7 @@ class Flask(App):
             cls.do_teardown_appcontext,
         ):
             base_method = getattr(Flask, method.__name__)
+            logger.error("__init_subclass__(): base_method → %s", base_method, extra={"event.action": "__init_subclass__"})
 
             if method is base_method:
                 # not overridden
@@ -280,8 +292,10 @@ class Flask(App):
 
             # get the second parameter (first is self)
             iter_params = iter(inspect.signature(method).parameters.values())
+            logger.error("__init_subclass__(): iter_params → %s", iter_params, extra={"event.action": "__init_subclass__"})
             next(iter_params)
             param = next(iter_params, None)
+            logger.error("__init_subclass__(): param → %s", param, extra={"event.action": "__init_subclass__"})
 
             # must have second parameter named ctx or annotated AppContext
             if param is None or not (
@@ -307,6 +321,7 @@ class Flask(App):
                 )
                 setattr(cls, method.__name__, remove_ctx(method))
                 setattr(Flask, method.__name__, add_ctx(base_method))
+                logger.warning("<<< Exiting __init_subclass__()", extra={"event.action": "__init_subclass__"})
 
     def __init__(
         self,
@@ -339,6 +354,7 @@ class Flask(App):
         #: once the application has been discovered and blueprints have
         #: been registered.
         self.cli = cli.AppGroup()
+        logger.error("__init__(import_name=%s,static_url_path=%s,static_folder=%s,static_host=%s,host_matching=%s,subdomain_matching=%s,template_folder=%s,instance_path=%s,instance_relative_config=%s,root_path=%s): self.cli → %s", import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, self.cli, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
 
         # Set the name of the Click group in case someone wants to add
         # the app's commands to another CLI tool.
@@ -355,7 +371,9 @@ class Flask(App):
             )
             # Use a weakref to avoid creating a reference cycle between the app
             # and the view function (see #3761).
+            logger.warning("<<< Exiting __init__(import_name=%s,static_url_path=%s,static_folder=%s,static_host=%s,host_matching=%s,subdomain_matching=%s,template_folder=%s,instance_path=%s,instance_relative_config=%s,root_path=%s)", import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
             self_ref = weakref.ref(self)
+            logger.error("__init__(import_name=%s,static_url_path=%s,static_folder=%s,static_host=%s,host_matching=%s,subdomain_matching=%s,template_folder=%s,instance_path=%s,instance_relative_config=%s,root_path=%s): self_ref → %s", import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, self_ref, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
             self.add_url_rule(
                 f"{self.static_url_path}/<path:filename>",
                 endpoint="static",
@@ -380,7 +398,9 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.error(">>> Entering get_send_file_max_age(filename=%s)", filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         value = self.config["SEND_FILE_MAX_AGE_DEFAULT"]
+        logger.error("get_send_file_max_age(filename=%s): value → %s", filename, value, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
 
         if value is None:
             return None
@@ -388,6 +408,7 @@ class Flask(App):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+        logger.warning("<<< Exiting get_send_file_max_age(filename=%s)", filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -402,12 +423,15 @@ class Flask(App):
         .. versionadded:: 0.5
 
         """
+        logger.error(">>> Entering send_static_file(filename=%s)", filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
+        logger.warning("<<< Exiting send_static_file(filename=%s)", filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         max_age = self.get_send_file_max_age(filename)
+        logger.error("send_static_file(filename=%s): max_age → %s", filename, max_age, extra={"event.action": "send_static_file", "logrite.filename": filename})
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
@@ -415,6 +439,8 @@ class Flask(App):
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
     ) -> t.IO[t.AnyStr]:
+        logger.error(">>> Entering open_resource(resource=%s,mode=%s,encoding=%s)", resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
+        __log_start = time.time()
         """Open a resource file relative to :attr:`root_path` for reading.
 
         For example, if the file ``schema.sql`` is next to the file
@@ -435,14 +461,17 @@ class Flask(App):
         .. versionchanged:: 3.1
             Added the ``encoding`` parameter.
         """
+        logger.error("open_resource(resource,mode,encoding)=%s,%s,%s: query operation took %s ms", resource, mode, encoding, int((time.time() - __log_start) * 1000), extra={"event.action": "open_resource", "event.category": "database", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         if mode not in {"r", "rt", "rb"}:
             raise ValueError("Resources can only be opened for reading.")
 
         path = os.path.join(self.root_path, resource)
+        logger.error("open_resource(resource=%s,mode=%s,encoding=%s): path → %s", resource, mode, encoding, path, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
 
         if mode == "rb":
             return open(path, mode)  # pyright: ignore
 
+        logger.warning("<<< Exiting open_resource(resource=%s,mode=%s,encoding=%s)", resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         return open(path, mode, encoding=encoding)
 
     def open_instance_resource(
@@ -479,7 +508,9 @@ class Flask(App):
 
         .. versionadded:: 0.5
         """
+        logger.error(">>> Entering create_jinja_environment()", extra={"event.action": "create_jinja_environment"})
         options = dict(self.jinja_options)
+        logger.error("create_jinja_environment(): options → %s", options, extra={"event.action": "create_jinja_environment"})
 
         if "autoescape" not in options:
             options["autoescape"] = self.select_jinja_autoescape
@@ -493,6 +524,7 @@ class Flask(App):
             options["auto_reload"] = auto_reload
 
         rv = self.jinja_environment(self, **options)
+        logger.error("create_jinja_environment(): rv → %s", rv, extra={"event.action": "create_jinja_environment"})
         rv.globals.update(
             url_for=self.url_for,
             get_flashed_messages=get_flashed_messages,
@@ -505,6 +537,7 @@ class Flask(App):
             g=g,
         )
         rv.policies["json.dumps_function"] = self.json.dumps
+        logger.warning("<<< Exiting create_jinja_environment()", extra={"event.action": "create_jinja_environment"})
         return rv
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
@@ -527,13 +560,16 @@ class Flask(App):
 
         .. versionadded:: 0.6
         """
+        logger.error(">>> Entering create_url_adapter(request=%s)", request, extra={"event.action": "create_url_adapter"})
         if request is not None:
             if (trusted_hosts := self.config["TRUSTED_HOSTS"]) is not None:
                 request.trusted_hosts = trusted_hosts
+                logger.debug("create_url_adapter(self=%s,request=%s): request.trusted_hosts → %s", self, request, request.trusted_hosts, extra={"event.action": "create_url_adapter"})
 
             # Check trusted_hosts here until bind_to_environ does.
             request.host = get_host(request.environ, request.trusted_hosts)  # pyright: ignore
             subdomain = None
+            logger.error("create_url_adapter(request=%s): subdomain → %s", request, subdomain, extra={"event.action": "create_url_adapter"})
             server_name = self.config["SERVER_NAME"]
 
             if self.url_map.host_matching:
@@ -558,6 +594,7 @@ class Flask(App):
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
 
+        logger.warning("<<< Exiting create_url_adapter(request=%s)", request, extra={"event.action": "create_url_adapter"})
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
@@ -576,6 +613,7 @@ class Flask(App):
         :meta private:
         :internal:
         """
+        logger.error(">>> Entering raise_routing_exception(request=%s)", request, extra={"event.action": "raise_routing_exception"})
         if (
             not self.debug
             or not isinstance(request.routing_exception, RequestRedirect)
@@ -586,11 +624,13 @@ class Flask(App):
 
         from .debughelpers import FormDataRoutingRedirect
 
+        logger.warning("<<< Exiting raise_routing_exception(request=%s)", request, extra={"event.action": "raise_routing_exception"})
         raise FormDataRoutingRedirect(request)
 
     def update_template_context(
         self, ctx: AppContext, context: dict[str, t.Any]
     ) -> None:
+        logger.error(">>> Entering update_template_context(ctx=%s,context=%s)", ctx, context, extra={"event.action": "update_template_context"})
         """Update the template context with some commonly used variables.
         This injects request, session, config and g into the template
         context as well as everything template context processors want
@@ -602,6 +642,7 @@ class Flask(App):
                         to add extra variables.
         """
         names: t.Iterable[str | None] = (None,)
+        logger.error("update_template_context(ctx=%s,context=%s): names → %s", ctx, context, names, extra={"event.action": "update_template_context"})
 
         # A template may be rendered outside a request context.
         if ctx.has_request:
@@ -610,12 +651,14 @@ class Flask(App):
         # The values passed to render_template take precedence. Keep a
         # copy to re-apply after all context functions.
         orig_ctx = context.copy()
+        logger.error("update_template_context(ctx=%s,context=%s): orig_ctx → %s", ctx, context, orig_ctx, extra={"event.action": "update_template_context"})
 
         for name in names:
             if name in self.template_context_processors:
                 for func in self.template_context_processors[name]:
                     context.update(self.ensure_sync(func)())
 
+                    logger.warning("<<< Exiting update_template_context(ctx=%s,context=%s)", ctx, context, extra={"event.action": "update_template_context"})
         context.update(orig_ctx)
 
     def make_shell_context(self) -> dict[str, t.Any]:
@@ -625,9 +668,12 @@ class Flask(App):
 
         .. versionadded:: 0.11
         """
+        logger.error(">>> Entering make_shell_context()", extra={"event.action": "make_shell_context"})
         rv = {"app": self, "g": g}
+        logger.error("make_shell_context(): rv → %s", rv, extra={"event.action": "make_shell_context"})
         for processor in self.shell_context_processors:
             rv.update(processor())
+        logger.warning("<<< Exiting make_shell_context()", extra={"event.action": "make_shell_context"})
         return rv
 
     def run(
@@ -638,6 +684,7 @@ class Flask(App):
         load_dotenv: bool = True,
         **options: t.Any,
     ) -> None:
+        logger.error(">>> Entering run(host=%s,port=%s,debug=%s,load_dotenv=%s)", host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
         """Runs the application on a local development server.
 
         Do not use ``run()`` in a production setting. It is not intended to
@@ -693,7 +740,9 @@ class Flask(App):
             The default port is now picked from the ``SERVER_NAME``
             variable.
         """
+        logger.error("run(host=%s,port=%s,debug=%s,load_dotenv=%s): debug → %s", host, port, debug, load_dotenv, debug, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
         # Ignore this call so that it doesn't start another server if
+        logger.error("Exception in run(host=%s,port=%s,debug=%s,load_dotenv=%s)", host, port, debug, load_dotenv, exc_info=True, extra={"event.action": "run", "event.category": "process", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
         # the 'flask run' command is used.
         if os.environ.get("FLASK_RUN_FROM_CLI") == "true":
             if not is_running_from_reloader():
@@ -705,6 +754,7 @@ class Flask(App):
                     fg="red",
                 )
 
+            logger.warning("<<< Exiting run(host=%s,port=%s,debug=%s,load_dotenv=%s)", host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             return
 
         if get_load_dotenv(load_dotenv):
@@ -731,6 +781,7 @@ class Flask(App):
                 host = sn_host
             else:
                 host = "127.0.0.1"
+                logger.error("run(host=%s,port=%s,debug=%s,load_dotenv=%s): host → %s", host, port, debug, load_dotenv, host, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
 
         if port or port == 0:
             port = int(port)
@@ -742,6 +793,7 @@ class Flask(App):
         options.setdefault("use_reloader", self.debug)
         options.setdefault("use_debugger", self.debug)
         options.setdefault("threaded", True)
+        logger.debug("run(self=%s,host=%s,port=%s,debug=%s,load_dotenv=%s): options → %s", self, host, port, debug, load_dotenv, options, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
 
         cli.show_server_banner(self.debug, self.name)
 
@@ -754,6 +806,7 @@ class Flask(App):
             # reset normally.  This makes it possible to restart the server
             # without reloader and that stuff from an interactive shell.
             self._got_first_request = False
+            logger.debug("run(self=%s,host=%s,port=%s,debug=%s,load_dotenv=%s): self._got_first_request → %s", self, host, port, debug, load_dotenv, self._got_first_request, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
 
     def test_client(self, use_cookies: bool = True, **kwargs: t.Any) -> FlaskClient:
         """Creates a test client for this application.  For information
@@ -806,8 +859,11 @@ class Flask(App):
            Added `**kwargs` to support passing additional keyword arguments to
            the constructor of :attr:`test_client_class`.
         """
+        logger.error(">>> Entering test_client(use_cookies=<redacted>)", extra={"event.action": "test_client"})
+        logger.error("test_client(use_cookies=<redacted>): self._authentication → %s", self._authentication, extra={"event.action": "test_client"})
         cls = self.test_client_class
         if cls is None:
+            logger.warning("<<< Exiting test_client(use_cookies=<redacted>)", extra={"event.action": "test_client"})
             from .testing import FlaskClient as cls
         return cls(  # type: ignore
             self, self.response_class, use_cookies=use_cookies, **kwargs
@@ -823,16 +879,19 @@ class Flask(App):
 
         .. versionadded:: 1.0
         """
+        logger.error(">>> Entering test_cli_runner()", extra={"event.action": "test_cli_runner"})
         cls = self.test_cli_runner_class
 
         if cls is None:
             from .testing import FlaskCliRunner as cls
 
+        logger.warning("<<< Exiting test_cli_runner()", extra={"event.action": "test_cli_runner"})
         return cls(self, **kwargs)  # type: ignore
 
     def handle_http_exception(
         self, ctx: AppContext, e: HTTPException
     ) -> HTTPException | ft.ResponseReturnValue:
+        logger.error(">>> Entering handle_http_exception(ctx=%s,e=%s)", ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
         """Handles an HTTP exception.  By default this will invoke the
         registered error handlers and fall back to returning the
         exception as response.
@@ -863,11 +922,13 @@ class Flask(App):
         handler = self._find_error_handler(e, ctx.request.blueprints)
         if handler is None:
             return e
+        logger.warning("<<< Exiting handle_http_exception(ctx=%s,e=%s)", ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
 
     def handle_user_exception(
         self, ctx: AppContext, e: Exception
     ) -> HTTPException | ft.ResponseReturnValue:
+        logger.error(">>> Entering handle_user_exception(ctx=%s,e=%s)", ctx, e, extra={"event.action": "handle_user_exception", "logrite.e": e})
         """This method is called whenever an exception occurs that
         should be handled. A special case is :class:`~werkzeug
         .exceptions.HTTPException` which is forwarded to the
@@ -886,6 +947,7 @@ class Flask(App):
             self.debug or self.config["TRAP_BAD_REQUEST_ERRORS"]
         ):
             e.show_exception = True
+            logger.debug("handle_user_exception(self=%s,ctx=%s,e=%s): e.show_exception → %s", self, ctx, e, e.show_exception, extra={"event.action": "handle_user_exception", "logrite.e": e})
 
         if isinstance(e, HTTPException) and not self.trap_http_exception(e):
             return self.handle_http_exception(ctx, e)
@@ -895,6 +957,7 @@ class Flask(App):
         if handler is None:
             raise
 
+        logger.warning("<<< Exiting handle_user_exception(ctx=%s,e=%s)", ctx, e, extra={"event.action": "handle_user_exception", "logrite.e": e})
         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
 
     def handle_exception(self, ctx: AppContext, e: Exception) -> Response:
@@ -925,7 +988,9 @@ class Flask(App):
 
         .. versionadded:: 0.3
         """
+        logger.error(">>> Entering handle_exception(ctx=%s,e=%s)", ctx, e, extra={"event.action": "handle_exception", "logrite.e": e})
         exc_info = sys.exc_info()
+        logger.error("handle_exception(ctx=%s,e=%s): exc_info → %s", ctx, e, exc_info, extra={"event.action": "handle_exception", "logrite.e": e})
         got_request_exception.send(self, _async_wrapper=self.ensure_sync, exception=e)
         propagate = self.config["PROPAGATE_EXCEPTIONS"]
 
@@ -943,11 +1008,14 @@ class Flask(App):
         self.log_exception(ctx, exc_info)
         server_error: InternalServerError | ft.ResponseReturnValue
         server_error = InternalServerError(original_exception=e)
+        logger.error("handle_exception(ctx=%s,e=%s): server_error → %s", ctx, e, server_error, extra={"event.action": "handle_exception", "logrite.e": e})
         handler = self._find_error_handler(server_error, ctx.request.blueprints)
+        logger.error("handle_exception(ctx=%s,e=%s): handler → %s", ctx, e, handler, extra={"event.action": "handle_exception", "logrite.e": e})
 
         if handler is not None:
             server_error = self.ensure_sync(handler)(server_error)
 
+        logger.warning("<<< Exiting handle_exception(ctx=%s,e=%s)", ctx, e, extra={"event.action": "handle_exception", "logrite.e": e})
         return self.finalize_request(ctx, server_error, from_error_handler=True)
 
     def log_exception(
@@ -955,6 +1023,7 @@ class Flask(App):
         ctx: AppContext,
         exc_info: tuple[type, BaseException, TracebackType] | tuple[None, None, None],
     ) -> None:
+        logger.error(">>> Entering log_exception(ctx=%s,exc_info=%s)", ctx, exc_info, extra={"event.action": "log_exception", "logrite.exc_info": exc_info})
         """Logs an exception.  This is called by :meth:`handle_exception`
         if debugging is disabled and right before the handler is called.
         The default implementation logs the exception as error on the
@@ -965,6 +1034,7 @@ class Flask(App):
         self.logger.error(
             f"Exception on {ctx.request.path} [{ctx.request.method}]", exc_info=exc_info
         )
+        logger.warning("<<< Exiting log_exception(ctx=%s,exc_info=%s)", ctx, exc_info, extra={"event.action": "log_exception", "logrite.exc_info": exc_info})
 
     def dispatch_request(self, ctx: AppContext) -> ft.ResponseReturnValue:
         """Does the request dispatching.  Matches the URL and returns the
@@ -976,6 +1046,7 @@ class Flask(App):
            This no longer does the exception handling, this code was
            moved to the new :meth:`full_dispatch_request`.
         """
+        logger.error(">>> Entering dispatch_request(ctx=%s)", ctx, extra={"event.action": "dispatch_request"})
         req = ctx.request
 
         if req.routing_exception is not None:
@@ -990,6 +1061,7 @@ class Flask(App):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        logger.warning("<<< Exiting dispatch_request(ctx=%s)", ctx, extra={"event.action": "dispatch_request"})
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
@@ -999,6 +1071,7 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
+        logger.error(">>> Entering full_dispatch_request(ctx=%s)", ctx, extra={"event.action": "full_dispatch_request"})
         if not self._got_first_request and self.should_ignore_error is not None:
             import warnings
 
@@ -1011,14 +1084,18 @@ class Flask(App):
             )
 
         self._got_first_request = True
+        logger.debug("full_dispatch_request(self=%s,ctx=%s): self._got_first_request → %s", self, ctx, self._got_first_request, extra={"event.action": "full_dispatch_request"})
 
         try:
             request_started.send(self, _async_wrapper=self.ensure_sync)
             rv = self.preprocess_request(ctx)
+            logger.error("full_dispatch_request(ctx=%s): rv → %s", ctx, rv, extra={"event.action": "full_dispatch_request"})
             if rv is None:
                 rv = self.dispatch_request(ctx)
         except Exception as e:
+            logger.error("Exception in full_dispatch_request(ctx=%s): %s", ctx, str(e), exc_info=True, extra={"event.action": "full_dispatch_request", "event.category": "process"})
             rv = self.handle_user_exception(ctx, e)
+        logger.warning("<<< Exiting full_dispatch_request(ctx=%s)", ctx, extra={"event.action": "full_dispatch_request"})
         return self.finalize_request(ctx, rv)
 
     def finalize_request(
@@ -1027,6 +1104,7 @@ class Flask(App):
         rv: ft.ResponseReturnValue | HTTPException,
         from_error_handler: bool = False,
     ) -> Response:
+        logger.error(">>> Entering finalize_request(ctx=%s,rv=%s,from_error_handler=%s)", ctx, rv, from_error_handler, extra={"event.action": "finalize_request", "logrite.rv": rv, "logrite.from_error_handler": from_error_handler})
         """Given the return value from a view function this finalizes
         the request by converting it into a response and invoking the
         postprocessing functions.  This is invoked for both normal
@@ -1051,6 +1129,7 @@ class Flask(App):
             self.logger.exception(
                 "Request finalizing failed with an error while handling an error"
             )
+        logger.warning("<<< Exiting finalize_request(ctx=%s,rv=%s,from_error_handler=%s)", ctx, rv, from_error_handler, extra={"event.action": "finalize_request", "logrite.rv": rv, "logrite.from_error_handler": from_error_handler})
         return response
 
     def make_default_options_response(self, ctx: AppContext) -> Response:
@@ -1060,9 +1139,13 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
+        logger.error(">>> Entering make_default_options_response(ctx=%s)", ctx, extra={"event.action": "make_default_options_response"})
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
+        logger.error("make_default_options_response(ctx=%s): methods → %s", ctx, methods, extra={"event.action": "make_default_options_response"})
+        logger.error("make_default_options_response(ctx=%s): rv → %s", ctx, rv, extra={"event.action": "make_default_options_response"})
         rv.allow.update(methods)
+        logger.warning("<<< Exiting make_default_options_response(ctx=%s)", ctx, extra={"event.action": "make_default_options_response"})
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
@@ -1074,14 +1157,17 @@ class Flask(App):
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering ensure_sync(func=%s)", func, extra={"event.action": "ensure_sync", "logrite.func": func})
         if iscoroutinefunction(func):
             return self.async_to_sync(func)
 
+        logger.warning("<<< Exiting ensure_sync(func=%s)", func, extra={"event.action": "ensure_sync", "logrite.func": func})
         return func
 
     def async_to_sync(
         self, func: t.Callable[..., t.Coroutine[t.Any, t.Any, t.Any]]
     ) -> t.Callable[..., t.Any]:
+        logger.error(">>> Entering async_to_sync(func=%s)", func, extra={"event.action": "async_to_sync", "logrite.func": func})
         """Return a sync function that will run the coroutine function.
 
         .. code-block:: python
@@ -1096,10 +1182,12 @@ class Flask(App):
         try:
             from asgiref.sync import async_to_sync as asgiref_async_to_sync
         except ImportError:
+            logger.error("Exception in async_to_sync(func=%s)", func, exc_info=True, extra={"event.action": "async_to_sync", "event.category": "process", "logrite.func": func})
             raise RuntimeError(
                 "Install Flask with the 'async' extra in order to use async views."
             ) from None
 
+        logger.warning("<<< Exiting async_to_sync(func=%s)", func, extra={"event.action": "async_to_sync", "logrite.func": func})
         return asgiref_async_to_sync(func)
 
     def url_for(
@@ -1113,6 +1201,7 @@ class Flask(App):
         _external: bool | None = None,
         **values: t.Any,
     ) -> str:
+        logger.error(">>> Entering url_for(endpoint=%s,_anchor=%s,_method=%s,_scheme=%s,_external=%s)", endpoint, _anchor, _method, _scheme, _external, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
         """Generate a URL to the given endpoint with the given values.
 
         This is called by :func:`flask.url_for`, and can be called
@@ -1161,6 +1250,7 @@ class Flask(App):
         """
         if (ctx := _cv_app.get(None)) is not None and ctx.has_request:
             url_adapter = ctx.url_adapter
+            logger.error("url_for(endpoint=%s,_anchor=%s,_method=%s,_scheme=%s,_external=%s): url_adapter → %s", endpoint, _anchor, _method, _scheme, _external, url_adapter, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
             blueprint_name = ctx.request.blueprint
 
             # If the endpoint starts with "." and the request matches a
@@ -1213,6 +1303,7 @@ class Flask(App):
                 force_external=_external,
             )
         except BuildError as error:
+            logger.error("Exception in url_for(endpoint=%s,_anchor=%s,_method=%s,_scheme=%s,_external=%s): %s", endpoint, _anchor, _method, _scheme, _external, str(error), exc_info=True, extra={"event.action": "url_for", "event.category": "process", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
             values.update(
                 _anchor=_anchor, _method=_method, _scheme=_scheme, _external=_external
             )
@@ -1220,8 +1311,11 @@ class Flask(App):
 
         if _anchor is not None:
             _anchor = _url_quote(_anchor, safe="%!#$&'()*+,/:;=?@")
+            logger.error("url_for(endpoint=%s,_anchor=%s,_method=%s,_scheme=%s,_external=%s): _anchor → %s", endpoint, _anchor, _method, _scheme, _external, _anchor, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
             rv = f"{rv}#{_anchor}"
+        logger.error("url_for(endpoint=%s,_anchor=%s,_method=%s,_scheme=%s,_external=%s): rv → %s", endpoint, _anchor, _method, _scheme, _external, rv, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
 
+        logger.warning("<<< Exiting url_for(endpoint=%s,_anchor=%s,_method=%s,_scheme=%s,_external=%s)", endpoint, _anchor, _method, _scheme, _external, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
         return rv
 
     def make_response(self, rv: ft.ResponseReturnValue) -> Response:
@@ -1280,13 +1374,16 @@ class Flask(App):
            Previously a tuple was interpreted as the arguments for the
            response object.
         """
+        logger.error(">>> Entering make_response(rv=%s)", rv, extra={"event.action": "make_response", "logrite.rv": rv})
 
         status: int | None = None
+        logger.error("make_response(rv=%s): status → %s", rv, status, extra={"event.action": "make_response", "logrite.rv": rv})
         headers: HeadersValue | None = None
 
         # unpack tuple returns
         if isinstance(rv, tuple):
             len_rv = len(rv)
+            logger.error("make_response(rv=%s): len_rv → %s", rv, len_rv, extra={"event.action": "make_response", "logrite.rv": rv})
 
             # a 3-tuple is unpacked directly
             if len_rv == 3:
@@ -1324,6 +1421,7 @@ class Flask(App):
                     status=status,
                     headers=headers,  # type: ignore[arg-type]
                 )
+                logger.error("make_response(rv=%s): rv → %s", rv, rv, extra={"event.action": "make_response", "logrite.rv": rv})
                 status = headers = None
             elif isinstance(rv, (dict, list)):
                 rv = self.json.response(rv)
@@ -1336,6 +1434,7 @@ class Flask(App):
                         request.environ,
                     )
                 except TypeError as e:
+                    logger.error("Exception in make_response(rv=%s): %s", rv, str(e), exc_info=True, extra={"event.action": "make_response", "event.category": "process", "logrite.rv": rv})
                     raise TypeError(
                         f"{e}\nThe view function did not return a valid"
                         " response. The return type must be a string,"
@@ -1358,12 +1457,15 @@ class Flask(App):
             if isinstance(status, (str, bytes, bytearray)):
                 rv.status = status
             else:
+                logger.debug("make_response(self=%s,rv=%s): rv.status → %s", self, rv, rv.status, extra={"event.action": "make_response", "logrite.rv": rv})
                 rv.status_code = status
+                logger.debug("make_response(self=%s,rv=%s): rv.status_code → %s", self, rv, rv.status_code, extra={"event.action": "make_response", "logrite.rv": rv})
 
         # extend existing headers with provided headers
         if headers:
             rv.headers.update(headers)
 
+        logger.warning("<<< Exiting make_response(rv=%s)", rv, extra={"event.action": "make_response", "logrite.rv": rv})
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
@@ -1376,8 +1478,10 @@ class Flask(App):
         value is handled as if it was the return value from the view, and
         further request handling is stopped.
         """
+        logger.error(">>> Entering preprocess_request(ctx=%s)", ctx, extra={"event.action": "preprocess_request"})
         req = ctx.request
         names = (None, *reversed(req.blueprints))
+        logger.error("preprocess_request(ctx=%s): names → %s", ctx, names, extra={"event.action": "preprocess_request"})
 
         for name in names:
             if name in self.url_value_preprocessors:
@@ -1388,10 +1492,12 @@ class Flask(App):
             if name in self.before_request_funcs:
                 for before_func in self.before_request_funcs[name]:
                     rv = self.ensure_sync(before_func)()
+                    logger.error("preprocess_request(ctx=%s): rv → %s", ctx, rv, extra={"event.action": "preprocess_request"})
 
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
+        logger.warning("<<< Exiting preprocess_request(ctx=%s)", ctx, extra={"event.action": "preprocess_request"})
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
@@ -1407,8 +1513,10 @@ class Flask(App):
         :return: a new response object or the same, has to be an
                  instance of :attr:`response_class`.
         """
+        logger.error(">>> Entering process_response(ctx=%s,response=%s)", ctx, response, extra={"event.action": "process_response"})
         for func in ctx._after_request_functions:
             response = self.ensure_sync(func)(response)
+            logger.error("process_response(ctx=%s,response=%s): response → %s", ctx, response, response, extra={"event.action": "process_response"})
 
         for name in chain(ctx.request.blueprints, (None,)):
             if name in self.after_request_funcs:
@@ -1418,11 +1526,13 @@ class Flask(App):
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
 
+        logger.warning("<<< Exiting process_response(ctx=%s,response=%s)", ctx, response, extra={"event.action": "process_response"})
         return response
 
     def do_teardown_request(
         self, ctx: AppContext, exc: BaseException | None = None
     ) -> None:
+        logger.error(">>> Entering do_teardown_request(ctx=%s,exc=%s)", ctx, exc, extra={"event.action": "do_teardown_request", "logrite.exc": exc})
         """Called after the request is dispatched and the response is finalized,
         right before the request context is popped. Called by
         :meth:`.AppContext.pop`.
@@ -1441,6 +1551,7 @@ class Flask(App):
             Added the ``exc`` argument.
         """
         collect_errors = _CollectErrors()
+        logger.error("do_teardown_request(ctx=%s,exc=%s): collect_errors → %s", ctx, exc, collect_errors, extra={"event.action": "do_teardown_request", "logrite.exc": exc})
 
         for name in chain(ctx.request.blueprints, (None,)):
             if name in self.teardown_request_funcs:
@@ -1452,10 +1563,12 @@ class Flask(App):
             request_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)
 
         collect_errors.raise_any("Errors during request teardown")
+        logger.warning("<<< Exiting do_teardown_request(ctx=%s,exc=%s)", ctx, exc, extra={"event.action": "do_teardown_request", "logrite.exc": exc})
 
     def do_teardown_appcontext(
         self, ctx: AppContext, exc: BaseException | None = None
     ) -> None:
+        logger.error(">>> Entering do_teardown_appcontext(ctx=%s,exc=%s)", ctx, exc, extra={"event.action": "do_teardown_appcontext", "logrite.exc": exc})
         """Called right before the application context is popped. Called by
         :meth:`.AppContext.pop`.
 
@@ -1471,6 +1584,7 @@ class Flask(App):
         .. versionadded:: 0.9
         """
         collect_errors = _CollectErrors()
+        logger.error("do_teardown_appcontext(ctx=%s,exc=%s): collect_errors → %s", ctx, exc, collect_errors, extra={"event.action": "do_teardown_appcontext", "logrite.exc": exc})
 
         for func in reversed(self.teardown_appcontext_funcs):
             with collect_errors:
@@ -1480,6 +1594,7 @@ class Flask(App):
             appcontext_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)
 
         collect_errors.raise_any("Errors during app teardown")
+        logger.warning("<<< Exiting do_teardown_appcontext(ctx=%s,exc=%s)", ctx, exc, extra={"event.action": "do_teardown_appcontext", "logrite.exc": exc})
 
     def app_context(self) -> AppContext:
         """Create an :class:`.AppContext`. When the context is pushed,
@@ -1499,6 +1614,8 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.error(">>> Entering app_context()", extra={"event.action": "app_context"})
+        logger.warning("<<< Exiting app_context()", extra={"event.action": "app_context"})
         return AppContext(self)
 
     def request_context(self, environ: WSGIEnvironment) -> AppContext:
@@ -1515,6 +1632,8 @@ class Flask(App):
 
         :param environ: A WSGI environment.
         """
+        logger.error(">>> Entering request_context(environ=%s)", environ, extra={"event.action": "request_context"})
+        logger.warning("<<< Exiting request_context(environ=%s)", environ, extra={"event.action": "request_context"})
         return AppContext.from_environ(self, environ)
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
@@ -1555,20 +1674,26 @@ class Flask(App):
         :param kwargs: Other keyword arguments passed to
             :class:`~werkzeug.test.EnvironBuilder`.
         """
+        logger.error(">>> Entering test_request_context()", extra={"event.action": "test_request_context"})
+        __log_start = time.time()
         from .testing import EnvironBuilder
+        logger.error("test_request_context()=: database operation took %s ms", int((time.time() - __log_start) * 1000), extra={"event.action": "test_request_context", "event.category": "database"})
 
         builder = EnvironBuilder(self, *args, **kwargs)
+        logger.error("test_request_context(): builder → %s", builder, extra={"event.action": "test_request_context"})
 
         try:
             environ = builder.get_environ()
         finally:
             builder.close()
 
+        logger.warning("<<< Exiting test_request_context()", extra={"event.action": "test_request_context"})
         return self.request_context(environ)
 
     def wsgi_app(
         self, environ: WSGIEnvironment, start_response: StartResponse
     ) -> cabc.Iterable[bytes]:
+        logger.error(">>> Entering wsgi_app(environ=%s,start_response=%s)", environ, start_response, extra={"event.action": "wsgi_app"})
         """The actual WSGI application. This is not implemented in
         :meth:`__call__` so that middlewares can be applied without
         losing a reference to the app object. Instead of doing this::
@@ -1593,12 +1718,14 @@ class Flask(App):
             start the response.
         """
         ctx = self.request_context(environ)
+        logger.error("wsgi_app(environ=%s,start_response=%s): ctx → %s", environ, start_response, ctx, extra={"event.action": "wsgi_app"})
         error: BaseException | None = None
         try:
             try:
                 ctx.push()
                 response = self.full_dispatch_request(ctx)
             except Exception as e:
+                logger.error("Exception in wsgi_app(environ=%s,start_response=%s): %s", environ, start_response, str(e), exc_info=True, extra={"event.action": "wsgi_app", "event.category": "process"})
                 error = e
                 response = self.handle_exception(ctx, e)
             except:
@@ -1606,6 +1733,7 @@ class Flask(App):
                 raise
             return response(environ, start_response)
         finally:
+            logger.warning("<<< Exiting wsgi_app(environ=%s,start_response=%s)", environ, start_response, extra={"event.action": "wsgi_app"})
             if "werkzeug.debug.preserve_context" in environ:
                 environ["werkzeug.debug.preserve_context"](ctx)
 
@@ -1621,8 +1749,10 @@ class Flask(App):
     def __call__(
         self, environ: WSGIEnvironment, start_response: StartResponse
     ) -> cabc.Iterable[bytes]:
+        logger.error(">>> Entering __call__(environ=%s,start_response=%s)", environ, start_response, extra={"event.action": "__call__"})
         """The WSGI server calls the Flask application object as the
         WSGI application. This calls :meth:`wsgi_app`, which can be
         wrapped to apply middleware.
         """
+        logger.warning("<<< Exiting __call__(environ=%s,start_response=%s)", environ, start_response, extra={"event.action": "__call__"})
         return self.wsgi_app(environ, start_response)

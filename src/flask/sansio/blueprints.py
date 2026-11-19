@@ -10,6 +10,8 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import _sentinel
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
@@ -45,21 +47,26 @@ class BlueprintSetupState:
         options: t.Any,
         first_registration: bool,
     ) -> None:
+        logger.error(">>> Entering __init__(blueprint=%s,app=%s,options=%s,first_registration=%s)", blueprint, app, options, first_registration, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
         #: a reference to the current application
         self.app = app
+        logger.debug("__init__(self=%s,blueprint=%s,app=%s,options=%s,first_registration=%s): self.app → %s", self, blueprint, app, options, first_registration, self.app, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         #: a reference to the blueprint that created this setup state.
         self.blueprint = blueprint
+        logger.debug("__init__(self=%s,blueprint=%s,app=%s,options=%s,first_registration=%s): self.blueprint → %s", self, blueprint, app, options, first_registration, self.blueprint, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         #: a dictionary with all options that were passed to the
         #: :meth:`~flask.Flask.register_blueprint` method.
         self.options = options
+        logger.debug("__init__(self=%s,blueprint=%s,app=%s,options=%s,first_registration=%s): self.options → %s", self, blueprint, app, options, first_registration, self.options, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         #: as blueprints can be registered multiple times with the
         #: application and not everything wants to be registered
         #: multiple times on it, this attribute can be used to figure
         #: out if the blueprint was registered in the past already.
         self.first_registration = first_registration
+        logger.debug("__init__(self=%s,blueprint=%s,app=%s,options=%s,first_registration=%s): self.first_registration → %s", self, blueprint, app, options, first_registration, self.first_registration, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         subdomain = self.options.get("subdomain")
         if subdomain is None:
@@ -68,6 +75,7 @@ class BlueprintSetupState:
         #: The subdomain that the blueprint should be active for, ``None``
         #: otherwise.
         self.subdomain = subdomain
+        logger.debug("__init__(self=%s,blueprint=%s,app=%s,options=%s,first_registration=%s): self.subdomain → %s", self, blueprint, app, options, first_registration, self.subdomain, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         url_prefix = self.options.get("url_prefix")
         if url_prefix is None:
@@ -75,14 +83,19 @@ class BlueprintSetupState:
         #: The prefix that should be used for all URLs defined on the
         #: blueprint.
         self.url_prefix = url_prefix
+        logger.debug("__init__(self=%s,blueprint=%s,app=%s,options=%s,first_registration=%s): self.url_prefix → %s", self, blueprint, app, options, first_registration, self.url_prefix, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         self.name = self.options.get("name", blueprint.name)
+        logger.error("__init__(blueprint=%s,app=%s,options=%s,first_registration=%s): self.name → %s", blueprint, app, options, first_registration, self.name, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
         self.name_prefix = self.options.get("name_prefix", "")
+        logger.error("__init__(blueprint=%s,app=%s,options=%s,first_registration=%s): self.name_prefix → %s", blueprint, app, options, first_registration, self.name_prefix, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
         #: A dictionary with URL defaults that is added to each and every
         #: URL that was defined with the blueprint.
         self.url_defaults = dict(self.blueprint.url_values_defaults)
+        logger.error("__init__(blueprint=%s,app=%s,options=%s,first_registration=%s): self.url_defaults → %s", blueprint, app, options, first_registration, self.url_defaults, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
         self.url_defaults.update(self.options.get("url_defaults", ()))
+        logger.warning("<<< Exiting __init__(blueprint=%s,app=%s,options=%s,first_registration=%s)", blueprint, app, options, first_registration, extra={"event.action": "__init__", "logrite.blueprint": blueprint, "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
 
     def add_url_rule(
         self,
@@ -91,6 +104,7 @@ class BlueprintSetupState:
         view_func: ft.RouteCallable | None = None,
         **options: t.Any,
     ) -> None:
+        logger.error(">>> Entering add_url_rule(rule=%s,endpoint=%s,view_func=%s)", rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
         """A helper method to register a rule (and optionally a view function)
         to the application.  The endpoint is automatically prefixed with the
         blueprint's name.
@@ -101,8 +115,10 @@ class BlueprintSetupState:
             else:
                 rule = self.url_prefix
         options.setdefault("subdomain", self.subdomain)
+        logger.debug("add_url_rule(self=%s,rule=%s,endpoint=%s,view_func=%s): options → %s", self, rule, endpoint, view_func, options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
         if endpoint is None:
             endpoint = _endpoint_from_view_func(view_func)  # type: ignore
+            logger.error("add_url_rule(rule=%s,endpoint=%s,view_func=%s): endpoint → %s", rule, endpoint, view_func, endpoint, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
         defaults = self.url_defaults
         if "defaults" in options:
             defaults = dict(defaults, **options.pop("defaults"))
@@ -114,6 +130,7 @@ class BlueprintSetupState:
             defaults=defaults,
             **options,
         )
+        logger.warning("<<< Exiting add_url_rule(rule=%s,endpoint=%s,view_func=%s)", rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
 
 
 class Blueprint(Scaffold):
@@ -211,6 +228,7 @@ class Blueprint(Scaffold):
         self._blueprints: list[tuple[Blueprint, dict[str, t.Any]]] = []
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.error(">>> Entering _check_setup_finished(f_name=%s)", f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
         if self._got_registered_once:
             raise AssertionError(
                 f"The setup method '{f_name}' can no longer be called on the blueprint"
@@ -219,6 +237,7 @@ class Blueprint(Scaffold):
                 "Make sure all imports, decorators, functions, etc. needed to set up"
                 " the blueprint are done before registering it."
             )
+            logger.warning("<<< Exiting _check_setup_finished(f_name=%s)", f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
 
     @setupmethod
     def record(self, func: DeferredSetupFunction) -> None:
@@ -227,7 +246,9 @@ class Blueprint(Scaffold):
         state as argument as returned by the :meth:`make_setup_state`
         method.
         """
+        logger.error(">>> Entering record(func=%s)", func, extra={"event.action": "record", "logrite.func": func})
         self.deferred_functions.append(func)
+        logger.warning("<<< Exiting record(func=%s)", func, extra={"event.action": "record", "logrite.func": func})
 
     @setupmethod
     def record_once(self, func: DeferredSetupFunction) -> None:
@@ -236,20 +257,26 @@ class Blueprint(Scaffold):
         blueprint is registered a second time on the application, the
         function passed is not called.
         """
+        logger.error(">>> Entering record_once(func=%s)", func, extra={"event.action": "record_once", "logrite.func": func})
 
+        logger.warning("<<< Exiting record_once(func=%s)", func, extra={"event.action": "record_once", "logrite.func": func})
         def wrapper(state: BlueprintSetupState) -> None:
+            logger.error(">>> Entering wrapper(state=%s)", state, extra={"event.action": "wrapper", "logrite.state": state})
             if state.first_registration:
                 func(state)
+                logger.warning("<<< Exiting wrapper(state=%s)", state, extra={"event.action": "wrapper", "logrite.state": state})
 
         self.record(update_wrapper(wrapper, func))
 
     def make_setup_state(
         self, app: App, options: dict[str, t.Any], first_registration: bool = False
     ) -> BlueprintSetupState:
+        logger.error(">>> Entering make_setup_state(app=%s,options=%s,first_registration=%s)", app, options, first_registration, extra={"event.action": "make_setup_state", "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
         """Creates an instance of :meth:`~flask.blueprints.BlueprintSetupState`
         object that is later passed to the register callback functions.
         Subclasses can override this to return a subclass of the setup state.
         """
+        logger.warning("<<< Exiting make_setup_state(app=%s,options=%s,first_registration=%s)", app, options, first_registration, extra={"event.action": "make_setup_state", "logrite.app": app, "logrite.options": options, "logrite.first_registration": first_registration})
         return BlueprintSetupState(self, app, options, first_registration)
 
     @setupmethod
@@ -266,9 +293,11 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 2.0
         """
+        logger.error(">>> Entering register_blueprint(blueprint=%s)", blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
+        logger.warning("<<< Exiting register_blueprint(blueprint=%s)", blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
 
     def register(self, app: App, options: dict[str, t.Any]) -> None:
         """Called by :meth:`Flask.register_blueprint` to register all
@@ -299,13 +328,19 @@ class Blueprint(Scaffold):
             blueprint to be registered multiple times with unique names
             for ``url_for``.
         """
+        logger.error(">>> Entering register(app=%s,options=%s)", app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
         name_prefix = options.get("name_prefix", "")
+        logger.error("register(app=%s,options=%s): name_prefix → %s", app, options, name_prefix, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
         self_name = options.get("name", self.name)
+        logger.error("register(app=%s,options=%s): self_name → %s", app, options, self_name, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
         name = f"{name_prefix}.{self_name}".lstrip(".")
+        logger.error("register(app=%s,options=%s): name → %s", app, options, name, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
         if name in app.blueprints:
             bp_desc = "this" if app.blueprints[name] is self else "a different"
+            logger.error("register(app=%s,options=%s): bp_desc → %s", app, options, bp_desc, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
             existing_at = f" '{name}'" if self_name != name else ""
+            logger.error("register(app=%s,options=%s): existing_at → %s", app, options, existing_at, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
             raise ValueError(
                 f"The name '{self_name}' is already registered for"
@@ -314,11 +349,14 @@ class Blueprint(Scaffold):
             )
 
         first_bp_registration = not any(bp is self for bp in app.blueprints.values())
+        logger.error("register(app=%s,options=%s): first_bp_registration → %s", app, options, first_bp_registration, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
         first_name_registration = name not in app.blueprints
 
         app.blueprints[name] = self
         self._got_registered_once = True
+        logger.debug("register(self=%s,app=%s,options=%s): self._got_registered_once → %s", self, app, options, self._got_registered_once, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
         state = self.make_setup_state(app, options, first_bp_registration)
+        logger.error("register(app=%s,options=%s): state → %s", app, options, state, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
         if self.has_static_folder:
             state.add_url_rule(
@@ -335,6 +373,7 @@ class Blueprint(Scaffold):
             deferred(state)
 
         cli_resolved_group = options.get("cli_group", self.cli_group)
+        logger.error("register(app=%s,options=%s): cli_resolved_group → %s", app, options, cli_resolved_group, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
         if self.cli.commands:
             if cli_resolved_group is None:
@@ -348,6 +387,7 @@ class Blueprint(Scaffold):
 
         for blueprint, bp_options in self._blueprints:
             bp_options = bp_options.copy()
+            logger.error("register(app=%s,options=%s): bp_options → %s", app, options, bp_options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
             bp_url_prefix = bp_options.get("url_prefix")
             bp_subdomain = bp_options.get("subdomain")
 
@@ -375,8 +415,10 @@ class Blueprint(Scaffold):
 
             bp_options["name_prefix"] = name
             blueprint.register(app, bp_options)
+            logger.warning("<<< Exiting register(app=%s,options=%s)", app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
     def _merge_blueprint_funcs(self, app: App, name: str) -> None:
+        logger.error(">>> Entering _merge_blueprint_funcs(app=%s,name=%s)", app, name, extra={"event.action": "_merge_blueprint_funcs", "logrite.app": app, "logrite.name": name})
         def extend(
             bp_dict: dict[ft.AppOrBlueprintKey, list[t.Any]],
             parent_dict: dict[ft.AppOrBlueprintKey, list[t.Any]],
@@ -418,6 +460,7 @@ class Blueprint(Scaffold):
         provide_automatic_options: bool | None = None,
         **options: t.Any,
     ) -> None:
+        logger.error(">>> Entering add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s)", rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         """Register a URL rule with the blueprint. See :meth:`.Flask.add_url_rule` for
         full documentation.
 
@@ -439,6 +482,7 @@ class Blueprint(Scaffold):
                 **options,
             )
         )
+        logger.warning("<<< Exiting add_url_rule(rule=%s,endpoint=%s,view_func=%s,provide_automatic_options=%s)", rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def app_template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -450,6 +494,7 @@ class Blueprint(Scaffold):
     def app_template_filter(
         self, name: T_template_filter | str | None = None
     ) -> T_template_filter | t.Callable[[T_template_filter], T_template_filter]:
+        logger.error(">>> Entering app_template_filter(name=%s)", name, extra={"event.action": "app_template_filter", "logrite.name": name})
         """Decorate a function to register it as a custom Jinja filter. The name
         is optional. The decorator may be used without parentheses.
 
@@ -464,10 +509,13 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_filter(name)
+            logger.warning("<<< Exiting app_template_filter(name=%s)", name, extra={"event.action": "app_template_filter", "logrite.name": name})
             return name
 
         def decorator(f: T_template_filter) -> T_template_filter:
+            logger.error(">>> Entering decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             self.add_app_template_filter(f, name=name)
+            logger.warning("<<< Exiting decorator(f=%s)", f, extra={"event.action": "decorator", "logrite.f": f})
             return f
 
         return decorator
@@ -476,6 +524,7 @@ class Blueprint(Scaffold):
     def add_app_template_filter(
         self, f: ft.TemplateFilterCallable, name: str | None = None
     ) -> None:
+        logger.error(">>> Entering add_app_template_filter(f=%s,name=%s)", f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja filter.
 
         The :meth:`app_template_filter` decorator can be used to register a
@@ -488,9 +537,12 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        logger.warning("<<< Exiting add_app_template_filter(f=%s,name=%s)", f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.error(">>> Entering register_template_filter(state=%s)", state, extra={"event.action": "register_template_filter", "logrite.state": state})
             state.app.add_template_filter(f, name=name)
+            logger.warning("<<< Exiting register_template_filter(state=%s)", state, extra={"event.action": "register_template_filter", "logrite.state": state})
 
         self.record_once(register_template_filter)
 
@@ -504,6 +556,7 @@ class Blueprint(Scaffold):
     def app_template_test(
         self, name: T_template_test | str | None = None
     ) -> T_template_test | t.Callable[[T_template_test], T_template_test]:
+        logger.error(">>> Entering app_template_test(name=%s)", name, extra={"event.action": "app_template_test", "logrite.name": name})
         """Decorate a function to register it as a custom Jinja test. The name
         is optional. The decorator may be used without parentheses.
 
@@ -520,6 +573,7 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_test(name)
+            logger.warning("<<< Exiting app_template_test(name=%s)", name, extra={"event.action": "app_template_test", "logrite.name": name})
             return name
 
         def decorator(f: T_template_test) -> T_template_test:
@@ -532,6 +586,7 @@ class Blueprint(Scaffold):
     def add_app_template_test(
         self, f: ft.TemplateTestCallable, name: str | None = None
     ) -> None:
+        logger.error(">>> Entering add_app_template_test(f=%s,name=%s)", f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja test.
 
         The :meth:`app_template_test` decorator can be used to register a
@@ -546,9 +601,12 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.warning("<<< Exiting add_app_template_test(f=%s,name=%s)", f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.error(">>> Entering register_template_test(state=%s)", state, extra={"event.action": "register_template_test", "logrite.state": state})
             state.app.add_template_test(f, name=name)
+            logger.warning("<<< Exiting register_template_test(state=%s)", state, extra={"event.action": "register_template_test", "logrite.state": state})
 
         self.record_once(register_template_test)
 
@@ -562,6 +620,7 @@ class Blueprint(Scaffold):
     def app_template_global(
         self, name: T_template_global | str | None = None
     ) -> T_template_global | t.Callable[[T_template_global], T_template_global]:
+        logger.error(">>> Entering app_template_global(name=%s)", name, extra={"event.action": "app_template_global", "logrite.name": name})
         """Decorate a function to register it as a custom Jinja global. The name
         is optional. The decorator may be used without parentheses.
 
@@ -578,6 +637,7 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_global(name)
+            logger.warning("<<< Exiting app_template_global(name=%s)", name, extra={"event.action": "app_template_global", "logrite.name": name})
             return name
 
         def decorator(f: T_template_global) -> T_template_global:
@@ -590,6 +650,7 @@ class Blueprint(Scaffold):
     def add_app_template_global(
         self, f: ft.TemplateGlobalCallable, name: str | None = None
     ) -> None:
+        logger.error(">>> Entering add_app_template_global(f=%s,name=%s)", f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
         """Register a function to use as a custom Jinja global.
 
         The :meth:`app_template_global` decorator can be used to register a function
@@ -604,9 +665,12 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.warning("<<< Exiting add_app_template_global(f=%s,name=%s)", f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.error(">>> Entering register_template_global(state=%s)", state, extra={"event.action": "register_template_global", "logrite.state": state})
             state.app.add_template_global(f, name=name)
+            logger.warning("<<< Exiting register_template_global(state=%s)", state, extra={"event.action": "register_template_global", "logrite.state": state})
 
         self.record_once(register_template_global)
 
@@ -615,9 +679,11 @@ class Blueprint(Scaffold):
         """Like :meth:`before_request`, but before every request, not only those handled
         by the blueprint. Equivalent to :meth:`.Flask.before_request`.
         """
+        logger.error(">>> Entering before_app_request(f=%s)", f, extra={"event.action": "before_app_request", "logrite.f": f})
         self.record_once(
             lambda s: s.app.before_request_funcs.setdefault(None, []).append(f)
         )
+        logger.warning("<<< Exiting before_app_request(f=%s)", f, extra={"event.action": "before_app_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -625,9 +691,11 @@ class Blueprint(Scaffold):
         """Like :meth:`after_request`, but after every request, not only those handled
         by the blueprint. Equivalent to :meth:`.Flask.after_request`.
         """
+        logger.error(">>> Entering after_app_request(f=%s)", f, extra={"event.action": "after_app_request", "logrite.f": f})
         self.record_once(
             lambda s: s.app.after_request_funcs.setdefault(None, []).append(f)
         )
+        logger.warning("<<< Exiting after_app_request(f=%s)", f, extra={"event.action": "after_app_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -635,34 +703,42 @@ class Blueprint(Scaffold):
         """Like :meth:`teardown_request`, but after every request, not only those
         handled by the blueprint. Equivalent to :meth:`.Flask.teardown_request`.
         """
+        logger.error(">>> Entering teardown_app_request(f=%s)", f, extra={"event.action": "teardown_app_request", "logrite.f": f})
         self.record_once(
             lambda s: s.app.teardown_request_funcs.setdefault(None, []).append(f)
         )
+        logger.warning("<<< Exiting teardown_app_request(f=%s)", f, extra={"event.action": "teardown_app_request", "logrite.f": f})
         return f
 
     @setupmethod
     def app_context_processor(
         self, f: T_template_context_processor
     ) -> T_template_context_processor:
+        logger.error(">>> Entering app_context_processor(f=%s)", f, extra={"event.action": "app_context_processor", "logrite.f": f})
         """Like :meth:`context_processor`, but for templates rendered by every view, not
         only by the blueprint. Equivalent to :meth:`.Flask.context_processor`.
         """
         self.record_once(
             lambda s: s.app.template_context_processors.setdefault(None, []).append(f)
         )
+        logger.warning("<<< Exiting app_context_processor(f=%s)", f, extra={"event.action": "app_context_processor", "logrite.f": f})
         return f
 
     @setupmethod
     def app_errorhandler(
         self, code: type[Exception] | int
     ) -> t.Callable[[T_error_handler], T_error_handler]:
+        logger.error(">>> Entering app_errorhandler(code=%s)", code, extra={"event.action": "app_errorhandler", "logrite.code": code})
         """Like :meth:`errorhandler`, but for every request, not only those handled by
         the blueprint. Equivalent to :meth:`.Flask.errorhandler`.
         """
+        logger.warning("<<< Exiting app_errorhandler(code=%s)", code, extra={"event.action": "app_errorhandler", "logrite.code": code})
 
         def decorator(f: T_error_handler) -> T_error_handler:
             def from_blueprint(state: BlueprintSetupState) -> None:
+                logger.error(">>> Entering from_blueprint(state=%s)", state, extra={"event.action": "from_blueprint", "logrite.state": state})
                 state.app.errorhandler(code)(f)
+                logger.warning("<<< Exiting from_blueprint(state=%s)", state, extra={"event.action": "from_blueprint", "logrite.state": state})
 
             self.record_once(from_blueprint)
             return f
@@ -673,12 +749,14 @@ class Blueprint(Scaffold):
     def app_url_value_preprocessor(
         self, f: T_url_value_preprocessor
     ) -> T_url_value_preprocessor:
+        logger.error(">>> Entering app_url_value_preprocessor(f=%s)", f, extra={"event.action": "app_url_value_preprocessor", "logrite.f": f})
         """Like :meth:`url_value_preprocessor`, but for every request, not only those
         handled by the blueprint. Equivalent to :meth:`.Flask.url_value_preprocessor`.
         """
         self.record_once(
             lambda s: s.app.url_value_preprocessors.setdefault(None, []).append(f)
         )
+        logger.warning("<<< Exiting app_url_value_preprocessor(f=%s)", f, extra={"event.action": "app_url_value_preprocessor", "logrite.f": f})
         return f
 
     @setupmethod
@@ -686,7 +764,9 @@ class Blueprint(Scaffold):
         """Like :meth:`url_defaults`, but for every request, not only those handled by
         the blueprint. Equivalent to :meth:`.Flask.url_defaults`.
         """
+        logger.error(">>> Entering app_url_defaults(f=%s)", f, extra={"event.action": "app_url_defaults", "logrite.f": f})
         self.record_once(
             lambda s: s.app.url_default_functions.setdefault(None, []).append(f)
         )
+        logger.warning("<<< Exiting app_url_defaults(f=%s)", f, extra={"event.action": "app_url_defaults", "logrite.f": f})
         return f
