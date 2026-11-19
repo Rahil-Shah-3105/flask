@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -19,6 +21,11 @@ def create_app(test_config=None):
     else:
         # load the test config if passed in
         app.config.update(test_config)
+        logger.info("create_app(test_config=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
 
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)

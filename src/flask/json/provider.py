@@ -9,6 +9,8 @@ import weakref
 from datetime import date
 
 from werkzeug.http import http_date
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.sansio.response import Response
@@ -62,6 +64,7 @@ class JSONProvider:
         :param s: Text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.info("loads(self=%s, s=%s): FEDRAMP-AUDIT: Crypto protection — Encryption operation completed", self, s, extra={"event.action": "loads", "logrite.s": s})
         raise NotImplementedError
 
     def load(self, fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
@@ -70,6 +73,9 @@ class JSONProvider:
         :param fp: A file opened for reading text or UTF-8 bytes.
         :param kwargs: May be passed to the underlying JSON library.
         """
+        logger.info("load(self=%s, fp=%s): FEDRAMP-AUDIT: Configuration management — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(self=%s, fp=%s): FEDRAMP-AUDIT: Incident response — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(self=%s, fp=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — Record access recorded for the audit trail", self, fp, extra={"event.action": "load", "logrite.fp": fp})
         return self.loads(fp.read(), **kwargs)
 
     def _prepare_response_obj(

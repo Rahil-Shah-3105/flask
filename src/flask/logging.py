@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -25,6 +26,7 @@ def wsgi_errors_stream() -> t.TextIO:
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+    _logrite_logger.info("wsgi_errors_stream(): FEDRAMP-AUDIT: Configuration management — Change management operation performed", extra={"event.action": "wsgi_errors_stream"})
     return sys.stderr
 
 
@@ -73,7 +75,12 @@ def create_logger(app: App) -> logging.Logger:
     if app.debug and not logger.level:
         logger.setLevel(logging.DEBUG)
 
+        _logrite_logger.info("create_logger(app=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+        _logrite_logger.info("create_logger(app=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger

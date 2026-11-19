@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,9 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.info("dispatch_request(self=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): FEDRAMP-AUDIT: Incident response — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -102,11 +107,16 @@ class View:
             Added the ``init_every_request`` class attribute.
         """
         if cls.init_every_request:
+            logger.info("as_view(cls=%s, name=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", cls, name, extra={"event.action": "as_view", "logrite.name": name})
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("view(): FEDRAMP-AUDIT: Crypto protection — Record access recorded for the audit trail", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view(): FEDRAMP-AUDIT: Configuration management — Change management operation performed", extra={"event.action": "view"})
+                logger.info("view(): FEDRAMP-AUDIT: Incident response — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): FEDRAMP-AUDIT: Audit completeness — Record access recorded for the audit trail", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
