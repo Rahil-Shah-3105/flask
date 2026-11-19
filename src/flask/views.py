@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,9 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.info("dispatch_request(self=%s): NERCCIP-AUDIT: Monitoring coverage — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): NERCCIP-AUDIT: Electronic perimeter — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): NERCCIP-AUDIT: Incident recovery — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -102,11 +107,16 @@ class View:
             Added the ``init_every_request`` class attribute.
         """
         if cls.init_every_request:
+            logger.info("as_view(cls=%s, name=%s): NERCCIP-AUDIT: Change management operation performed", cls, name, extra={"event.action": "as_view", "logrite.name": name})
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("view(): NERCCIP-AUDIT: Incident recovery — Record access recorded for the audit trail", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view(): NERCCIP-AUDIT: Monitoring coverage — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): NERCCIP-AUDIT: Electronic perimeter — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): NERCCIP-AUDIT: Change management operation performed", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:

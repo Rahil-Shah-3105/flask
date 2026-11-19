@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -20,6 +22,10 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.update(test_config)
 
+        logger.info("create_app(test_config=%s): NERCCIP-AUDIT: Monitoring coverage — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): NERCCIP-AUDIT: Incident recovery — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): NERCCIP-AUDIT: Electronic perimeter — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): NERCCIP-AUDIT: Change management — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 
