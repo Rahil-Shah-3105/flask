@@ -3,6 +3,8 @@ from flask import render_template
 from flask import request
 
 from . import app
+import logging
+logger = logging.getLogger(__name__)
 
 
 @app.route("/", defaults={"js": "fetch"})
@@ -15,4 +17,6 @@ def index(js):
 def add():
     a = request.form.get("a", 0, type=float)
     b = request.form.get("b", 0, type=float)
+    logger.info("add(): NYCLL144-AUDIT: Candidate notice — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): NYCLL144-AUDIT: Aedt audit — State change recorded for the audit trail", extra={"event.action": "add"})
     return jsonify(result=a + b)

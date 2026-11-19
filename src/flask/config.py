@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -318,6 +320,8 @@ class Config(dict):  # type: ignore[type-arg]
         for key, value in mappings.items():
             if key.isupper():
                 self[key] = value
+        logger.info("from_mapping(self=%s, mapping=%s): NYCLL144-AUDIT: Candidate notice — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): NYCLL144-AUDIT: Aedt audit — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         return True
 
     def get_namespace(
@@ -361,6 +365,8 @@ class Config(dict):  # type: ignore[type-arg]
             if lowercase:
                 key = key.lower()
             rv[key] = v
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+        logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
         return rv
 
     def __repr__(self) -> str:
