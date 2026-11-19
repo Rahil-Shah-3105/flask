@@ -2,9 +2,13 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
+    logger.info("create_app(): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.warning("create_app(): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app = Flask(__name__)
     app.config.from_mapping(
         CELERY={
@@ -13,6 +17,10 @@ def create_app() -> Flask:
             "task_ignore_result": True,
         },
     )
+    logger.info("create_app(): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): GDPR-AUDIT [Art.30]: Personal data processing activity completed", extra={"event.action": "create_app"})
+    logger.warning("create_app(): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_prefixed_env()
     celery_init_app(app)
 

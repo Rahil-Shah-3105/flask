@@ -12,6 +12,8 @@ from .globals import app_ctx
 from .helpers import stream_with_context
 from .signals import before_render_template
 from .signals import template_rendered
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -30,6 +32,7 @@ def _default_template_ctx_processor() -> dict[str, t.Any]:
         # The session proxy cannot be replaced, accessing it gets
         # RequestContext.session, which sets session.accessed.
 
+    logger.info("_default_template_ctx_processor(): GDPR-AUDIT: Transfers to third countries — Session management operation performed", extra={"event.action": "_default_template_ctx_processor"})
     return rv
 
 
@@ -57,6 +60,11 @@ class DispatchingJinjaLoader(BaseLoader):
     def get_source(
         self, environment: BaseEnvironment, template: str
     ) -> tuple[str, str | None, t.Callable[[], bool] | None]:
+        logger.warning("get_source(self=%s, environment=%s, template=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.warning("get_source(self=%s, environment=%s, template=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
         if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
             return self._get_source_explained(environment, template)
         return self._get_source_fast(environment, template)
@@ -112,6 +120,14 @@ class DispatchingJinjaLoader(BaseLoader):
             result.update(loader.list_templates())
 
         for blueprint in self.app.iter_blueprints():
+            logger.info("list_templates(self=%s): GDPR-AUDIT: Transfers to third countries — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.info("list_templates(self=%s): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.info("list_templates(self=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.info("list_templates(self=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.warning("list_templates(self=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.info("list_templates(self=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.info("list_templates(self=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+            logger.warning("list_templates(self=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
             loader = blueprint.jinja_loader
             if loader is not None:
                 for template in loader.list_templates():

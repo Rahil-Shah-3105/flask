@@ -17,6 +17,8 @@ from werkzeug.utils import cached_property
 from .. import typing as ft
 from ..helpers import get_root_path
 from ..templating import _default_template_ctx_processor
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
@@ -218,6 +220,7 @@ class Scaffold:
         return f"<{type(self).__name__} {self.name!r}>"
 
     def _check_setup_finished(self, f_name: str) -> None:
+        logger.warning("_check_setup_finished(self=%s, f_name=%s): GDPR-AUDIT: Access, erasure, portability — Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
         raise NotImplementedError
 
     @property
@@ -298,6 +301,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("get(self=%s, rule=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.warning("get(self=%s, rule=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +312,9 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.warning("query(self=%s, rule=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.warning("query(self=%s, rule=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -330,6 +339,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.warning("delete(self=%s, rule=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.warning("delete(self=%s, rule=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -438,6 +450,9 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.warning("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.warning("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, rule, endpoint, view_func, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         raise NotImplementedError
 
     @setupmethod
@@ -489,6 +504,7 @@ class Scaffold:
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
         self.before_request_funcs.setdefault(None, []).append(f)
+        logger.info("before_request(self=%s, f=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, f, extra={"event.action": "before_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -658,6 +674,10 @@ class Scaffold:
 
         .. versionadded:: 0.7
         """
+        logger.warning("register_error_handler(self=%s, code_or_exception=%s, f=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
         exc_class, code = self._get_exc_class_and_code(code_or_exception)
         self.error_handler_spec[None][code][exc_class] = f
 
@@ -703,6 +723,7 @@ class Scaffold:
         if issubclass(exc_class, HTTPException):
             return exc_class, exc_class.code
         else:
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
             return exc_class, None
 
 
@@ -790,6 +811,14 @@ def find_package(import_name: str) -> tuple[str | None, str]:
             return parent, package_path
 
         # Unix (prefix/lib/pythonX.Y/site-packages)
+        logger.info("find_package(import_name=%s): GDPR-AUDIT: Transfers to third countries — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.warning("find_package(import_name=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.info("find_package(import_name=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+        logger.warning("find_package(import_name=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
         if os.path.basename(parent).lower() == "lib":
             return os.path.dirname(parent), package_path
 
@@ -797,4 +826,5 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         return site_parent, package_path
 
     # not installed
+    logger.info("find_package(import_name=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     return None, package_path

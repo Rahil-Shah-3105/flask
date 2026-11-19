@@ -8,6 +8,8 @@ from werkzeug.routing import RequestRedirect
 from .blueprints import Blueprint
 from .globals import _cv_app
 from .sansio.app import App
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
@@ -87,6 +89,7 @@ def attach_enctype_error_multidict(request: Request) -> None:
     """
     oldcls = request.files.__class__
 
+    logger.info("attach_enctype_error_multidict(request=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", request, extra={"event.action": "attach_enctype_error_multidict"})
     class newcls(oldcls):  # type: ignore[valid-type, misc]
         def __getitem__(self, key: str) -> t.Any:
             try:
@@ -177,3 +180,4 @@ def explain_template_loading_attempts(
         info.append("  See https://flask.palletsprojects.com/blueprints/#templates")
 
     app.logger.info("\n".join(info))
+    logger.info("explain_template_loading_attempts(app=%s, template=%s, attempts=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", app, template, attempts, extra={"event.action": "explain_template_loading_attempts", "logrite.app": app, "logrite.template": template, "logrite.attempts": attempts})

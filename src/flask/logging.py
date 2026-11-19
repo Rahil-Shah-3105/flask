@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -69,6 +70,14 @@ def create_logger(app: App) -> logging.Logger:
     :func:`~flask.logging.wsgi_errors_stream` with a basic format.
     """
     logger = logging.getLogger(app.name)
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.warning("create_logger(app=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.warning("create_logger(app=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
 
     if app.debug and not logger.level:
         logger.setLevel(logging.DEBUG)
@@ -76,4 +85,5 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger

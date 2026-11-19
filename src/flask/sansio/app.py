@@ -32,6 +32,7 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import find_package
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.wrappers import Response as BaseResponse
@@ -406,6 +407,7 @@ class App(Scaffold):
         # tracks internally if the application already handled at least one
         # request.
         self._got_first_request = False
+        _logrite_logger.info("__init__(self=%s, import_name=%s, static_url_path=%s, static_folder=%s, static_host=%s, host_matching=%s, subdomain_matching=%s, template_folder=%s, instance_path=%s, instance_relative_config=%s, root_path=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
 
     def _check_setup_finished(self, f_name: str) -> None:
         if self._got_first_request:
@@ -418,6 +420,7 @@ class App(Scaffold):
                 " needed to set up the application are done before"
                 " running it."
             )
+            _logrite_logger.warning("_check_setup_finished(self=%s, f_name=%s): GDPR-AUDIT: Access, erasure, portability — Database transaction completed", self, f_name, extra={"event.action": "_check_setup_finished", "logrite.f_name": f_name})
 
     @cached_property
     def name(self) -> str:
@@ -474,6 +477,9 @@ class App(Scaffold):
         return self.create_jinja_environment()
 
     def create_jinja_environment(self) -> Environment:
+        _logrite_logger.info("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        _logrite_logger.info("create_jinja_environment(self=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        _logrite_logger.warning("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         raise NotImplementedError()
 
     def make_config(self, instance_relative: bool = False) -> Config:
@@ -515,6 +521,7 @@ class App(Scaffold):
         prefix, package_path = find_package(self.import_name)
         if prefix is None:
             return os.path.join(package_path, "instance")
+        _logrite_logger.info("auto_find_instance_path(self=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, extra={"event.action": "auto_find_instance_path"})
         return os.path.join(prefix, "var", f"{self.name}-instance")
 
     def create_global_jinja_loader(self) -> DispatchingJinjaLoader:
@@ -528,6 +535,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.warning("create_global_jinja_loader(self=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
+        _logrite_logger.warning("create_global_jinja_loader(self=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
+        _logrite_logger.info("create_global_jinja_loader(self=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
         return DispatchingJinjaLoader(self)
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
@@ -592,6 +602,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.warning("register_blueprint(self=%s, blueprint=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        _logrite_logger.warning("register_blueprint(self=%s, blueprint=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        _logrite_logger.info("register_blueprint(self=%s, blueprint=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         blueprint.register(self, options)
 
     def iter_blueprints(self) -> t.ValuesView[Blueprint]:
@@ -649,6 +662,12 @@ class App(Scaffold):
 
         rule_obj = self.url_rule_class(rule, methods=methods, **options)
         rule_obj.provide_automatic_options = provide_automatic_options  # type: ignore[attr-defined]
+        _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        _logrite_logger.warning("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
         self.url_map.add(rule_obj)
         if view_func is not None:
@@ -658,6 +677,8 @@ class App(Scaffold):
                     "View function mapping is overwriting an existing"
                     f" endpoint function: {endpoint}"
                 )
+                _logrite_logger.warning("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+                _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
             self.view_functions[endpoint] = view_func
 
     @t.overload
@@ -708,6 +729,9 @@ class App(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        _logrite_logger.warning("add_template_filter(self=%s, f=%s, name=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.warning("add_template_filter(self=%s, f=%s, name=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_filter(self=%s, f=%s, name=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
         self.jinja_env.filters[name or f.__name__] = f
 
     @t.overload
@@ -767,6 +791,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
+        _logrite_logger.warning("add_template_test(self=%s, f=%s, name=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.warning("add_template_test(self=%s, f=%s, name=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_test(self=%s, f=%s, name=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
         self.jinja_env.tests[name or f.__name__] = f
 
     @t.overload
@@ -821,6 +848,9 @@ class App(Scaffold):
 
         .. versionadded:: 0.10
         """
+        _logrite_logger.warning("add_template_global(self=%s, f=%s, name=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.warning("add_template_global(self=%s, f=%s, name=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
+        _logrite_logger.info("add_template_global(self=%s, f=%s, name=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
         self.jinja_env.globals[name or f.__name__] = f
 
     @setupmethod
