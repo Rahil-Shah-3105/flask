@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,9 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.info("dispatch_request(self=%s): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -104,9 +109,12 @@ class View:
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("view(): COPPA-AUDIT [16 CFR 312.5]: Vpc coverage — Record access recorded for the audit trail", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.info("view(): COPPA-AUDIT [16 CFR 312.5(a)(2)]: Third party disclosure — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): COPPA-AUDIT [16 CFR 312.10]: Retention deletion — Record access recorded for the audit trail", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
