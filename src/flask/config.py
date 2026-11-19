@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -121,6 +123,7 @@ class Config(dict):  # type: ignore[type-arg]
                 " this variable and make it point to a configuration"
                 " file"
             )
+        logger.info("from_envvar(self=%s, variable_name=%s, silent=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, variable_name, silent, extra={"event.action": "from_envvar", "logrite.variable_name": variable_name, "logrite.silent": silent})
         return self.from_pyfile(rv, silent=silent)
 
     def from_prefixed_env(
@@ -182,6 +185,7 @@ class Config(dict):  # type: ignore[type-arg]
 
             current[tail] = value
 
+        logger.info("from_prefixed_env(self=%s, prefix=%s, loads=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, prefix, loads, extra={"event.action": "from_prefixed_env", "logrite.prefix": prefix, "logrite.loads": loads})
         return True
 
     def from_pyfile(
@@ -213,6 +217,7 @@ class Config(dict):  # type: ignore[type-arg]
             e.strerror = f"Unable to load configuration file ({e.strerror})"
             raise
         self.from_object(d)
+        logger.info("from_pyfile(self=%s, filename=%s, silent=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, filename, silent, extra={"event.action": "from_pyfile", "logrite.filename": filename, "logrite.silent": silent})
         return True
 
     def from_object(self, obj: object | str) -> None:
@@ -252,6 +257,7 @@ class Config(dict):  # type: ignore[type-arg]
         for key in dir(obj):
             if key.isupper():
                 self[key] = getattr(obj, key)
+                logger.info("from_object(self=%s, obj=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, obj, extra={"event.action": "from_object", "logrite.obj": obj})
 
     def from_file(
         self,
@@ -299,6 +305,7 @@ class Config(dict):  # type: ignore[type-arg]
             e.strerror = f"Unable to load configuration file ({e.strerror})"
             raise
 
+        logger.info("from_file(self=%s, filename=%s, load=%s, silent=%s, text=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, filename, load, silent, text, extra={"event.action": "from_file", "logrite.filename": filename, "logrite.load": load, "logrite.silent": silent, "logrite.text": text})
         return self.from_mapping(obj)
 
     def from_mapping(
@@ -317,6 +324,9 @@ class Config(dict):  # type: ignore[type-arg]
         mappings.update(kwargs)
         for key, value in mappings.items():
             if key.isupper():
+                logger.info("from_mapping(self=%s, mapping=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+                logger.info("from_mapping(self=%s, mapping=%s): ISO42001-AUDIT [A.7]: Data governance — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+                logger.info("from_mapping(self=%s, mapping=%s): ISO42001-AUDIT: Ai governance — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
                 self[key] = value
         return True
 
@@ -360,6 +370,9 @@ class Config(dict):  # type: ignore[type-arg]
                 key = k
             if lowercase:
                 key = key.lower()
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): ISO42001-AUDIT [A.7]: Data governance — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): ISO42001-AUDIT: Ai governance — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
             rv[key] = v
         return rv
 

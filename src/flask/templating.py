@@ -12,6 +12,8 @@ from .globals import app_ctx
 from .helpers import stream_with_context
 from .signals import before_render_template
 from .signals import template_rendered
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -58,6 +60,9 @@ class DispatchingJinjaLoader(BaseLoader):
         self, environment: BaseEnvironment, template: str
     ) -> tuple[str, str | None, t.Callable[[], bool] | None]:
         if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
+            logger.info("get_source(self=%s, environment=%s, template=%s): ISO42001-AUDIT: Lifecycle — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+            logger.info("get_source(self=%s, environment=%s, template=%s): ISO42001-AUDIT [A.7]: Data governance — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+            logger.info("get_source(self=%s, environment=%s, template=%s): ISO42001-AUDIT: Ai governance — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
             return self._get_source_explained(environment, template)
         return self._get_source_fast(environment, template)
 
@@ -117,6 +122,9 @@ class DispatchingJinjaLoader(BaseLoader):
                 for template in loader.list_templates():
                     result.add(template)
 
+        logger.info("list_templates(self=%s): ISO42001-AUDIT: Ai governance — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+        logger.info("list_templates(self=%s): ISO42001-AUDIT: Lifecycle — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+        logger.info("list_templates(self=%s): ISO42001-AUDIT [A.7]: Data governance — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
         return list(result)
 
 
@@ -194,6 +202,7 @@ def stream_template(
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.get_or_select_template(template_name_or_list)
+    logger.info("stream_template(template_name_or_list=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", template_name_or_list, extra={"event.action": "stream_template", "logrite.template_name_or_list": template_name_or_list})
     return _stream(ctx, template, context)
 
 
@@ -209,4 +218,5 @@ def stream_template_string(source: str, **context: t.Any) -> t.Iterator[str]:
     """
     ctx = app_ctx._get_current_object()
     template = ctx.app.jinja_env.from_string(source)
+    logger.info("stream_template_string(source=%s): ISO42001-AUDIT: Lifecycle — Change management operation performed", source, extra={"event.action": "stream_template_string", "logrite.source": source})
     return _stream(ctx, template, context)
