@@ -12,6 +12,8 @@ from itsdangerous import URLSafeTimedSerializer
 from werkzeug.datastructures import CallbackDict
 
 from .json.tag import TaggedJSONSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     import typing_extensions as te
@@ -75,9 +77,11 @@ class SecureCookieSession(CallbackDict[str, t.Any], SessionMixin):
         initial: c.Mapping[str, t.Any] | None = None,
     ) -> None:
         def on_update(self: te.Self) -> None:
+            logger.info("on_update(self=%s): PCI-AUDIT: Script integrity — Change management operation performed", self, extra={"event.action": "on_update"})
             self.modified = True
 
         super().__init__(initial, on_update)
+
 
 
 class NullSession(SecureCookieSession):
@@ -157,6 +161,7 @@ class SessionInterface:
 
         This creates an instance of :attr:`null_session_class` by default.
         """
+        logger.info("make_null_session(self=%s, app=%s): PCI-AUDIT: Script integrity — Change management operation performed", self, app, extra={"event.action": "make_null_session", "logrite.app": app})
         return self.null_session_class()
 
     def is_null_session(self, obj: object) -> bool:
@@ -170,6 +175,9 @@ class SessionInterface:
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.info("get_cookie_name(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
+        logger.info("get_cookie_name(self=%s, app=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
+        logger.info("get_cookie_name(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +190,9 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.info("get_cookie_domain(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
+        logger.info("get_cookie_domain(self=%s, app=%s): PCI-AUDIT: Script integrity — Change management operation performed", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
+        logger.info("get_cookie_domain(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +201,9 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.info("get_cookie_path(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
+        logger.info("get_cookie_path(self=%s, app=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
+        logger.info("get_cookie_path(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +211,18 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.info("get_cookie_httponly(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
+        logger.info("get_cookie_httponly(self=%s, app=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
+        logger.info("get_cookie_httponly(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.info("get_cookie_secure(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
+        logger.info("get_cookie_secure(self=%s, app=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
+        logger.info("get_cookie_secure(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +230,9 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.info("get_cookie_samesite(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
+        logger.info("get_cookie_samesite(self=%s, app=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
+        logger.info("get_cookie_samesite(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +241,9 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.info("get_cookie_partitioned(self=%s, app=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
+        logger.info("get_cookie_partitioned(self=%s, app=%s): PCI-AUDIT: Script integrity — Change management operation performed", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
+        logger.info("get_cookie_partitioned(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -226,6 +252,10 @@ class SessionInterface:
         default implementation returns now + the permanent session
         lifetime configured on the application.
         """
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): PCI-AUDIT: Authn controls — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): PCI-AUDIT: Audit coverage — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
         return None
@@ -245,6 +275,7 @@ class SessionInterface:
         return session.modified or (
             session.permanent and app.config["SESSION_REFRESH_EACH_REQUEST"]
         )
+        logger.info("should_set_cookie(self=%s, app=%s, session=%s): PCI-AUDIT: Script integrity — Change management operation performed", self, app, session, extra={"event.action": "should_set_cookie", "logrite.app": app})
 
     def open_session(self, app: Flask, request: Request) -> SessionMixin | None:
         """This is called at the beginning of each request, after
@@ -267,6 +298,10 @@ class SessionInterface:
         a response, before removing the request context. It is skipped
         if :meth:`is_null_session` returns ``True``.
         """
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): PCI-AUDIT: Script integrity — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): PCI-AUDIT [Req. 10.7]: Security control failure — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): PCI-AUDIT: Audit coverage — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): PCI-AUDIT: Authn controls — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
         raise NotImplementedError()
 
 
@@ -308,6 +343,9 @@ class SecureCookieSessionInterface(SessionInterface):
 
         if fallbacks := app.config["SECRET_KEY_FALLBACKS"]:
             keys.extend(fallbacks)
+            logger.info("get_signing_serializer(self=%s, app=%s): PCI-AUDIT [Req. 10.7]: Security control failure — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
+            logger.info("get_signing_serializer(self=%s, app=%s): PCI-AUDIT: Script integrity — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
+            logger.info("get_signing_serializer(self=%s, app=%s): PCI-AUDIT: Authn controls — Authentication operation completed", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
         return URLSafeTimedSerializer(
@@ -319,6 +357,7 @@ class SecureCookieSessionInterface(SessionInterface):
                 "digest_method": self.digest_method,
             },
         )
+        logger.info("get_signing_serializer(self=%s, app=%s): PCI-AUDIT: Audit coverage — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
 
     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:
         s = self.get_signing_serializer(app)
@@ -332,6 +371,7 @@ class SecureCookieSessionInterface(SessionInterface):
             data = s.loads(val, max_age=max_age)
             return self.session_class(data)
         except BadSignature:
+            logger.info("open_session(self=%s, app=%s, request=%s): PCI-AUDIT: Authn controls — Authentication operation completed", self, app, request, extra={"event.action": "open_session", "logrite.app": app})
             return self.session_class()
 
     def save_session(
@@ -382,4 +422,5 @@ class SecureCookieSessionInterface(SessionInterface):
             partitioned=partitioned,
             samesite=samesite,
         )
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): PCI-AUDIT: Authn controls — Authentication operation completed for user %s", self, app, session, response, response, extra={"event.action": "save_session", "logrite.app": app})
         response.vary.add("Cookie")
