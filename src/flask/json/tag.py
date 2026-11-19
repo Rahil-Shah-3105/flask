@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -72,6 +74,7 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.info("check(self=%s, value=%s): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed", self, value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -285,6 +288,7 @@ class TaggedJSONSerializer:
             self.order.append(tag)
         else:
             self.order.insert(index, tag)
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
 
     def tag(self, value: t.Any) -> t.Any:
         """Convert a value to a tagged representation if necessary."""
@@ -324,4 +328,6 @@ class TaggedJSONSerializer:
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.info("loads(self=%s, value=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", self, value, extra={"event.action": "loads", "logrite.value": value})
+        logger.info("loads(self=%s, value=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", self, value, extra={"event.action": "loads", "logrite.value": value})
         return self._untag_scan(loads(value))

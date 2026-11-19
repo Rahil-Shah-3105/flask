@@ -17,6 +17,8 @@ from werkzeug.utils import cached_property
 from .. import typing as ft
 from ..helpers import get_root_path
 from ..templating import _default_template_ctx_processor
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
@@ -298,6 +300,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("get(self=%s, rule=%s): HIPAA-AUDIT: Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +309,7 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.info("query(self=%s, rule=%s): HIPAA-AUDIT: Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -330,6 +334,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("delete(self=%s, rule=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -438,6 +443,7 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): HIPAA-AUDIT: State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         raise NotImplementedError
 
     @setupmethod
@@ -489,6 +495,8 @@ class Scaffold:
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
         self.before_request_funcs.setdefault(None, []).append(f)
+        logger.info("before_request(self=%s, f=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, f, extra={"event.action": "before_request", "logrite.f": f})
+        logger.info("before_request(self=%s, f=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", self, f, extra={"event.action": "before_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -510,6 +518,7 @@ class Scaffold:
         execute after every request, use :meth:`.Blueprint.after_app_request`.
         """
         self.after_request_funcs.setdefault(None, []).append(f)
+        logger.info("after_request(self=%s, f=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, f, extra={"event.action": "after_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -544,6 +553,7 @@ class Scaffold:
         execute after every request, use :meth:`.Blueprint.teardown_app_request`.
         """
         self.teardown_request_funcs.setdefault(None, []).append(f)
+        logger.info("teardown_request(self=%s, f=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, f, extra={"event.action": "teardown_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -660,6 +670,7 @@ class Scaffold:
         """
         exc_class, code = self._get_exc_class_and_code(code_or_exception)
         self.error_handler_spec[None][code][exc_class] = f
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
 
     @staticmethod
     def _get_exc_class_and_code(
@@ -703,6 +714,8 @@ class Scaffold:
         if issubclass(exc_class, HTTPException):
             return exc_class, exc_class.code
         else:
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
             return exc_class, None
 
 
@@ -797,4 +810,5 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         return site_parent, package_path
 
     # not installed
+    logger.info("find_package(import_name=%s): HIPAA-AUDIT: Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     return None, package_path

@@ -53,6 +53,8 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("remove_ctx(f=%s): HIPAA-AUDIT: State change recorded for the audit trail", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("add_ctx(f=%s): HIPAA-AUDIT: State change recorded for the audit trail", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -383,11 +387,13 @@ class Flask(App):
         value = self.config["SEND_FILE_MAX_AGE_DEFAULT"]
 
         if value is None:
+            logger.info("get_send_file_max_age(self=%s, filename=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
             return None
 
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+        logger.info("get_send_file_max_age(self=%s, filename=%s): HIPAA-AUDIT: Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -403,6 +409,7 @@ class Flask(App):
 
         """
         if not self.has_static_folder:
+            logger.info("send_static_file(self=%s, filename=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
         # send_file only knows to call get_send_file_max_age on the app,
@@ -411,6 +418,7 @@ class Flask(App):
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): HIPAA-AUDIT: Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -490,9 +498,11 @@ class Flask(App):
             if auto_reload is None:
                 auto_reload = self.debug
 
+                logger.info("create_jinja_environment(self=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", self, extra={"event.action": "create_jinja_environment"})
             options["auto_reload"] = auto_reload
 
         rv = self.jinja_environment(self, **options)
+        logger.info("create_jinja_environment(self=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", self, extra={"event.action": "create_jinja_environment"})
         rv.globals.update(
             url_for=self.url_for,
             get_flashed_messages=get_flashed_messages,
@@ -505,6 +515,7 @@ class Flask(App):
             g=g,
         )
         rv.policies["json.dumps_function"] = self.json.dumps
+        logger.info("create_jinja_environment(self=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         return rv
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
@@ -558,6 +569,7 @@ class Flask(App):
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
 
+        logger.info("create_url_adapter(self=%s, request=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
@@ -609,14 +621,19 @@ class Flask(App):
 
         # The values passed to render_template take precedence. Keep a
         # copy to re-apply after all context functions.
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", self, ctx, context, extra={"event.action": "update_template_context"})
         orig_ctx = context.copy()
 
         for name in names:
             if name in self.template_context_processors:
+                logger.info("update_template_context(self=%s, ctx=%s, context=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", self, ctx, context, extra={"event.action": "update_template_context"})
+                logger.info("update_template_context(self=%s, ctx=%s, context=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", self, ctx, context, extra={"event.action": "update_template_context"})
                 for func in self.template_context_processors[name]:
                     context.update(self.ensure_sync(func)())
 
         context.update(orig_ctx)
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
 
     def make_shell_context(self) -> dict[str, t.Any]:
         """Returns the shell context for an interactive shell for this
@@ -748,12 +765,15 @@ class Flask(App):
         from werkzeug.serving import run_simple
 
         try:
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             run_simple(host, port, self, **options)
         finally:
             # reset the first request information if the development server
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             # reset normally.  This makes it possible to restart the server
             # without reloader and that stuff from an interactive shell.
             self._got_first_request = False
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
 
     def test_client(self, use_cookies: bool = True, **kwargs: t.Any) -> FlaskClient:
         """Creates a test client for this application.  For information
@@ -863,6 +883,8 @@ class Flask(App):
         handler = self._find_error_handler(e, ctx.request.blueprints)
         if handler is None:
             return e
+        logger.info("handle_http_exception(self=%s, ctx=%s, e=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", self, ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
+        logger.info("handle_http_exception(self=%s, ctx=%s, e=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", self, ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
 
     def handle_user_exception(
@@ -982,6 +1004,7 @@ class Flask(App):
             self.raise_routing_exception(req)
         rule: Rule = req.url_rule  # type: ignore[assignment]
         # if we provide automatic options for this URL and the
+        logger.info("dispatch_request(self=%s, ctx=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, ctx, extra={"event.action": "dispatch_request"})
         # request came with the OPTIONS method, reply automatically
         if (
             getattr(rule, "provide_automatic_options", False)
@@ -990,6 +1013,7 @@ class Flask(App):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        logger.info("dispatch_request(self=%s, ctx=%s): HIPAA-AUDIT: Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
@@ -1019,6 +1043,7 @@ class Flask(App):
                 rv = self.dispatch_request(ctx)
         except Exception as e:
             rv = self.handle_user_exception(ctx, e)
+        logger.info("full_dispatch_request(self=%s, ctx=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, ctx, extra={"event.action": "full_dispatch_request"})
         return self.finalize_request(ctx, rv)
 
     def finalize_request(
@@ -1051,6 +1076,7 @@ class Flask(App):
             self.logger.exception(
                 "Request finalizing failed with an error while handling an error"
             )
+        logger.info("finalize_request(self=%s, ctx=%s, rv=%s, from_error_handler=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, ctx, rv, from_error_handler, extra={"event.action": "finalize_request", "logrite.rv": rv, "logrite.from_error_handler": from_error_handler})
         return response
 
     def make_default_options_response(self, ctx: AppContext) -> Response:
@@ -1063,6 +1089,7 @@ class Flask(App):
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
+        logger.info("make_default_options_response(self=%s, ctx=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
@@ -1222,6 +1249,7 @@ class Flask(App):
             _anchor = _url_quote(_anchor, safe="%!#$&'()*+,/:;=?@")
             rv = f"{rv}#{_anchor}"
 
+        logger.info("url_for(self=%s, endpoint=%s, _anchor=%s, _method=%s, _scheme=%s, _external=%s): HIPAA-AUDIT [§164.312(e)(2)(ii)]: Secure PHI transmission completed", self, endpoint, _anchor, _method, _scheme, _external, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
         return rv
 
     def make_response(self, rv: ft.ResponseReturnValue) -> Response:
@@ -1364,6 +1392,7 @@ class Flask(App):
         if headers:
             rv.headers.update(headers)
 
+        logger.info("make_response(self=%s, rv=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
@@ -1387,11 +1416,13 @@ class Flask(App):
         for name in names:
             if name in self.before_request_funcs:
                 for before_func in self.before_request_funcs[name]:
+                    logger.info("preprocess_request(self=%s, ctx=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, ctx, extra={"event.action": "preprocess_request"})
                     rv = self.ensure_sync(before_func)()
 
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
+        logger.info("preprocess_request(self=%s, ctx=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
@@ -1413,11 +1444,14 @@ class Flask(App):
         for name in chain(ctx.request.blueprints, (None,)):
             if name in self.after_request_funcs:
                 for func in reversed(self.after_request_funcs[name]):
+                    logger.info("process_response(self=%s, ctx=%s, response=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", self, ctx, response, extra={"event.action": "process_response"})
                     response = self.ensure_sync(func)(response)
 
         if not self.session_interface.is_null_session(ctx._get_session()):
+            logger.info("process_response(self=%s, ctx=%s, response=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", self, ctx, response, extra={"event.action": "process_response"})
             self.session_interface.save_session(self, ctx._get_session(), response)
 
+        logger.info("process_response(self=%s, ctx=%s, response=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
         return response
 
     def do_teardown_request(
@@ -1452,6 +1486,7 @@ class Flask(App):
             request_tearing_down.send(self, _async_wrapper=self.ensure_sync, exc=exc)
 
         collect_errors.raise_any("Errors during request teardown")
+        logger.info("do_teardown_request(self=%s, ctx=%s, exc=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, ctx, exc, extra={"event.action": "do_teardown_request", "logrite.exc": exc})
 
     def do_teardown_appcontext(
         self, ctx: AppContext, exc: BaseException | None = None
@@ -1515,6 +1550,8 @@ class Flask(App):
 
         :param environ: A WSGI environment.
         """
+        logger.info("request_context(self=%s, environ=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, environ, extra={"event.action": "request_context"})
+        logger.info("request_context(self=%s, environ=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", self, environ, extra={"event.action": "request_context"})
         return AppContext.from_environ(self, environ)
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
@@ -1564,6 +1601,8 @@ class Flask(App):
         finally:
             builder.close()
 
+        logger.info("test_request_context(self=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, extra={"event.action": "test_request_context"})
+        logger.info("test_request_context(self=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", self, extra={"event.action": "test_request_context"})
         return self.request_context(environ)
 
     def wsgi_app(

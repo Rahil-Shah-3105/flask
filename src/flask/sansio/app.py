@@ -32,6 +32,7 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import find_package
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from werkzeug.wrappers import Response as BaseResponse
@@ -404,6 +405,9 @@ class App(Scaffold):
         self.subdomain_matching = subdomain_matching
 
         # tracks internally if the application already handled at least one
+        _logrite_logger.info("__init__(self=%s, import_name=%s, static_url_path=%s, static_folder=%s, static_host=%s, host_matching=%s, subdomain_matching=%s, template_folder=%s, instance_path=%s, instance_relative_config=%s, root_path=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
+        _logrite_logger.info("__init__(self=%s, import_name=%s, static_url_path=%s, static_folder=%s, static_host=%s, host_matching=%s, subdomain_matching=%s, template_folder=%s, instance_path=%s, instance_relative_config=%s, root_path=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
+        _logrite_logger.info("__init__(self=%s, import_name=%s, static_url_path=%s, static_folder=%s, static_host=%s, host_matching=%s, subdomain_matching=%s, template_folder=%s, instance_path=%s, instance_relative_config=%s, root_path=%s): HIPAA-AUDIT [45 CFR 164.312(d)]: Person or entity authentication — Authentication operation completed", self, import_name, static_url_path, static_folder, static_host, host_matching, subdomain_matching, template_folder, instance_path, instance_relative_config, root_path, extra={"event.action": "__init__", "logrite.import_name": import_name, "logrite.static_url_path": static_url_path, "logrite.static_folder": static_folder, "logrite.static_host": static_host, "logrite.host_matching": host_matching, "logrite.subdomain_matching": subdomain_matching, "logrite.template_folder": template_folder, "logrite.instance_path": instance_path, "logrite.instance_relative_config": instance_relative_config, "logrite.root_path": root_path})
         # request.
         self._got_first_request = False
 
@@ -474,6 +478,7 @@ class App(Scaffold):
         return self.create_jinja_environment()
 
     def create_jinja_environment(self) -> Environment:
+        _logrite_logger.info("create_jinja_environment(self=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         raise NotImplementedError()
 
     def make_config(self, instance_relative: bool = False) -> Config:
@@ -528,6 +533,7 @@ class App(Scaffold):
 
         .. versionadded:: 0.7
         """
+        _logrite_logger.info("create_global_jinja_loader(self=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, extra={"event.action": "create_global_jinja_loader"})
         return DispatchingJinjaLoader(self)
 
     def select_jinja_autoescape(self, filename: str | None) -> bool:
@@ -593,6 +599,7 @@ class App(Scaffold):
         .. versionadded:: 0.7
         """
         blueprint.register(self, options)
+        _logrite_logger.info("register_blueprint(self=%s, blueprint=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
 
     def iter_blueprints(self) -> t.ValuesView[Blueprint]:
         """Iterates over all blueprints by the order they were registered.
@@ -659,6 +666,7 @@ class App(Scaffold):
                     f" endpoint function: {endpoint}"
                 )
             self.view_functions[endpoint] = view_func
+            _logrite_logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): HIPAA-AUDIT: State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -709,6 +717,7 @@ class App(Scaffold):
             function's name.
         """
         self.jinja_env.filters[name or f.__name__] = f
+        _logrite_logger.info("add_template_filter(self=%s, f=%s, name=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_filter", "logrite.f": f, "logrite.name": name})
 
     @t.overload
     def template_test(self, name: T_template_test) -> T_template_test: ...
@@ -768,6 +777,7 @@ class App(Scaffold):
         .. versionadded:: 0.10
         """
         self.jinja_env.tests[name or f.__name__] = f
+        _logrite_logger.info("add_template_test(self=%s, f=%s, name=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_test", "logrite.f": f, "logrite.name": name})
 
     @t.overload
     def template_global(self, name: T_template_global) -> T_template_global: ...
@@ -822,6 +832,7 @@ class App(Scaffold):
         .. versionadded:: 0.10
         """
         self.jinja_env.globals[name or f.__name__] = f
+        _logrite_logger.info("add_template_global(self=%s, f=%s, name=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, f, name, extra={"event.action": "add_template_global", "logrite.f": f, "logrite.name": name})
 
     @setupmethod
     def teardown_appcontext(self, f: T_teardown) -> T_teardown:

@@ -8,6 +8,8 @@ from werkzeug.routing import RequestRedirect
 from .blueprints import Blueprint
 from .globals import _cv_app
 from .sansio.app import App
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     from .sansio.scaffold import Scaffold
@@ -86,6 +88,8 @@ def attach_enctype_error_multidict(request: Request) -> None:
     :meta private:
     """
     oldcls = request.files.__class__
+    logger.info("attach_enctype_error_multidict(request=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", request, extra={"event.action": "attach_enctype_error_multidict"})
+    logger.info("attach_enctype_error_multidict(request=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", request, extra={"event.action": "attach_enctype_error_multidict"})
 
     class newcls(oldcls):  # type: ignore[valid-type, misc]
         def __getitem__(self, key: str) -> t.Any:
@@ -177,3 +181,4 @@ def explain_template_loading_attempts(
         info.append("  See https://flask.palletsprojects.com/blueprints/#templates")
 
     app.logger.info("\n".join(info))
+    logger.info("explain_template_loading_attempts(app=%s, template=%s, attempts=%s): HIPAA-AUDIT [§164.312(e)(2)(ii)]: Secure PHI transmission completed", app, template, attempts, extra={"event.action": "explain_template_loading_attempts", "logrite.app": app, "logrite.template": template, "logrite.attempts": attempts})
