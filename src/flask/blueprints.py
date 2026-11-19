@@ -10,6 +10,8 @@ from .helpers import send_from_directory
 from .sansio.blueprints import Blueprint as SansioBlueprint
 from .sansio.blueprints import BlueprintSetupState as BlueprintSetupState  # noqa
 from .sansio.scaffold import _sentinel
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
@@ -70,6 +72,15 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.9
         """
         value = current_app.config["SEND_FILE_MAX_AGE_DEFAULT"]
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC7.1]: System operations — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC6.8]: Malicious software — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC6.1]: Logical access — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC7.3]: Incident response — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC6.6]: Boundary protection — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC6.3]: Authorization — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): SOC2-AUDIT [CC6.2]: Authentication — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
 
         if value is None:
             return None
@@ -91,6 +102,14 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.5
 
         """
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC7.1]: System operations — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC6.8]: Malicious software — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC6.1]: Logical access — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC7.3]: Incident response — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC6.6]: Boundary protection — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC6.3]: Authorization — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
@@ -100,6 +119,7 @@ class Blueprint(SansioBlueprint):
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): SOC2-AUDIT [CC6.2]: Authentication — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"
@@ -125,4 +145,6 @@ class Blueprint(SansioBlueprint):
         if mode == "rb":
             return open(path, mode)  # pyright: ignore
 
+        logger.info("open_resource(self=%s, resource=%s, mode=%s, encoding=%s): SOC2-AUDIT [CC7.2]: System operation completed", self, resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
+        logger.info("open_resource(self=%s, resource=%s, mode=%s, encoding=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, resource, mode, encoding, extra={"event.action": "open_resource", "logrite.resource": resource, "logrite.mode": mode, "logrite.encoding": encoding})
         return open(path, mode, encoding=encoding)

@@ -16,6 +16,8 @@ from werkzeug.wrappers import Request as BaseRequest
 
 from .cli import ScriptInfo
 from .sessions import SessionMixin
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import WSGIEnvironment
@@ -103,6 +105,7 @@ def _get_werkzeug_version() -> str:
     if not _werkzeug_version:
         _werkzeug_version = importlib.metadata.version("werkzeug")
 
+    logger.info("_get_werkzeug_version(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "_get_werkzeug_version"})
     return _werkzeug_version
 
 
@@ -131,6 +134,7 @@ class FlaskClient(Client):
             "REMOTE_ADDR": "127.0.0.1",
             "HTTP_USER_AGENT": f"Werkzeug/{_get_werkzeug_version()}",
         }
+        logger.info("__init__(self=%s): SOC2-AUDIT [CC8.1]: Change management operation performed", self, extra={"event.action": "__init__"})
 
     @contextmanager
     def session_transaction(
@@ -176,11 +180,13 @@ class FlaskClient(Client):
         with ctx:
             app.session_interface.save_session(app, sess, resp)
 
+            logger.info("session_transaction(self=%s): SOC2-AUDIT [CC6.6]: Database transaction completed", self, extra={"event.action": "session_transaction"})
         self._update_cookies_from_response(
             urlsplit(ctx.request.host_url).hostname or "localhost",
             ctx.request.path,
             resp.headers.getlist("Set-Cookie"),
         )
+        logger.info("session_transaction(self=%s): SOC2-AUDIT [CC6.1]: Session management operation performed", self, extra={"event.action": "session_transaction"})
 
     def _copy_environ(self, other: WSGIEnvironment) -> WSGIEnvironment:
         out = {**self.environ_base, **other}

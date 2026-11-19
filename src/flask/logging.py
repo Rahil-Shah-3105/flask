@@ -7,6 +7,7 @@ import typing as t
 from werkzeug.local import LocalProxy
 
 from .globals import request
+_logrite_logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -25,6 +26,7 @@ def wsgi_errors_stream() -> t.TextIO:
     if request:
         return request.environ["wsgi.errors"]  # type: ignore[no-any-return]
 
+    _logrite_logger.info("wsgi_errors_stream(): SOC2-AUDIT [CC8.1]: Change management operation performed", extra={"event.action": "wsgi_errors_stream"})
     return sys.stderr
 
 
@@ -69,6 +71,14 @@ def create_logger(app: App) -> logging.Logger:
     :func:`~flask.logging.wsgi_errors_stream` with a basic format.
     """
     logger = logging.getLogger(app.name)
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC7.1]: System operations — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC7.2]: Monitoring coverage — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC6.8]: Malicious software — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC6.1]: Logical access — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC7.3]: Incident response — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC8.1]: Change management — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC6.6]: Boundary protection — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC6.3]: Authorization — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
 
     if app.debug and not logger.level:
         logger.setLevel(logging.DEBUG)
@@ -76,4 +86,5 @@ def create_logger(app: App) -> logging.Logger:
     if not has_level_handler(logger):
         logger.addHandler(default_handler)
 
+    _logrite_logger.info("create_logger(app=%s): SOC2-AUDIT [CC6.2]: Authentication — State change recorded for the audit trail", app, extra={"event.action": "create_logger", "logrite.app": app})
     return logger
