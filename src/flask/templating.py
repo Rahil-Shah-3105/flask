@@ -12,6 +12,8 @@ from .globals import app_ctx
 from .helpers import stream_with_context
 from .signals import before_render_template
 from .signals import template_rendered
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -57,6 +59,10 @@ class DispatchingJinjaLoader(BaseLoader):
     def get_source(
         self, environment: BaseEnvironment, template: str
     ) -> tuple[str, str | None, t.Callable[[], bool] | None]:
+        logger.info("get_source(self=%s, environment=%s, template=%s): NISTAIRMF-AUDIT: MAP function — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): NISTAIRMF-AUDIT: MANAGE function — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): NISTAIRMF-AUDIT: Governance coverage — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): NISTAIRMF-AUDIT: GOVERN function — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
         if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
             return self._get_source_explained(environment, template)
         return self._get_source_fast(environment, template)
@@ -116,6 +122,10 @@ class DispatchingJinjaLoader(BaseLoader):
             if loader is not None:
                 for template in loader.list_templates():
                     result.add(template)
+                    logger.info("list_templates(self=%s): NISTAIRMF-AUDIT: MAP function — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): NISTAIRMF-AUDIT: MANAGE function — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): NISTAIRMF-AUDIT: GOVERN function — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): NISTAIRMF-AUDIT: Governance coverage — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
 
         return list(result)
 
