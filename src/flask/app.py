@@ -53,6 +53,8 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("remove_ctx(f=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("add_ctx(f=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -388,6 +392,8 @@ class Flask(App):
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
+        logger.info("get_send_file_max_age(self=%s, filename=%s): ISO27701-AUDIT: Processor obligations — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): ISO27701-AUDIT: Controller obligations — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         return value  # type: ignore[no-any-return]
 
     def send_static_file(self, filename: str) -> Response:
@@ -408,9 +414,11 @@ class Flask(App):
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
+        logger.info("send_static_file(self=%s, filename=%s): ISO27701-AUDIT: Processor obligations — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): ISO27701-AUDIT: Controller obligations — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -505,6 +513,8 @@ class Flask(App):
             g=g,
         )
         rv.policies["json.dumps_function"] = self.json.dumps
+        logger.info("create_jinja_environment(self=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         return rv
 
     def create_url_adapter(self, request: Request | None) -> MapAdapter | None:
@@ -558,6 +568,8 @@ class Flask(App):
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
 
+        logger.info("create_url_adapter(self=%s, request=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+        logger.info("create_url_adapter(self=%s, request=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
         return None
 
     def raise_routing_exception(self, request: Request) -> t.NoReturn:
@@ -616,6 +628,8 @@ class Flask(App):
                 for func in self.template_context_processors[name]:
                     context.update(self.ensure_sync(func)())
 
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+                    logger.info("update_template_context(self=%s, ctx=%s, context=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
         context.update(orig_ctx)
 
     def make_shell_context(self) -> dict[str, t.Any]:
@@ -753,6 +767,8 @@ class Flask(App):
             # reset the first request information if the development server
             # reset normally.  This makes it possible to restart the server
             # without reloader and that stuff from an interactive shell.
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             self._got_first_request = False
 
     def test_client(self, use_cookies: bool = True, **kwargs: t.Any) -> FlaskClient:
@@ -990,6 +1006,8 @@ class Flask(App):
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
+        logger.info("dispatch_request(self=%s, ctx=%s): ISO27701-AUDIT: Processor obligations — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s, ctx=%s): ISO27701-AUDIT: Controller obligations — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
         return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
 
     def full_dispatch_request(self, ctx: AppContext) -> Response:
@@ -1063,6 +1081,8 @@ class Flask(App):
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
+        logger.info("make_default_options_response(self=%s, ctx=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
         return rv
 
     def ensure_sync(self, func: t.Callable[..., t.Any]) -> t.Callable[..., t.Any]:
@@ -1364,6 +1384,8 @@ class Flask(App):
         if headers:
             rv.headers.update(headers)
 
+        logger.info("make_response(self=%s, rv=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+        logger.info("make_response(self=%s, rv=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
         return rv
 
     def preprocess_request(self, ctx: AppContext) -> ft.ResponseReturnValue | None:
@@ -1392,6 +1414,8 @@ class Flask(App):
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
+        logger.info("preprocess_request(self=%s, ctx=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+        logger.info("preprocess_request(self=%s, ctx=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
         return None
 
     def process_response(self, ctx: AppContext, response: Response) -> Response:
@@ -1418,6 +1442,8 @@ class Flask(App):
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
 
+        logger.info("process_response(self=%s, ctx=%s, response=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+        logger.info("process_response(self=%s, ctx=%s, response=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
         return response
 
     def do_teardown_request(

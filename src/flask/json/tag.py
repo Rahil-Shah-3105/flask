@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -284,6 +286,8 @@ class TaggedJSONSerializer:
         if index is None:
             self.order.append(tag)
         else:
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
             self.order.insert(index, tag)
 
     def tag(self, value: t.Any) -> t.Any:

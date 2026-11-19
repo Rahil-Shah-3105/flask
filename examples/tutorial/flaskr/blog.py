@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("blog", __name__)
 
@@ -22,6 +24,8 @@ def index():
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.info("index(): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", extra={"event.action": "index"})
     return render_template("blog/index.html", posts=posts)
 
 
@@ -54,6 +58,8 @@ def get_post(id, check_author=True):
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
 
+    logger.info("get_post(id=%s, check_author=%s): ISO27701-AUDIT: Controller obligations — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+    logger.info("get_post(id=%s, check_author=%s): ISO27701-AUDIT: Processor obligations — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
     return post
 
 
@@ -80,6 +86,8 @@ def create():
             db.commit()
             return redirect(url_for("blog.index"))
 
+    logger.info("create(): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail", extra={"event.action": "create"})
+    logger.info("create(): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail", extra={"event.action": "create"})
     return render_template("blog/create.html")
 
 
@@ -107,6 +115,8 @@ def update(id):
             db.commit()
             return redirect(url_for("blog.index"))
 
+    logger.info("update(id=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+    logger.info("update(id=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
     return render_template("blog/update.html", post=post)
 
 
@@ -122,4 +132,6 @@ def delete(id):
     db = get_db()
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.info("delete(id=%s): ISO27701-AUDIT: Processor obligations — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): ISO27701-AUDIT: Controller obligations — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     return redirect(url_for("blog.index"))
