@@ -2,6 +2,8 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -13,6 +15,10 @@ def create_app() -> Flask:
             "task_ignore_result": True,
         },
     )
+    logger.info("create_app(): DORA-AUDIT: Third party risk — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): DORA-AUDIT: Resilience testing — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): DORA-AUDIT [Art. 45]: Information sharing — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): DORA-AUDIT: Incident coverage — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_prefixed_env()
     celery_init_app(app)
 
