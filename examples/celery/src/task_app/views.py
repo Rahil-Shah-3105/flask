@@ -3,6 +3,8 @@ from flask import Blueprint
 from flask import request
 
 from . import tasks
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -20,6 +22,12 @@ def result(id: str) -> dict[str, object]:
 
 @bp.post("/add")
 def add() -> dict[str, object]:
+    logger.info("add(): ISO27001-AUDIT: Supplier security — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO27001-AUDIT: Logging — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO27001-AUDIT: Incident management — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO27001-AUDIT [A.8.24]: Cryptography — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO27001-AUDIT: Access control — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO27001-AUDIT: Continuity — State change recorded for the audit trail", extra={"event.action": "add"})
     a = request.form.get("a", type=int)
     b = request.form.get("b", type=int)
     result = tasks.add.delay(a, b)
@@ -34,5 +42,8 @@ def block() -> dict[str, object]:
 
 @bp.post("/process")
 def process() -> dict[str, object]:
+    logger.info("process(): ISO27001-AUDIT [A.8.24]: Cryptography — State change recorded for the audit trail", extra={"event.action": "process"})
+    logger.info("process(): ISO27001-AUDIT: Continuity — State change recorded for the audit trail", extra={"event.action": "process"})
     result = tasks.process.delay(total=request.form.get("total", type=int))
+    logger.info("process(): ISO27001-AUDIT: Access control — State change recorded for the audit trail", extra={"event.action": "process"})
     return {"result_id": result.id}

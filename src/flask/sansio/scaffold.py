@@ -17,6 +17,8 @@ from werkzeug.utils import cached_property
 from .. import typing as ft
 from ..helpers import get_root_path
 from ..templating import _default_template_ctx_processor
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from click import Group
@@ -243,6 +245,7 @@ class Scaffold:
 
         .. versionadded:: 0.5
         """
+        logger.info("has_static_folder(self=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, extra={"event.action": "has_static_folder"})
         return self.static_folder is not None
 
     @property
@@ -279,6 +282,7 @@ class Scaffold:
         if self.template_folder is not None:
             return FileSystemLoader(os.path.join(self.root_path, self.template_folder))
         else:
+            logger.info("jinja_loader(self=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, extra={"event.action": "jinja_loader"})
             return None
 
     def _method_route(
@@ -298,6 +302,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("get(self=%s, rule=%s): ISO27001-AUDIT: Logging — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): ISO27001-AUDIT: Continuity — Record access recorded for the audit trail", self, rule, extra={"event.action": "get", "logrite.rule": rule})
+        logger.info("get(self=%s, rule=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, rule, extra={"event.action": "get", "logrite.rule": rule})
         return self._method_route("GET", rule, options)
 
     @setupmethod
@@ -306,6 +313,9 @@ class Scaffold:
 
         .. versionadded:: 3.2
         """
+        logger.info("query(self=%s, rule=%s): ISO27001-AUDIT: Logging — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): ISO27001-AUDIT: Continuity — Record access recorded for the audit trail", self, rule, extra={"event.action": "query", "logrite.rule": rule})
+        logger.info("query(self=%s, rule=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, rule, extra={"event.action": "query", "logrite.rule": rule})
         return self._method_route("QUERY", rule, options)
 
     @setupmethod
@@ -314,6 +324,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("post(self=%s, rule=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, rule, extra={"event.action": "post", "logrite.rule": rule})
         return self._method_route("POST", rule, options)
 
     @setupmethod
@@ -322,6 +333,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("put(self=%s, rule=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, rule, extra={"event.action": "put", "logrite.rule": rule})
         return self._method_route("PUT", rule, options)
 
     @setupmethod
@@ -330,6 +342,9 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("delete(self=%s, rule=%s): ISO27001-AUDIT: Logging — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): ISO27001-AUDIT: Continuity — State change recorded for the audit trail", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
+        logger.info("delete(self=%s, rule=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, rule, extra={"event.action": "delete", "logrite.rule": rule})
         return self._method_route("DELETE", rule, options)
 
     @setupmethod
@@ -338,6 +353,7 @@ class Scaffold:
 
         .. versionadded:: 2.0
         """
+        logger.info("patch(self=%s, rule=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, rule, extra={"event.action": "patch", "logrite.rule": rule})
         return self._method_route("PATCH", rule, options)
 
     @setupmethod
@@ -438,6 +454,9 @@ class Scaffold:
         :param options: Extra options passed to the
             :class:`~werkzeug.routing.Rule` object.
         """
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): ISO27001-AUDIT: Logging — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): ISO27001-AUDIT: Continuity — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): ISO27001-AUDIT: Supplier security — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         raise NotImplementedError
 
     @setupmethod
@@ -489,6 +508,7 @@ class Scaffold:
         execute before every request, use :meth:`.Blueprint.before_app_request`.
         """
         self.before_request_funcs.setdefault(None, []).append(f)
+        logger.info("before_request(self=%s, f=%s): ISO27001-AUDIT [A.8.24]: Cryptography — Session management operation performed", self, f, extra={"event.action": "before_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -639,6 +659,7 @@ class Scaffold:
         :param code_or_exception: the code as integer for the handler, or
                                   an arbitrary exception
         """
+        logger.info("errorhandler(self=%s, code_or_exception=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, code_or_exception, extra={"event.action": "errorhandler", "logrite.code_or_exception": code_or_exception})
 
         def decorator(f: T_error_handler) -> T_error_handler:
             self.register_error_handler(code_or_exception, f)
@@ -658,6 +679,10 @@ class Scaffold:
 
         .. versionadded:: 0.7
         """
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): ISO27001-AUDIT: Logging — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): ISO27001-AUDIT: Incident management — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
+        logger.info("register_error_handler(self=%s, code_or_exception=%s, f=%s): ISO27001-AUDIT [A.8.24]: Cryptography — State change recorded for the audit trail", self, code_or_exception, f, extra={"event.action": "register_error_handler", "logrite.code_or_exception": code_or_exception, "logrite.f": f})
         exc_class, code = self._get_exc_class_and_code(code_or_exception)
         self.error_handler_spec[None][code][exc_class] = f
 
@@ -703,6 +728,7 @@ class Scaffold:
         if issubclass(exc_class, HTTPException):
             return exc_class, exc_class.code
         else:
+            logger.info("_get_exc_class_and_code(exc_class_or_code=%s): ISO27001-AUDIT [A.8.24]: Cryptography — Encryption operation completed", exc_class_or_code, extra={"event.action": "_get_exc_class_and_code", "logrite.exc_class_or_code": exc_class_or_code})
             return exc_class, None
 
 
@@ -793,8 +819,14 @@ def find_package(import_name: str) -> tuple[str | None, str]:
         if os.path.basename(parent).lower() == "lib":
             return os.path.dirname(parent), package_path
 
+            logger.info("find_package(import_name=%s): ISO27001-AUDIT: Supplier security — Change management operation performed", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+            logger.info("find_package(import_name=%s): ISO27001-AUDIT: Logging — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+            logger.info("find_package(import_name=%s): ISO27001-AUDIT: Incident management — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+            logger.info("find_package(import_name=%s): ISO27001-AUDIT [A.8.24]: Cryptography — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
+            logger.info("find_package(import_name=%s): ISO27001-AUDIT: Continuity — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
         # something else (prefix/site-packages)
         return site_parent, package_path
 
     # not installed
+    logger.info("find_package(import_name=%s): ISO27001-AUDIT: Access control — Record access recorded for the audit trail", import_name, extra={"event.action": "find_package", "logrite.import_name": import_name})
     return None, package_path

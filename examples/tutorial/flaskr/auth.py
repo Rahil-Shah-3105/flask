@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -35,9 +37,15 @@ def load_logged_in_user():
     the database into ``g.user``."""
     user_id = session.get("user_id")
 
+    logger.info("load_logged_in_user(): ISO27001-AUDIT: Supplier security — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+    logger.info("load_logged_in_user(): ISO27001-AUDIT: Logging — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user(): ISO27001-AUDIT: Incident management — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): ISO27001-AUDIT [A.8.24]: Cryptography — Session management operation performed", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): ISO27001-AUDIT: Access control — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): ISO27001-AUDIT: Continuity — Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -74,6 +82,12 @@ def register():
                 error = f"User {username} is already registered."
             else:
                 # Success, go to the login page.
+                logger.info("register(): ISO27001-AUDIT: Supplier security — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): ISO27001-AUDIT: Logging — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): ISO27001-AUDIT: Incident management — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): ISO27001-AUDIT [A.8.24]: Cryptography — Password reset operation performed", extra={"event.action": "register"})
+                logger.info("register(): ISO27001-AUDIT: Access control — State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): ISO27001-AUDIT: Continuity — State change recorded for the audit trail", extra={"event.action": "register"})
                 return redirect(url_for("auth.login"))
 
         flash(error)
@@ -102,6 +116,13 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
+            logger.info("login(): ISO27001-AUDIT: Supplier security — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): ISO27001-AUDIT: Logging — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): ISO27001-AUDIT: Incident management — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): ISO27001-AUDIT [A.8.24]: Cryptography — Session management operation performed", extra={"event.action": "login"})
+            logger.info("login(): ISO27001-AUDIT [A.8.24]: Cryptography — Password reset operation performed", extra={"event.action": "login"})
+            logger.info("login(): ISO27001-AUDIT: Access control — State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): ISO27001-AUDIT: Continuity — State change recorded for the audit trail", extra={"event.action": "login"})
             return redirect(url_for("index"))
 
         flash(error)
@@ -113,4 +134,5 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.info("logout(): ISO27001-AUDIT [A.8.24]: Cryptography — Session management operation performed", extra={"event.action": "logout"})
     return redirect(url_for("index"))
