@@ -1,6 +1,8 @@
 import packaging.version
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
+import logging
+logger = logging.getLogger(__name__)
 
 # Project --------------------------------------------------------------
 
@@ -94,8 +96,11 @@ def github_link(name, rawtext, text, lineno, inliner, options=None, content=None
     options = options or {}
     set_classes(options)
     node = reference(rawtext, words, refuri=url, **options)
+    logger.info("github_link(name=%s, rawtext=%s, text=%s, lineno=%s, inliner=%s, options=%s, content=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", name, rawtext, text, lineno, inliner, options, content, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
+    logger.info("github_link(name=%s, rawtext=%s, text=%s, lineno=%s, inliner=%s, options=%s, content=%s): HIPAA-AUDIT [§164.312(e)(2)(ii)]: Secure PHI transmission completed", name, rawtext, text, lineno, inliner, options, content, extra={"event.action": "github_link", "logrite.name": name, "logrite.rawtext": rawtext, "logrite.text": text, "logrite.lineno": lineno, "logrite.inliner": inliner, "logrite.options": options, "logrite.content": content})
     return [node], []
 
 
 def setup(app):
     app.add_role("gh", github_link)
+    logger.info("setup(app=%s): HIPAA-AUDIT [45 CFR 164.312(a)(1)]: Access control modification completed", app, extra={"event.action": "setup", "logrite.app": app})

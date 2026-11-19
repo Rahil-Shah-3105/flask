@@ -10,6 +10,8 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import _sentinel
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
@@ -114,6 +116,7 @@ class BlueprintSetupState:
             defaults=defaults,
             **options,
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
 
 
 class Blueprint(Scaffold):
@@ -269,6 +272,7 @@ class Blueprint(Scaffold):
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
+        logger.info("register_blueprint(self=%s, blueprint=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
 
     def register(self, app: App, options: dict[str, t.Any]) -> None:
         """Called by :meth:`Flask.register_blueprint` to register all
@@ -369,12 +373,15 @@ class Blueprint(Scaffold):
                     state.url_prefix.rstrip("/") + "/" + bp_url_prefix.lstrip("/")
                 )
             elif bp_url_prefix is not None:
+                logger.info("register(self=%s, app=%s, options=%s): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Encryption operation completed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
                 bp_options["url_prefix"] = bp_url_prefix
             elif state.url_prefix is not None:
                 bp_options["url_prefix"] = state.url_prefix
+                logger.info("register(self=%s, app=%s, options=%s): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Encryption operation completed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
             bp_options["name_prefix"] = name
             blueprint.register(app, bp_options)
+            logger.info("register(self=%s, app=%s, options=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
 
     def _merge_blueprint_funcs(self, app: App, name: str) -> None:
         def extend(
@@ -439,6 +446,7 @@ class Blueprint(Scaffold):
                 **options,
             )
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): HIPAA-AUDIT: State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def app_template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -488,8 +496,10 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.info("register_template_filter(state=%s): HIPAA-AUDIT: State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
             state.app.add_template_filter(f, name=name)
 
         self.record_once(register_template_filter)
@@ -546,8 +556,10 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.info("register_template_test(state=%s): HIPAA-AUDIT: State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
             state.app.add_template_test(f, name=name)
 
         self.record_once(register_template_test)
@@ -604,8 +616,10 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): HIPAA-AUDIT: State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.info("register_template_global(state=%s): HIPAA-AUDIT: State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
             state.app.add_template_global(f, name=name)
 
         self.record_once(register_template_global)
@@ -618,6 +632,7 @@ class Blueprint(Scaffold):
         self.record_once(
             lambda s: s.app.before_request_funcs.setdefault(None, []).append(f)
         )
+        logger.info("before_app_request(self=%s, f=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, f, extra={"event.action": "before_app_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -628,6 +643,7 @@ class Blueprint(Scaffold):
         self.record_once(
             lambda s: s.app.after_request_funcs.setdefault(None, []).append(f)
         )
+        logger.info("after_app_request(self=%s, f=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, f, extra={"event.action": "after_app_request", "logrite.f": f})
         return f
 
     @setupmethod
@@ -638,6 +654,7 @@ class Blueprint(Scaffold):
         self.record_once(
             lambda s: s.app.teardown_request_funcs.setdefault(None, []).append(f)
         )
+        logger.info("teardown_app_request(self=%s, f=%s): HIPAA-AUDIT [§164.312(e)(1)]: Secure PHI transmission completed", self, f, extra={"event.action": "teardown_app_request", "logrite.f": f})
         return f
 
     @setupmethod

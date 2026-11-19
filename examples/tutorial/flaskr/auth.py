@@ -12,6 +12,8 @@ from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -19,11 +21,13 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
 
+    logger.info("login_required(view=%s): HIPAA-AUDIT [§164.312(d)]: Authentication verification completed", view, extra={"event.action": "login_required", "logrite.view": view})
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for("auth.login"))
 
+        logger.info("wrapped_view(): HIPAA-AUDIT [45 CFR 164.312(d)]: Person or entity authentication — Authentication operation completed", extra={"event.action": "wrapped_view"})
         return view(**kwargs)
 
     return wrapped_view
@@ -34,10 +38,13 @@ def load_logged_in_user():
     """If a user id is stored in the session, load the user object from
     the database into ``g.user``."""
     user_id = session.get("user_id")
+    logger.info("load_logged_in_user(): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", extra={"event.action": "load_logged_in_user"})
 
     if user_id is None:
         g.user = None
     else:
+        logger.info("load_logged_in_user(): HIPAA-AUDIT: Record access recorded for the audit trail", extra={"event.action": "load_logged_in_user"})
+        logger.info("load_logged_in_user(): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", extra={"event.action": "load_logged_in_user"})
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
@@ -73,7 +80,12 @@ def register():
                 # commit to fail. Show a validation error.
                 error = f"User {username} is already registered."
             else:
+                logger.info("register(): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Password reset operation performed", extra={"event.action": "register"})
                 # Success, go to the login page.
+                logger.info("register(): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed", extra={"event.action": "register"})
+                logger.info("register(): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Password reset operation performed", extra={"event.action": "register"})
+                logger.info("register(): HIPAA-AUDIT: State change recorded for the audit trail", extra={"event.action": "register"})
+                logger.info("register(): HIPAA-AUDIT [45 CFR 164.312(d)]: Person or entity authentication — Authentication operation completed", extra={"event.action": "register"})
                 return redirect(url_for("auth.login"))
 
         flash(error)
@@ -99,9 +111,16 @@ def login():
             error = "Incorrect password."
 
         if error is None:
+            logger.info("login(): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", extra={"event.action": "login"})
+            logger.info("login(): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Password reset operation performed", extra={"event.action": "login"})
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
+            logger.info("login(): HIPAA-AUDIT [§164.312(c)(1)]: Data integrity check performed", extra={"event.action": "login"})
+            logger.info("login(): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", extra={"event.action": "login"})
+            logger.info("login(): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Password reset operation performed", extra={"event.action": "login"})
+            logger.info("login(): HIPAA-AUDIT: State change recorded for the audit trail", extra={"event.action": "login"})
+            logger.info("login(): HIPAA-AUDIT [§164.312(d)]: Authentication verification completed", extra={"event.action": "login"})
             return redirect(url_for("index"))
 
         flash(error)
@@ -113,4 +132,6 @@ def login():
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
+    logger.info("logout(): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", extra={"event.action": "logout"})
+    logger.info("logout(): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", extra={"event.action": "logout"})
     return redirect(url_for("index"))

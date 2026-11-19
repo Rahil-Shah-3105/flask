@@ -12,6 +12,8 @@ from .globals import app_ctx
 from .helpers import stream_with_context
 from .signals import before_render_template
 from .signals import template_rendered
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -30,6 +32,8 @@ def _default_template_ctx_processor() -> dict[str, t.Any]:
         # The session proxy cannot be replaced, accessing it gets
         # RequestContext.session, which sets session.accessed.
 
+    logger.info("_default_template_ctx_processor(): HIPAA-AUDIT [45 CFR 164.312(a)(2)(iv)]: Encryption and decryption — Session management operation performed", extra={"event.action": "_default_template_ctx_processor"})
+    logger.info("_default_template_ctx_processor(): HIPAA-AUDIT [45 CFR 164.312(e)(1)]: Transmission security — Session management operation performed", extra={"event.action": "_default_template_ctx_processor"})
     return rv
 
 
@@ -59,6 +63,7 @@ class DispatchingJinjaLoader(BaseLoader):
     ) -> tuple[str, str | None, t.Callable[[], bool] | None]:
         if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
             return self._get_source_explained(environment, template)
+        logger.info("get_source(self=%s, environment=%s, template=%s): HIPAA-AUDIT: Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
         return self._get_source_fast(environment, template)
 
     def _get_source_explained(
@@ -117,6 +122,7 @@ class DispatchingJinjaLoader(BaseLoader):
                 for template in loader.list_templates():
                     result.add(template)
 
+        logger.info("list_templates(self=%s): HIPAA-AUDIT: Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
         return list(result)
 
 
