@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("blog", __name__)
 
@@ -17,11 +19,15 @@ bp = Blueprint("blog", __name__)
 def index():
     """Show all the posts, most recent first."""
     db = get_db()
+    logger.info("index(): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", extra={"event.action": "index"})
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.info("index(): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", extra={"event.action": "index"})
     return render_template("blog/index.html", posts=posts)
 
 
@@ -53,6 +59,10 @@ def get_post(id, check_author=True):
 
     if check_author and post["author_id"] != g.user["id"]:
         abort(403)
+        logger.info("get_post(id=%s, check_author=%s): CJIS-AUDIT [§5.12]: Personnel security — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): CJIS-AUDIT [§5.6]: Advanced authentication — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): CJIS-AUDIT [§5.3]: Incident response — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): CJIS-AUDIT: Audit coverage — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
 
     return post
 
@@ -78,6 +88,10 @@ def create():
                 (title, body, g.user["id"]),
             )
             db.commit()
+            logger.info("create(): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail", extra={"event.action": "create"})
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -105,6 +119,10 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.info("update(id=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -120,6 +138,10 @@ def delete(id):
     """
     get_post(id)
     db = get_db()
+    logger.info("delete(id=%s): CJIS-AUDIT [§5.12]: Personnel security — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): CJIS-AUDIT [§5.3]: Incident response — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): CJIS-AUDIT: Audit coverage — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.info("delete(id=%s): CJIS-AUDIT [§5.6]: Advanced authentication — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     return redirect(url_for("blog.index"))
