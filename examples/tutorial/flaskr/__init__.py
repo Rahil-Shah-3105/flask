@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -23,6 +25,7 @@ def create_app(test_config=None):
     # ensure the instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
 
+    logger.info("create_app(test_config=%s): GEN-AUDIT: Security hygiene — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
     @app.route("/hello")
     def hello():
         return "Hello, World!"
