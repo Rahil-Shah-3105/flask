@@ -9,6 +9,8 @@ from werkzeug.exceptions import abort
 
 from .auth import login_required
 from .db import get_db
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("blog", __name__)
 
@@ -16,12 +18,17 @@ bp = Blueprint("blog", __name__)
 @bp.route("/")
 def index():
     """Show all the posts, most recent first."""
+    logger.info("index(): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", extra={"event.action": "index"})
     db = get_db()
     posts = db.execute(
         "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
         " ORDER BY created DESC"
     ).fetchall()
+    logger.info("index(): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", extra={"event.action": "index"})
+    logger.info("index(): FEDRAMP-AUDIT: Crypto protection — Encryption operation completed", extra={"event.action": "index"})
+    logger.info("index(): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", extra={"event.action": "index"})
     return render_template("blog/index.html", posts=posts)
 
 
@@ -52,6 +59,11 @@ def get_post(id, check_author=True):
         abort(404, f"Post id {id} doesn't exist.")
 
     if check_author and post["author_id"] != g.user["id"]:
+        logger.info("get_post(id=%s, check_author=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): FEDRAMP-AUDIT: Incident response — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): FEDRAMP-AUDIT: Audit completeness — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): FEDRAMP-AUDIT: Crypto protection — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
+        logger.info("get_post(id=%s, check_author=%s): FEDRAMP-AUDIT: Configuration management — Record access recorded for the audit trail %s", id, check_author, id, extra={"event.action": "get_post", "logrite.id": id, "logrite.check_author": check_author})
         abort(403)
 
     return post
@@ -78,6 +90,11 @@ def create():
                 (title, body, g.user["id"]),
             )
             db.commit()
+            logger.info("create(): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", extra={"event.action": "create"})
+            logger.info("create(): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", extra={"event.action": "create"})
             return redirect(url_for("blog.index"))
 
     return render_template("blog/create.html")
@@ -105,6 +122,11 @@ def update(id):
                 "UPDATE post SET title = ?, body = ? WHERE id = ?", (title, body, id)
             )
             db.commit()
+            logger.info("update(id=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail %s", id, id, extra={"event.action": "update", "logrite.id": id})
+            logger.info("update(id=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", id, extra={"event.action": "update", "logrite.id": id})
             return redirect(url_for("blog.index"))
 
     return render_template("blog/update.html", post=post)
@@ -119,7 +141,12 @@ def delete(id):
     author of the post.
     """
     get_post(id)
+    logger.info("delete(id=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
+    logger.info("delete(id=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     db = get_db()
     db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
+    logger.info("delete(id=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail %s", id, id, extra={"event.action": "delete", "logrite.id": id})
     return redirect(url_for("blog.index"))

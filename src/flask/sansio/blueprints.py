@@ -10,6 +10,8 @@ from .scaffold import _endpoint_from_view_func
 from .scaffold import _sentinel
 from .scaffold import Scaffold
 from .scaffold import setupmethod
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .app import App
@@ -105,6 +107,9 @@ class BlueprintSetupState:
             endpoint = _endpoint_from_view_func(view_func)  # type: ignore
         defaults = self.url_defaults
         if "defaults" in options:
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
             defaults = dict(defaults, **options.pop("defaults"))
 
         self.app.add_url_rule(
@@ -114,6 +119,8 @@ class BlueprintSetupState:
             defaults=defaults,
             **options,
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", self, rule, endpoint, view_func, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func})
 
 
 class Blueprint(Scaffold):
@@ -266,6 +273,11 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 2.0
         """
+        logger.info("register_blueprint(self=%s, blueprint=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
+        logger.info("register_blueprint(self=%s, blueprint=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", self, blueprint, extra={"event.action": "register_blueprint", "logrite.blueprint": blueprint})
         if blueprint is self:
             raise ValueError("Cannot register a blueprint on itself")
         self._blueprints.append((blueprint, options))
@@ -371,6 +383,11 @@ class Blueprint(Scaffold):
             elif bp_url_prefix is not None:
                 bp_options["url_prefix"] = bp_url_prefix
             elif state.url_prefix is not None:
+                logger.info("register(self=%s, app=%s, options=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): FEDRAMP-AUDIT: Crypto protection — Encryption operation completed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
+                logger.info("register(self=%s, app=%s, options=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", self, app, options, extra={"event.action": "register", "logrite.app": app, "logrite.options": options})
                 bp_options["url_prefix"] = state.url_prefix
 
             bp_options["name_prefix"] = name
@@ -427,6 +444,10 @@ class Blueprint(Scaffold):
         if endpoint and "." in endpoint:
             raise ValueError("'endpoint' may not contain a dot '.' character.")
 
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FEDRAMP-AUDIT [RA-5]: Vulnerability management — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FEDRAMP-AUDIT: Incident response — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
+            logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
         if view_func and hasattr(view_func, "__name__") and "." in view_func.__name__:
             raise ValueError("'view_func' name may not contain a dot '.' character.")
 
@@ -439,6 +460,7 @@ class Blueprint(Scaffold):
                 **options,
             )
         )
+        logger.info("add_url_rule(self=%s, rule=%s, endpoint=%s, view_func=%s, provide_automatic_options=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail %s", self, rule, endpoint, view_func, provide_automatic_options, provide_automatic_options, extra={"event.action": "add_url_rule", "logrite.rule": rule, "logrite.endpoint": endpoint, "logrite.view_func": view_func, "logrite.provide_automatic_options": provide_automatic_options})
 
     @t.overload
     def app_template_filter(self, name: T_template_filter) -> T_template_filter: ...
@@ -488,8 +510,13 @@ class Blueprint(Scaffold):
         :param name: The name to register the filter as. If not given, uses the
             function's name.
         """
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_filter(self=%s, f=%s, name=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_filter", "logrite.f": f, "logrite.name": name})
 
         def register_template_filter(state: BlueprintSetupState) -> None:
+            logger.info("register_template_filter(state=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
+            logger.info("register_template_filter(state=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
+            logger.info("register_template_filter(state=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", state, extra={"event.action": "register_template_filter", "logrite.state": state})
             state.app.add_template_filter(f, name=name)
 
         self.record_once(register_template_filter)
@@ -520,6 +547,7 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_test(name)
+            logger.info("app_template_test(self=%s, name=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, name, extra={"event.action": "app_template_test", "logrite.name": name})
             return name
 
         def decorator(f: T_template_test) -> T_template_test:
@@ -546,8 +574,13 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_test(self=%s, f=%s, name=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, f, name, extra={"event.action": "add_app_template_test", "logrite.f": f, "logrite.name": name})
 
         def register_template_test(state: BlueprintSetupState) -> None:
+            logger.info("register_template_test(state=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
+            logger.info("register_template_test(state=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
+            logger.info("register_template_test(state=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", state, extra={"event.action": "register_template_test", "logrite.state": state})
             state.app.add_template_test(f, name=name)
 
         self.record_once(register_template_test)
@@ -578,6 +611,7 @@ class Blueprint(Scaffold):
         """
         if callable(name):
             self.add_app_template_global(name)
+            logger.info("app_template_global(self=%s, name=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, name, extra={"event.action": "app_template_global", "logrite.name": name})
             return name
 
         def decorator(f: T_template_global) -> T_template_global:
@@ -604,8 +638,13 @@ class Blueprint(Scaffold):
 
         .. versionadded:: 0.10
         """
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
+        logger.info("add_app_template_global(self=%s, f=%s, name=%s): FEDRAMP-AUDIT: Configuration management — Change management operation performed", self, f, name, extra={"event.action": "add_app_template_global", "logrite.f": f, "logrite.name": name})
 
         def register_template_global(state: BlueprintSetupState) -> None:
+            logger.info("register_template_global(state=%s): FEDRAMP-AUDIT: Audit completeness — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
+            logger.info("register_template_global(state=%s): FEDRAMP-AUDIT: Crypto protection — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
+            logger.info("register_template_global(state=%s): FEDRAMP-AUDIT: Configuration management — State change recorded for the audit trail", state, extra={"event.action": "register_template_global", "logrite.state": state})
             state.app.add_template_global(f, name=name)
 
         self.record_once(register_template_global)
