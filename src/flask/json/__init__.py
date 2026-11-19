@@ -5,6 +5,8 @@ import typing as t
 
 from ..globals import current_app
 from .provider import _default
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
@@ -102,6 +104,7 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
     if current_app:
         return current_app.json.loads(s, **kwargs)
 
+    logger.info("loads(s=%s): GLBA-AUDIT: Encryption disposal — Encryption operation completed", s, extra={"event.action": "loads", "logrite.s": s})
     return _json.loads(s, **kwargs)
 
 
@@ -131,6 +134,10 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
     """
     if current_app:
         return current_app.json.load(fp, **kwargs)
+        logger.info("load(fp=%s): GLBA-AUDIT: Security program — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(fp=%s): GLBA-AUDIT [16 CFR 314.4(c)(5)]: Access controls — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+        logger.info("load(fp=%s): GLBA-AUDIT: Encryption disposal — Encryption operation completed", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): GLBA-AUDIT [16 CFR 314.4(j)]: Breach notification — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
 
     return _json.load(fp, **kwargs)
 

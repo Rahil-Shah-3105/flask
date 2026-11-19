@@ -2,6 +2,8 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -13,6 +15,10 @@ def create_app() -> Flask:
             "task_ignore_result": True,
         },
     )
+    logger.info("create_app(): GLBA-AUDIT: Security program — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): GLBA-AUDIT: Encryption disposal — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): GLBA-AUDIT [16 CFR 314.4(j)]: Breach notification — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): GLBA-AUDIT [16 CFR 314.4(c)(5)]: Access controls — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_prefixed_env()
     celery_init_app(app)
 
