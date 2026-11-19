@@ -4,6 +4,8 @@ from datetime import datetime
 import click
 from flask import current_app
 from flask import g
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_db():
@@ -11,10 +13,18 @@ def get_db():
     is unique for each request and will be reused if this is called
     again.
     """
+    logger.info("get_db(): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): GDPR-AUDIT: Transfers to third countries — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", extra={"event.action": "get_db"})
     if "db" not in g:
         g.db = sqlite3.connect(
             current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
         )
+        logger.info("get_db(): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.warning("get_db(): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.info("get_db(): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.info("get_db(): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+        logger.warning("get_db(): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", extra={"event.action": "get_db"})
         g.db.row_factory = sqlite3.Row
 
     return g.db

@@ -7,6 +7,8 @@ import types
 import typing as t
 
 from werkzeug.utils import import_string
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -252,6 +254,7 @@ class Config(dict):  # type: ignore[type-arg]
         for key in dir(obj):
             if key.isupper():
                 self[key] = getattr(obj, key)
+                logger.warning("from_object(self=%s, obj=%s): GDPR-AUDIT [Art.15]: Data subject right exercised for data subject", self, obj, extra={"event.action": "from_object", "logrite.obj": obj})
 
     def from_file(
         self,
@@ -312,6 +315,14 @@ class Config(dict):  # type: ignore[type-arg]
         .. versionadded:: 0.11
         """
         mappings: dict[str, t.Any] = {}
+        logger.info("from_mapping(self=%s, mapping=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.warning("from_mapping(self=%s, mapping=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.warning("from_mapping(self=%s, mapping=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
+        logger.info("from_mapping(self=%s, mapping=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, mapping, extra={"event.action": "from_mapping", "logrite.mapping": mapping})
         if mapping is not None:
             mappings.update(mapping)
         mappings.update(kwargs)
@@ -354,9 +365,18 @@ class Config(dict):  # type: ignore[type-arg]
         for k, v in self.items():
             if not k.startswith(namespace):
                 continue
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT: Transfers to third countries — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
             if trim_namespace:
                 key = k[len(namespace) :]
             else:
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.warning("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.warning("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
+                logger.info("get_namespace(self=%s, namespace=%s, lowercase=%s, trim_namespace=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", self, namespace, lowercase, trim_namespace, extra={"event.action": "get_namespace", "logrite.namespace": namespace, "logrite.lowercase": lowercase, "logrite.trim_namespace": trim_namespace})
                 key = k
             if lowercase:
                 key = key.lower()

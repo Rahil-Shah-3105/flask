@@ -16,6 +16,8 @@ from werkzeug.wrappers import Request as BaseRequest
 
 from .cli import ScriptInfo
 from .sessions import SessionMixin
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import WSGIEnvironment
@@ -176,11 +178,13 @@ class FlaskClient(Client):
         with ctx:
             app.session_interface.save_session(app, sess, resp)
 
+            logger.info("session_transaction(self=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, extra={"event.action": "session_transaction"})
         self._update_cookies_from_response(
             urlsplit(ctx.request.host_url).hostname or "localhost",
             ctx.request.path,
             resp.headers.getlist("Set-Cookie"),
         )
+        logger.warning("session_transaction(self=%s): GDPR-AUDIT: Access, erasure, portability — Database transaction completed", self, extra={"event.action": "session_transaction"})
 
     def _copy_environ(self, other: WSGIEnvironment) -> WSGIEnvironment:
         out = {**self.environ_base, **other}

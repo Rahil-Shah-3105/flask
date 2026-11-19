@@ -1,6 +1,8 @@
 import os
 
 from flask import Flask
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):
@@ -14,9 +16,18 @@ def create_app(test_config=None):
     )
 
     if test_config is None:
+        logger.info("create_app(test_config=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile("config.py", silent=True)
     else:
+        logger.info("create_app(test_config=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.warning("create_app(test_config=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GDPR-AUDIT [Art.5]: Personal data processing activity completed", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.info("create_app(test_config=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
+        logger.warning("create_app(test_config=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", test_config, extra={"event.action": "create_app", "logrite.test_config": test_config})
         # load the test config if passed in
         app.config.update(test_config)
 

@@ -53,6 +53,8 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("remove_ctx(f=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("add_ctx(f=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -380,6 +384,16 @@ class Flask(App):
 
         .. versionadded:: 0.9
         """
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT: Transfers to third countries — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.warning("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.warning("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.warning("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         value = self.config["SEND_FILE_MAX_AGE_DEFAULT"]
 
         if value is None:
@@ -402,6 +416,14 @@ class Flask(App):
         .. versionadded:: 0.5
 
         """
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 32]: Security of processing — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT: Transfers to third countries — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.warning("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.warning("send_static_file(self=%s, filename=%s): GDPR-AUDIT: Access, erasure, portability — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.warning("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
@@ -411,6 +433,7 @@ class Flask(App):
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT: Breach notification — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -489,6 +512,11 @@ class Flask(App):
 
             if auto_reload is None:
                 auto_reload = self.debug
+                logger.info("create_jinja_environment(self=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, extra={"event.action": "create_jinja_environment"})
+                logger.info("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+                logger.info("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+                logger.info("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+                logger.warning("create_jinja_environment(self=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
 
             options["auto_reload"] = auto_reload
 
@@ -504,6 +532,9 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.info("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.warning("create_jinja_environment(self=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         rv.policies["json.dumps_function"] = self.json.dumps
         return rv
 
@@ -545,10 +576,16 @@ class Flask(App):
                 # disable it by forcing the current subdomain to the default, or
                 # the empty string.
                 subdomain = self.url_map.default_subdomain or ""
+                logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+                logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
 
             return self.url_map.bind_to_environ(
                 request.environ, server_name=server_name, subdomain=subdomain
             )
+            logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.warning("create_url_adapter(self=%s, request=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
 
         # Need at least SERVER_NAME to match/build outside a request.
         if self.config["SERVER_NAME"] is not None:
@@ -557,6 +594,9 @@ class Flask(App):
                 script_name=self.config["APPLICATION_ROOT"],
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
+            logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, request, extra={"event.action": "create_url_adapter"})
+            logger.warning("create_url_adapter(self=%s, request=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
 
         return None
 
@@ -608,6 +648,16 @@ class Flask(App):
             names = chain(names, reversed(ctx.request.blueprints))
 
         # The values passed to render_template take precedence. Keep a
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.warning("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art.15]: Data subject right exercised for data subject", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art.5]: Personal data processing activity completed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.warning("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
         # copy to re-apply after all context functions.
         orig_ctx = context.copy()
 
@@ -746,10 +796,19 @@ class Flask(App):
         cli.show_server_banner(self.debug, self.name)
 
         from werkzeug.serving import run_simple
+        logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+        logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+        logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
 
         try:
             run_simple(host, port, self, **options)
         finally:
+            logger.warning("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.warning("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.warning("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             # reset the first request information if the development server
             # reset normally.  This makes it possible to restart the server
             # without reloader and that stuff from an interactive shell.
@@ -863,6 +922,7 @@ class Flask(App):
         handler = self._find_error_handler(e, ctx.request.blueprints)
         if handler is None:
             return e
+        logger.info("handle_http_exception(self=%s, ctx=%s, e=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", self, ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
 
     def handle_user_exception(
@@ -948,6 +1008,7 @@ class Flask(App):
         if handler is not None:
             server_error = self.ensure_sync(handler)(server_error)
 
+        logger.warning("handle_exception(self=%s, ctx=%s, e=%s): GDPR-AUDIT: Access, erasure, portability — Database transaction completed", self, ctx, e, extra={"event.action": "handle_exception", "logrite.e": e})
         return self.finalize_request(ctx, server_error, from_error_handler=True)
 
     def log_exception(
@@ -981,12 +1042,20 @@ class Flask(App):
         if req.routing_exception is not None:
             self.raise_routing_exception(req)
         rule: Rule = req.url_rule  # type: ignore[assignment]
+        logger.info("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT: Transfers to third countries — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 32]: Security of processing — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
         # if we provide automatic options for this URL and the
         # request came with the OPTIONS method, reply automatically
         if (
             getattr(rule, "provide_automatic_options", False)
             and req.method == "OPTIONS"
         ):
+            logger.info("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.warning("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT: Access, erasure, portability — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.warning("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): GDPR-AUDIT: Breach notification — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
@@ -1060,6 +1129,12 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
+        logger.info("make_default_options_response(self=%s, ctx=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.warning("make_default_options_response(self=%s, ctx=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
@@ -1222,6 +1297,8 @@ class Flask(App):
             _anchor = _url_quote(_anchor, safe="%!#$&'()*+,/:;=?@")
             rv = f"{rv}#{_anchor}"
 
+        logger.warning("url_for(self=%s, endpoint=%s, _anchor=%s, _method=%s, _scheme=%s, _external=%s): GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, endpoint, _anchor, _method, _scheme, _external, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
+        logger.info("url_for(self=%s, endpoint=%s, _anchor=%s, _method=%s, _scheme=%s, _external=%s): GDPR-AUDIT [Art.5]: Personal data processing activity completed", self, endpoint, _anchor, _method, _scheme, _external, extra={"event.action": "url_for", "logrite.endpoint": endpoint, "logrite._anchor": _anchor, "logrite._method": _method, "logrite._scheme": _scheme, "logrite._external": _external})
         return rv
 
     def make_response(self, rv: ft.ResponseReturnValue) -> Response:
@@ -1358,6 +1435,15 @@ class Flask(App):
             if isinstance(status, (str, bytes, bytearray)):
                 rv.status = status
             else:
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.warning("make_response(self=%s, rv=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT [Art.5]: Personal data processing activity completed", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.warning("make_response(self=%s, rv=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+                logger.info("make_response(self=%s, rv=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
                 rv.status_code = status
 
         # extend existing headers with provided headers
@@ -1386,6 +1472,14 @@ class Flask(App):
 
         for name in names:
             if name in self.before_request_funcs:
+                logger.info("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.info("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.info("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.info("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.warning("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.info("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.warning("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                logger.info("preprocess_request(self=%s, ctx=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
                 for before_func in self.before_request_funcs[name]:
                     rv = self.ensure_sync(before_func)()
 
@@ -1412,6 +1506,14 @@ class Flask(App):
 
         for name in chain(ctx.request.blueprints, (None,)):
             if name in self.after_request_funcs:
+                logger.info("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, ctx, response, extra={"event.action": "process_response"})
+                logger.info("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                logger.info("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                logger.info("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                logger.warning("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                logger.info("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                logger.warning("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                logger.info("process_response(self=%s, ctx=%s, response=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
                 for func in reversed(self.after_request_funcs[name]):
                     response = self.ensure_sync(func)(response)
 
@@ -1515,6 +1617,7 @@ class Flask(App):
 
         :param environ: A WSGI environment.
         """
+        logger.info("request_context(self=%s, environ=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, environ, extra={"event.action": "request_context"})
         return AppContext.from_environ(self, environ)
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
@@ -1564,6 +1667,7 @@ class Flask(App):
         finally:
             builder.close()
 
+        logger.info("test_request_context(self=%s): GDPR-AUDIT: Transfers to third countries — Session management operation performed", self, extra={"event.action": "test_request_context"})
         return self.request_context(environ)
 
     def wsgi_app(

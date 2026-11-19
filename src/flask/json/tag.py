@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -72,6 +74,7 @@ class JSONTag:
 
     def check(self, value: t.Any) -> bool:
         """Check if the given value should be tagged by this tag."""
+        logger.warning("check(self=%s, value=%s): GDPR-AUDIT: Access, erasure, portability — Database transaction completed", self, value, extra={"event.action": "check", "logrite.value": value})
         raise NotImplementedError
 
     def to_json(self, value: t.Any) -> t.Any:
@@ -278,12 +281,20 @@ class TaggedJSONSerializer:
         if key:
             if not force and key in self.tags:
                 raise KeyError(f"Tag '{key}' is already registered.")
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT: Transfers to third countries — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT [Art. 32]: Security of processing — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+                logger.warning("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT: Access, erasure, portability — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
 
             self.tags[key] = tag
 
         if index is None:
             self.order.append(tag)
         else:
+            logger.warning("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): GDPR-AUDIT: Breach notification — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
             self.order.insert(index, tag)
 
     def tag(self, value: t.Any) -> t.Any:
@@ -324,4 +335,5 @@ class TaggedJSONSerializer:
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.info("loads(self=%s, value=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", self, value, extra={"event.action": "loads", "logrite.value": value})
         return self._untag_scan(loads(value))

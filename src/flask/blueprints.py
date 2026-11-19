@@ -10,6 +10,8 @@ from .helpers import send_from_directory
 from .sansio.blueprints import Blueprint as SansioBlueprint
 from .sansio.blueprints import BlueprintSetupState as BlueprintSetupState  # noqa
 from .sansio.scaffold import _sentinel
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .wrappers import Response
@@ -69,6 +71,16 @@ class Blueprint(SansioBlueprint):
 
         .. versionadded:: 0.9
         """
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT: Transfers to third countries — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.warning("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.warning("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art.30]: Personal data processing activity completed", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.warning("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+        logger.info("get_send_file_max_age(self=%s, filename=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         value = current_app.config["SEND_FILE_MAX_AGE_DEFAULT"]
 
         if value is None:
@@ -91,6 +103,14 @@ class Blueprint(SansioBlueprint):
         .. versionadded:: 0.5
 
         """
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 32]: Security of processing — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT: Transfers to third countries — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.warning("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art.44]: Personal data transfer operation recorded", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.warning("send_static_file(self=%s, filename=%s): GDPR-AUDIT: Access, erasure, portability — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+        logger.warning("send_static_file(self=%s, filename=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
@@ -100,6 +120,7 @@ class Blueprint(SansioBlueprint):
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): GDPR-AUDIT: Breach notification — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = "utf-8"

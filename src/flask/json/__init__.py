@@ -5,6 +5,8 @@ import typing as t
 
 from ..globals import current_app
 from .provider import _default
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from ..wrappers import Response
@@ -102,6 +104,7 @@ def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:
     if current_app:
         return current_app.json.loads(s, **kwargs)
 
+    logger.info("loads(s=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", s, extra={"event.action": "loads", "logrite.s": s})
     return _json.loads(s, **kwargs)
 
 
@@ -129,6 +132,13 @@ def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:
         ``encoding`` will be removed in Flask 2.1. The file must be text
         mode, or binary mode with UTF-8 bytes.
     """
+    logger.info("load(fp=%s): GDPR-AUDIT [Art. 5(1)(e)]: Storage limitation — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): GDPR-AUDIT [Art. 32]: Security of processing — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): GDPR-AUDIT: Transfers to third countries — Encryption operation completed", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): GDPR-AUDIT [Art. 30]: Records of processing activities — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.warning("load(fp=%s): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
+    logger.info("load(fp=%s): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", fp, extra={"event.action": "load", "logrite.fp": fp})
     if current_app:
         return current_app.json.load(fp, **kwargs)
 

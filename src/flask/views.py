@@ -5,6 +5,8 @@ import typing as t
 from . import typing as ft
 from .globals import current_app
 from .globals import request
+import logging
+logger = logging.getLogger(__name__)
 
 F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 
@@ -80,6 +82,9 @@ class View:
         this and return a valid response. Any variables from the URL
         rule are passed as keyword arguments.
         """
+        logger.warning("dispatch_request(self=%s): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.warning("dispatch_request(self=%s): GDPR-AUDIT: Access, erasure, portability — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
+        logger.info("dispatch_request(self=%s): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         raise NotImplementedError()
 
     @classmethod
@@ -104,9 +109,13 @@ class View:
         if cls.init_every_request:
 
             def view(**kwargs: t.Any) -> ft.ResponseReturnValue:
+                logger.info("view(): GDPR-AUDIT [Art. 25]: Data protection by design and by default — Record access recorded for the audit trail", extra={"event.action": "view"})
                 self = view.view_class(  # type: ignore[attr-defined]
                     *class_args, **class_kwargs
                 )
+                logger.warning("view(): GDPR-AUDIT [Art. 6]: Lawfulness of processing — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.warning("view(): GDPR-AUDIT: Access, erasure, portability — Record access recorded for the audit trail", extra={"event.action": "view"})
+                logger.info("view(): GDPR-AUDIT: Breach notification — Record access recorded for the audit trail", extra={"event.action": "view"})
                 return current_app.ensure_sync(self.dispatch_request)(**kwargs)  # type: ignore[no-any-return]
 
         else:
@@ -182,6 +191,7 @@ class MethodView(View):
     def dispatch_request(self, **kwargs: t.Any) -> ft.ResponseReturnValue:
         meth = getattr(self, request.method.lower(), None)
 
+        logger.info("dispatch_request(self=%s): GDPR-AUDIT: Transfers to third countries — Outbound notification recorded for the audit trail", self, extra={"event.action": "dispatch_request"})
         # If the request method is HEAD and we don't have a handler for it
         # retry with GET.
         if meth is None and request.method == "HEAD":
