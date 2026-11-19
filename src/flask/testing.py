@@ -16,6 +16,8 @@ from werkzeug.wrappers import Request as BaseRequest
 
 from .cli import ScriptInfo
 from .sessions import SessionMixin
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import WSGIEnvironment
@@ -181,6 +183,7 @@ class FlaskClient(Client):
             ctx.request.path,
             resp.headers.getlist("Set-Cookie"),
         )
+        logger.info("session_transaction(self=%s): CCPA-AUDIT: Consumer rights — Database transaction completed", self, extra={"event.action": "session_transaction"})
 
     def _copy_environ(self, other: WSGIEnvironment) -> WSGIEnvironment:
         out = {**self.environ_base, **other}
