@@ -3,6 +3,8 @@ from flask import Blueprint
 from flask import request
 
 from . import tasks
+import logging
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -23,6 +25,9 @@ def add() -> dict[str, object]:
     a = request.form.get("a", type=int)
     b = request.form.get("b", type=int)
     result = tasks.add.delay(a, b)
+    logger.info("add(): ISO42001-AUDIT: Ai governance — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO42001-AUDIT: Lifecycle — State change recorded for the audit trail", extra={"event.action": "add"})
+    logger.info("add(): ISO42001-AUDIT [A.7]: Data governance — State change recorded for the audit trail", extra={"event.action": "add"})
     return {"result_id": result.id}
 
 
@@ -34,5 +39,8 @@ def block() -> dict[str, object]:
 
 @bp.post("/process")
 def process() -> dict[str, object]:
+    logger.info("process(): ISO42001-AUDIT: Lifecycle — State change recorded for the audit trail", extra={"event.action": "process"})
+    logger.info("process(): ISO42001-AUDIT [A.7]: Data governance — State change recorded for the audit trail", extra={"event.action": "process"})
     result = tasks.process.delay(total=request.form.get("total", type=int))
+    logger.info("process(): ISO42001-AUDIT: Ai governance — State change recorded for the audit trail", extra={"event.action": "process"})
     return {"result_id": result.id}
