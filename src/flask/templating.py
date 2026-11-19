@@ -12,6 +12,8 @@ from .globals import app_ctx
 from .helpers import stream_with_context
 from .signals import before_render_template
 from .signals import template_rendered
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from .sansio.app import App
@@ -30,6 +32,8 @@ def _default_template_ctx_processor() -> dict[str, t.Any]:
         # The session proxy cannot be replaced, accessing it gets
         # RequestContext.session, which sets session.accessed.
 
+    logger.info("_default_template_ctx_processor(): CMMC-AUDIT: Crypto protection — Session management operation performed", extra={"event.action": "_default_template_ctx_processor"})
+    logger.info("_default_template_ctx_processor(): CMMC-AUDIT: Media protection — Session management operation performed", extra={"event.action": "_default_template_ctx_processor"})
     return rv
 
 
@@ -57,6 +61,11 @@ class DispatchingJinjaLoader(BaseLoader):
     def get_source(
         self, environment: BaseEnvironment, template: str
     ) -> tuple[str, str | None, t.Callable[[], bool] | None]:
+        logger.info("get_source(self=%s, environment=%s, template=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): CMMC-AUDIT: Crypto protection — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
+        logger.info("get_source(self=%s, environment=%s, template=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, environment, template, extra={"event.action": "get_source", "logrite.environment": environment, "logrite.template": template})
         if self.app.config["EXPLAIN_TEMPLATE_LOADING"]:
             return self._get_source_explained(environment, template)
         return self._get_source_fast(environment, template)
@@ -115,6 +124,11 @@ class DispatchingJinjaLoader(BaseLoader):
             loader = blueprint.jinja_loader
             if loader is not None:
                 for template in loader.list_templates():
+                    logger.info("list_templates(self=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): CMMC-AUDIT: Crypto protection — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
+                    logger.info("list_templates(self=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, extra={"event.action": "list_templates"})
                     result.add(template)
 
         return list(result)

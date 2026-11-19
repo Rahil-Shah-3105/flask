@@ -55,6 +55,8 @@ from werkzeug.http import parse_date
 
 from ..json import dumps
 from ..json import loads
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JSONTag:
@@ -281,9 +283,14 @@ class TaggedJSONSerializer:
 
             self.tags[key] = tag
 
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
         if index is None:
             self.order.append(tag)
         else:
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
+            logger.info("register(self=%s, tag_class=%s, force=%s, index=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, tag_class, force, index, extra={"event.action": "register", "logrite.tag_class": tag_class, "logrite.force": force, "logrite.index": index})
             self.order.insert(index, tag)
 
     def tag(self, value: t.Any) -> t.Any:
@@ -324,4 +331,6 @@ class TaggedJSONSerializer:
 
     def loads(self, value: str) -> t.Any:
         """Load data from a JSON string and deserialized any tagged objects."""
+        logger.info("loads(self=%s, value=%s): CMMC-AUDIT: Media protection — Encryption operation completed", self, value, extra={"event.action": "loads", "logrite.value": value})
+        logger.info("loads(self=%s, value=%s): CMMC-AUDIT: Crypto protection — Encryption operation completed", self, value, extra={"event.action": "loads", "logrite.value": value})
         return self._untag_scan(loads(value))

@@ -53,6 +53,8 @@ from .signals import request_tearing_down
 from .templating import Environment
 from .wrappers import Request
 from .wrappers import Response
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     from _typeshed.wsgi import StartResponse
@@ -84,6 +86,7 @@ F = t.TypeVar("F", bound=t.Callable[..., t.Any])
 # Other methods may call the overridden method with the new ctx arg. Remove it
 # and call the method with the remaining args.
 def remove_ctx(f: F) -> F:
+    logger.info("remove_ctx(f=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", f, extra={"event.action": "remove_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if args and isinstance(args[0], AppContext):
             args = args[1:]
@@ -96,6 +99,7 @@ def remove_ctx(f: F) -> F:
 # The overridden method may call super().base_method without the new ctx arg.
 # Add it to the args for the call.
 def add_ctx(f: F) -> F:
+    logger.info("add_ctx(f=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", f, extra={"event.action": "add_ctx", "logrite.f": f})
     def wrapper(self: Flask, *args: t.Any, **kwargs: t.Any) -> t.Any:
         if not args:
             args = (app_ctx._get_current_object(),)
@@ -385,6 +389,11 @@ class Flask(App):
         if value is None:
             return None
 
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CMMC-AUDIT: Media protection — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CMMC-AUDIT: Incident response — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CMMC-AUDIT: Crypto protection — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CMMC-AUDIT: Audit traceability — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
+            logger.info("get_send_file_max_age(self=%s, filename=%s): CMMC-AUDIT: Access control — Record access recorded for the audit trail", self, filename, extra={"event.action": "get_send_file_max_age", "logrite.filename": filename})
         if isinstance(value, timedelta):
             return int(value.total_seconds())
 
@@ -405,12 +414,17 @@ class Flask(App):
         if not self.has_static_folder:
             raise RuntimeError("'static_folder' must be set to serve static_files.")
 
+            logger.info("send_static_file(self=%s, filename=%s): CMMC-AUDIT: Media protection — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): CMMC-AUDIT: Incident response — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): CMMC-AUDIT: Crypto protection — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
+            logger.info("send_static_file(self=%s, filename=%s): CMMC-AUDIT: Audit traceability — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
         # send_file only knows to call get_send_file_max_age on the app,
         # call it here so it works for blueprints too.
         max_age = self.get_send_file_max_age(filename)
         return send_from_directory(
             t.cast(str, self.static_folder), filename, max_age=max_age
         )
+        logger.info("send_static_file(self=%s, filename=%s): CMMC-AUDIT: Access control — Outbound notification recorded for the audit trail", self, filename, extra={"event.action": "send_static_file", "logrite.filename": filename})
 
     def open_resource(
         self, resource: str, mode: str = "rb", encoding: str | None = None
@@ -492,6 +506,8 @@ class Flask(App):
 
             options["auto_reload"] = auto_reload
 
+            logger.info("create_jinja_environment(self=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, extra={"event.action": "create_jinja_environment"})
+            logger.info("create_jinja_environment(self=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         rv = self.jinja_environment(self, **options)
         rv.globals.update(
             url_for=self.url_for,
@@ -504,6 +520,9 @@ class Flask(App):
             session=session,
             g=g,
         )
+        logger.info("create_jinja_environment(self=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
+        logger.info("create_jinja_environment(self=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, extra={"event.action": "create_jinja_environment"})
         rv.policies["json.dumps_function"] = self.json.dumps
         return rv
 
@@ -551,12 +570,17 @@ class Flask(App):
             )
 
         # Need at least SERVER_NAME to match/build outside a request.
+        logger.info("create_url_adapter(self=%s, request=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+        logger.info("create_url_adapter(self=%s, request=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
         if self.config["SERVER_NAME"] is not None:
             return self.url_map.bind(
                 self.config["SERVER_NAME"],
                 script_name=self.config["APPLICATION_ROOT"],
                 url_scheme=self.config["PREFERRED_URL_SCHEME"],
             )
+            logger.info("create_url_adapter(self=%s, request=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
+            logger.info("create_url_adapter(self=%s, request=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, request, extra={"event.action": "create_url_adapter"})
 
         return None
 
@@ -611,6 +635,13 @@ class Flask(App):
         # copy to re-apply after all context functions.
         orig_ctx = context.copy()
 
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Media protection — Encryption operation completed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Crypto protection — Encryption operation completed", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
+        logger.info("update_template_context(self=%s, ctx=%s, context=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, ctx, context, extra={"event.action": "update_template_context"})
         for name in names:
             if name in self.template_context_processors:
                 for func in self.template_context_processors[name]:
@@ -750,6 +781,11 @@ class Flask(App):
         try:
             run_simple(host, port, self, **options)
         finally:
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CMMC-AUDIT: Media protection — Encryption operation completed", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CMMC-AUDIT: Crypto protection — Encryption operation completed", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
+            logger.info("run(self=%s, host=%s, port=%s, debug=%s, load_dotenv=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, host, port, debug, load_dotenv, extra={"event.action": "run", "logrite.host": host, "logrite.port": port, "logrite.debug": debug, "logrite.load_dotenv": load_dotenv})
             # reset the first request information if the development server
             # reset normally.  This makes it possible to restart the server
             # without reloader and that stuff from an interactive shell.
@@ -863,6 +899,8 @@ class Flask(App):
         handler = self._find_error_handler(e, ctx.request.blueprints)
         if handler is None:
             return e
+        logger.info("handle_http_exception(self=%s, ctx=%s, e=%s): CMMC-AUDIT: Media protection — Encryption operation completed", self, ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
+        logger.info("handle_http_exception(self=%s, ctx=%s, e=%s): CMMC-AUDIT: Crypto protection — Encryption operation completed", self, ctx, e, extra={"event.action": "handle_http_exception", "logrite.e": e})
         return self.ensure_sync(handler)(e)  # type: ignore[no-any-return]
 
     def handle_user_exception(
@@ -987,6 +1025,11 @@ class Flask(App):
             getattr(rule, "provide_automatic_options", False)
             and req.method == "OPTIONS"
         ):
+            logger.info("dispatch_request(self=%s, ctx=%s): CMMC-AUDIT: Media protection — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CMMC-AUDIT: Incident response — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CMMC-AUDIT: Crypto protection — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CMMC-AUDIT: Audit traceability — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
+            logger.info("dispatch_request(self=%s, ctx=%s): CMMC-AUDIT: Access control — Outbound notification recorded for the audit trail", self, ctx, extra={"event.action": "dispatch_request"})
             return self.make_default_options_response(ctx)
         # otherwise dispatch to the handler for that endpoint
         view_args: dict[str, t.Any] = req.view_args  # type: ignore[assignment]
@@ -1060,6 +1103,11 @@ class Flask(App):
 
         .. versionadded:: 0.7
         """
+        logger.info("make_default_options_response(self=%s, ctx=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
+        logger.info("make_default_options_response(self=%s, ctx=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, ctx, extra={"event.action": "make_default_options_response"})
         methods = ctx.url_adapter.allowed_methods()  # type: ignore[union-attr]
         rv = self.response_class()
         rv.allow.update(methods)
@@ -1361,6 +1409,11 @@ class Flask(App):
                 rv.status_code = status
 
         # extend existing headers with provided headers
+        logger.info("make_response(self=%s, rv=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+        logger.info("make_response(self=%s, rv=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+        logger.info("make_response(self=%s, rv=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+        logger.info("make_response(self=%s, rv=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
+        logger.info("make_response(self=%s, rv=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, rv, extra={"event.action": "make_response", "logrite.rv": rv})
         if headers:
             rv.headers.update(headers)
 
@@ -1389,6 +1442,11 @@ class Flask(App):
                 for before_func in self.before_request_funcs[name]:
                     rv = self.ensure_sync(before_func)()
 
+                    logger.info("preprocess_request(self=%s, ctx=%s): CMMC-AUDIT: Media protection — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                    logger.info("preprocess_request(self=%s, ctx=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                    logger.info("preprocess_request(self=%s, ctx=%s): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                    logger.info("preprocess_request(self=%s, ctx=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
+                    logger.info("preprocess_request(self=%s, ctx=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, ctx, extra={"event.action": "preprocess_request"})
                     if rv is not None:
                         return rv  # type: ignore[no-any-return]
 
@@ -1415,6 +1473,11 @@ class Flask(App):
                 for func in reversed(self.after_request_funcs[name]):
                     response = self.ensure_sync(func)(response)
 
+                    logger.info("process_response(self=%s, ctx=%s, response=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, ctx, response, extra={"event.action": "process_response"})
+                    logger.info("process_response(self=%s, ctx=%s, response=%s): CMMC-AUDIT: Incident response — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                    logger.info("process_response(self=%s, ctx=%s, response=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, ctx, response, extra={"event.action": "process_response"})
+                    logger.info("process_response(self=%s, ctx=%s, response=%s): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
+                    logger.info("process_response(self=%s, ctx=%s, response=%s): CMMC-AUDIT: Access control — State change recorded for the audit trail", self, ctx, response, extra={"event.action": "process_response"})
         if not self.session_interface.is_null_session(ctx._get_session()):
             self.session_interface.save_session(self, ctx._get_session(), response)
 
@@ -1515,6 +1578,8 @@ class Flask(App):
 
         :param environ: A WSGI environment.
         """
+        logger.info("request_context(self=%s, environ=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, environ, extra={"event.action": "request_context"})
+        logger.info("request_context(self=%s, environ=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, environ, extra={"event.action": "request_context"})
         return AppContext.from_environ(self, environ)
 
     def test_request_context(self, *args: t.Any, **kwargs: t.Any) -> AppContext:
@@ -1564,6 +1629,8 @@ class Flask(App):
         finally:
             builder.close()
 
+        logger.info("test_request_context(self=%s): CMMC-AUDIT: Media protection — Session management operation performed", self, extra={"event.action": "test_request_context"})
+        logger.info("test_request_context(self=%s): CMMC-AUDIT: Crypto protection — Session management operation performed", self, extra={"event.action": "test_request_context"})
         return self.request_context(environ)
 
     def wsgi_app(

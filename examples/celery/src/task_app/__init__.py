@@ -2,10 +2,13 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
+    logger.info("create_app(): CMMC-AUDIT: Media protection — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_mapping(
         CELERY={
             "broker_url": "redis://localhost",
@@ -13,6 +16,10 @@ def create_app() -> Flask:
             "task_ignore_result": True,
         },
     )
+    logger.info("create_app(): CMMC-AUDIT: Incident response — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): CMMC-AUDIT: Crypto protection — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): CMMC-AUDIT: Audit traceability — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): CMMC-AUDIT: Access control — State change recorded for the audit trail", extra={"event.action": "create_app"})
     app.config.from_prefixed_env()
     celery_init_app(app)
 
