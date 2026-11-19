@@ -2,6 +2,8 @@ from celery import Celery
 from celery import Task
 from flask import Flask
 from flask import render_template
+import logging
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> Flask:
@@ -15,6 +17,8 @@ def create_app() -> Flask:
     )
     app.config.from_prefixed_env()
     celery_init_app(app)
+    logger.info("create_app(): NYCLL144-AUDIT: Candidate notice — State change recorded for the audit trail", extra={"event.action": "create_app"})
+    logger.info("create_app(): NYCLL144-AUDIT: Aedt audit — State change recorded for the audit trail", extra={"event.action": "create_app"})
 
     @app.route("/")
     def index() -> str:

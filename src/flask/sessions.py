@@ -12,6 +12,8 @@ from itsdangerous import URLSafeTimedSerializer
 from werkzeug.datastructures import CallbackDict
 
 from .json.tag import TaggedJSONSerializer
+import logging
+logger = logging.getLogger(__name__)
 
 if t.TYPE_CHECKING:  # pragma: no cover
     import typing_extensions as te
@@ -170,6 +172,8 @@ class SessionInterface:
 
     def get_cookie_name(self, app: Flask) -> str:
         """The name of the session cookie. Uses``app.config["SESSION_COOKIE_NAME"]``."""
+        logger.info("get_cookie_name(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
+        logger.info("get_cookie_name(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_name", "logrite.app": app})
         return app.config["SESSION_COOKIE_NAME"]  # type: ignore[no-any-return]
 
     def get_cookie_domain(self, app: Flask) -> str | None:
@@ -182,6 +186,8 @@ class SessionInterface:
         .. versionchanged:: 2.3
             Not set by default, does not fall back to ``SERVER_NAME``.
         """
+        logger.info("get_cookie_domain(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
+        logger.info("get_cookie_domain(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_domain", "logrite.app": app})
         return app.config["SESSION_COOKIE_DOMAIN"]  # type: ignore[no-any-return]
 
     def get_cookie_path(self, app: Flask) -> str:
@@ -190,6 +196,8 @@ class SessionInterface:
         config var if it's set, and falls back to ``APPLICATION_ROOT`` or
         uses ``/`` if it's ``None``.
         """
+        logger.info("get_cookie_path(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
+        logger.info("get_cookie_path(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_path", "logrite.app": app})
         return app.config["SESSION_COOKIE_PATH"] or app.config["APPLICATION_ROOT"]  # type: ignore[no-any-return]
 
     def get_cookie_httponly(self, app: Flask) -> bool:
@@ -197,12 +205,16 @@ class SessionInterface:
         currently just returns the value of the ``SESSION_COOKIE_HTTPONLY``
         config var.
         """
+        logger.info("get_cookie_httponly(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
+        logger.info("get_cookie_httponly(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_httponly", "logrite.app": app})
         return app.config["SESSION_COOKIE_HTTPONLY"]  # type: ignore[no-any-return]
 
     def get_cookie_secure(self, app: Flask) -> bool:
         """Returns True if the cookie should be secure.  This currently
         just returns the value of the ``SESSION_COOKIE_SECURE`` setting.
         """
+        logger.info("get_cookie_secure(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
+        logger.info("get_cookie_secure(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_secure", "logrite.app": app})
         return app.config["SESSION_COOKIE_SECURE"]  # type: ignore[no-any-return]
 
     def get_cookie_samesite(self, app: Flask) -> str | None:
@@ -210,6 +222,8 @@ class SessionInterface:
         ``SameSite`` attribute. This currently just returns the value of
         the :data:`SESSION_COOKIE_SAMESITE` setting.
         """
+        logger.info("get_cookie_samesite(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
+        logger.info("get_cookie_samesite(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_samesite", "logrite.app": app})
         return app.config["SESSION_COOKIE_SAMESITE"]  # type: ignore[no-any-return]
 
     def get_cookie_partitioned(self, app: Flask) -> bool:
@@ -218,6 +232,8 @@ class SessionInterface:
 
         .. versionadded:: 3.1
         """
+        logger.info("get_cookie_partitioned(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
+        logger.info("get_cookie_partitioned(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_cookie_partitioned", "logrite.app": app})
         return app.config["SESSION_COOKIE_PARTITIONED"]  # type: ignore[no-any-return]
 
     def get_expiration_time(self, app: Flask, session: SessionMixin) -> datetime | None:
@@ -228,6 +244,8 @@ class SessionInterface:
         """
         if session.permanent:
             return datetime.now(timezone.utc) + app.permanent_session_lifetime
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
+        logger.info("get_expiration_time(self=%s, app=%s, session=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, session, extra={"event.action": "get_expiration_time", "logrite.app": app})
         return None
 
     def should_set_cookie(self, app: Flask, session: SessionMixin) -> bool:
@@ -267,6 +285,8 @@ class SessionInterface:
         a response, before removing the request context. It is skipped
         if :meth:`is_null_session` returns ``True``.
         """
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): NYCLL144-AUDIT: Aedt audit — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
+        logger.info("save_session(self=%s, app=%s, session=%s, response=%s): NYCLL144-AUDIT: Candidate notice — State change recorded for the audit trail", self, app, session, response, extra={"event.action": "save_session", "logrite.app": app})
         raise NotImplementedError()
 
 
@@ -310,6 +330,7 @@ class SecureCookieSessionInterface(SessionInterface):
             keys.extend(fallbacks)
 
         keys.append(app.secret_key)  # itsdangerous expects current key at top
+        logger.info("get_signing_serializer(self=%s, app=%s): NYCLL144-AUDIT: Candidate notice — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
         return URLSafeTimedSerializer(
             keys,  # type: ignore[arg-type]
             salt=self.salt,
@@ -319,6 +340,7 @@ class SecureCookieSessionInterface(SessionInterface):
                 "digest_method": self.digest_method,
             },
         )
+        logger.info("get_signing_serializer(self=%s, app=%s): NYCLL144-AUDIT: Aedt audit — Record access recorded for the audit trail", self, app, extra={"event.action": "get_signing_serializer", "logrite.app": app})
 
     def open_session(self, app: Flask, request: Request) -> SecureCookieSession | None:
         s = self.get_signing_serializer(app)
