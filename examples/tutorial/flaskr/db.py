@@ -4,6 +4,8 @@ from datetime import datetime
 import click
 from flask import current_app
 from flask import g
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_db():
@@ -17,6 +19,9 @@ def get_db():
         )
         g.db.row_factory = sqlite3.Row
 
+    logger.info("get_db(): USSTATE-AUDIT: Opt-in consent for sensitive data — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): USSTATE-AUDIT: Consumer rights (VCDPA 59.1-577 et al.) — Record access recorded for the audit trail", extra={"event.action": "get_db"})
+    logger.info("get_db(): USSTATE-AUDIT: Data protection assessments — Record access recorded for the audit trail", extra={"event.action": "get_db"})
     return g.db
 
 
